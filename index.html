@@ -327,17 +327,17 @@
   </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-  const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
+<<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  const starvexSupabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
-  console.log("STARVEX: Supabase client initialized");
 <script>
+const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
+const SUPABASE_KEY = "sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
+
+const starvexSupabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
 async function loadStarvexPlans() {
   const { data, error } = await starvexSupabase
     .from("plans")
@@ -345,28 +345,29 @@ async function loadStarvexPlans() {
     .eq("is_active", true)
     .order("id");
 
+  const box = document.getElementById("plans-list");
+
   if (error) {
     console.error("خطا در دریافت پلن‌ها:", error);
+    if (box) box.textContent = "دریافت پلن‌ها با خطا مواجه شد.";
     return;
   }
 
   console.log("پلن‌های STARVEX:", data);
-const box = document.getElementById("plans-list");
 
-if (box) {
-  box.innerHTML = data.map(plan => `
-    <div style="background:#111827;border:1px solid #d4af37;border-radius:12px;padding:16px;margin:12px 0;color:white">
-      <h3>${plan.name}</h3>
-      <p>مدت اشتراک: ${plan.duration_days} روز</p>
-      <p>حجم اشتراک: ${plan.volume_gb} گیگابایت</p>
-      <p>قیمت: ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان</p>
-    </div>
-  `).join("");
-}
+  if (box) {
+    box.innerHTML = data.map(plan => `
+      <div style="background:#111827;border:1px solid #d4af37;border-radius:12px;padding:16px;margin:12px 0;color:white">
+        <h3>${plan.name}</h3>
+        <p>مدت اشتراک: ${plan.duration_days} روز</p>
+        <p>حجم اشتراک: ${plan.volume_gb} گیگابایت</p>
+        <p>قیمت: ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان</p>
+      </div>
+    `).join("");
+  }
 }
 
 loadStarvexPlans();
-</script>
 </script>
 
 </body>
