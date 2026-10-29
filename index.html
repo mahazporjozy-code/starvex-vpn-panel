@@ -1,246 +1,177 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b0b0d">
-<title>STARVEX VPN | پنل مدیریت</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b14">
+  <title>STARVEX VPN | پنل اختصاصی</title>
 
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    background: #0b0b0d;
-    color: #f5f5f5;
-    font-family: Tahoma, Arial, sans-serif;
-    font-size: 14px;
-}
-
-header {
-    padding: 24px 18px;
-    background: linear-gradient(135deg, #17130a, #0b0b0d);
-    border-bottom: 1px solid #8e702c;
-}
-
-.logo {
-    color: #e8c568;
-    font-size: 27px;
-    font-weight: bold;
-    letter-spacing: 2px;
-}
-
-.subtitle {
-    margin-top: 9px;
-    color: #aaa;
-    font-size: 12px;
-}
-
-.container {
-    width: 100%;
-    max-width: 850px;
-    margin: auto;
-    padding: 20px 15px;
-}
-
-.welcome {
-    padding: 20px;
-    border: 1px solid #514322;
-    border-radius: 14px;
-    background: #141310;
-    margin-bottom: 22px;
-}
-
-.welcome h2 {
-    color: #e8c568;
-    margin-top: 0;
-}
-
-.welcome p {
-    color: #bcbcbc;
-    line-height: 2;
-}
-
-.badge {
-    display: inline-block;
-    padding: 7px 12px;
-    border-radius: 20px;
-    background: #28210f;
-    color: #e8c568;
-    font-size: 12px;
-}
-
-.section-title {
-    color: #e8c568;
-    font-size: 17px;
-    margin: 25px 0 14px;
-}
-
-.stats {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.card {
-    background: #151517;
-    border: 1px solid #34312a;
-    border-radius: 12px;
-    padding: 17px 13px;
-}
-
-.card-label {
-    color: #aaa;
-    font-size: 12px;
-    margin-bottom: 13px;
-}
-
-.card-value {
-    color: #e8c568;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.menu {
-    display: grid;
-    gap: 12px;
-}
-
-.menu-item {
-    width: 100%;
-    padding: 17px;
-    background: #151517;
-    border: 1px solid #8e702c;
-    border-radius: 10px;
-    color: #f1d58a;
-    text-align: right;
-    font-family: inherit;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.menu-item span {
-    display: block;
-    margin-top: 7px;
-    color: #aaa;
-    font-size: 11px;
-    line-height: 1.8;
-}
-
-.notice {
-    margin-top: 22px;
-    padding: 15px;
-    border-radius: 10px;
-    background: #19160e;
-    color: #d8c28a;
-    line-height: 2;
-    font-size: 12px;
-}
-
-footer {
-    text-align: center;
-    padding: 25px 10px;
-    color: #777;
-    font-size: 11px;
-}
-
-@media (min-width: 600px) {
-    .stats {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+  <style>
+    * {
+      box-sizing: border-box;
     }
-}
-</style>
-</head>
 
-<body>
+    body {
+      margin: 0;
+      font-family: Tahoma, Arial, sans-serif;
+      background: #080b14;
+      color: #f5f7ff;
+      line-height: 1.8;
+    }
 
-<header>
-    <div class="logo">STARVEX</div>
-    <div class="subtitle">PREMIUM VPN MANAGEMENT</div>
-</header>
+    .container {
+      width: 92%;
+      max-width: 1100px;
+      margin: auto;
+    }
 
-<main class="container">
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid #20283a;
+      background: #0b101d;
+    }
 
-    <section class="welcome">
-        <span class="badge">پنل مدیریت</span>
-        <h2>به پنل STARVEX خوش آمدید</h2>
-        <p>
-            مدیریت کاربران، اشتراک‌ها و کانفیگ‌های VPN
-            در یک محیط ساده و حرفه‌ای.
-        </p>
-    </section>
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
 
-    <h3 class="section-title">نمای کلی</h3>
+    .logo {
+      font-size: 27px;
+      font-weight: bold;
+      color: #d9b66d;
+      letter-spacing: 2px;
+    }
 
-    <section class="stats">
-        <div class="card">
-            <div class="card-label">کاربران</div>
-            <div class="card-value">۰</div>
-        </div>
+    .subtitle {
+      font-size: 11px;
+      color: #9ba7c0;
+      letter-spacing: 2px;
+    }
 
-        <div class="card">
-            <div class="card-label">کانفیگ‌ها</div>
-            <div class="card-value">۰</div>
-        </div>
+    .badge {
+      padding: 6px 12px;
+      border: 1px solid #34415a;
+      border-radius: 8px;
+      color: #a9c5ff;
+      font-size: 12px;
+    }
 
-        <div class="card">
-            <div class="card-label">اشتراک‌های فعال</div>
-            <div class="card-value">۰</div>
-        </div>
+    .hero {
+      padding: 38px 0 24px;
+    }
 
-        <div class="card">
-            <div class="card-label">وضعیت پنل</div>
-            <div class="card-value" style="font-size:16px">
-                آزمایشی
-            </div>
-        </div>
-    </section>
+    .hero h1 {
+      font-size: clamp(25px, 5vw, 38px);
+      margin-bottom: 8px;
+    }
 
-    <h3 class="section-title">مدیریت سرویس</h3>
+    .hero h1 span {
+      color: #d9b66d;
+    }
 
-    <section class="menu">
-        <button class="menu-item" onclick="showMessage('ساخت کانفیگ در مرحله بعد فعال می‌شود.')">
-            ＋ ساخت کانفیگ جدید
-            <span>ایجاد کانفیگ پس از راه‌اندازی سرور VPN</span>
-        </button>
+    .hero p {
+      color: #aab5ca;
+      font-size: 14px;
+    }
 
-        <button class="menu-item" onclick="showMessage('مدیریت کاربران در مرحله بعد ساخته می‌شود.')">
-            ♙ مدیریت کاربران
-            <span>مشاهده و مدیریت حساب‌های کاربران</span>
-        </button>
+    .notice {
+      margin-top: 22px;
+      padding: 13px 16px;
+      border: 1px solid #66532c;
+      border-radius: 10px;
+      background: #19170f;
+      color: #e8cc8b;
+      font-size: 12px;
+    }
 
-        <button class="menu-item" onclick="showMessage('مدیریت اشتراک‌ها در مرحله بعد ساخته می‌شود.')">
-            ◷ مدیریت اشتراک‌ها
-            <span>بررسی مدت اعتبار و تاریخ انقضا</span>
-        </button>
+    .section-title {
+      margin: 28px 0 15px;
+      font-size: 19px;
+    }
 
-        <button class="menu-item" onclick="showMessage('بخش تنظیمات در مرحله بعد ساخته می‌شود.')">
-            ⚙ تنظیمات پنل
-            <span>تنظیمات مدیریتی STARVEX VPN</span>
-        </button>
-    </section>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
 
-    <div class="notice">
-        توجه: این نسخه، ظاهر اولیه پنل است.
-        اطلاعات نمایشی آزمایشی هستند و هنوز به سرور VPN،
-        پایگاه داده یا سیستم واقعی ساخت کانفیگ متصل نشده‌اند.
-    </div>
+    .card {
+      background: #101725;
+      border: 1px solid #253047;
+      border-radius: 13px;
+      padding: 21px;
+    }
 
-</main>
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
 
-<footer>
-    STARVEX VPN © 2026
-    <br><br>
-    PREMIUM DIGITAL EXPERIENCE
-</footer>
+    .card p {
+      margin: 0 0 17px;
+      font-size: 13px;
+      color: #aab5ca;
+    }
 
-<script>
-function showMessage(message) {
-    alert(message);
-}
-</script>
+    .icon {
+      font-size: 27px;
+      margin-bottom: 8px;
+    }
 
-</body>
-          </html>
+    .button {
+      display: block;
+      width: 100%;
+      border: 1px solid #d9b66d;
+      border-radius: 8px;
+      padding: 11px 12px;
+      background: #d9b66d;
+      color: #10131b;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .button.blue {
+      background: #172c50;
+      color: #c7dcff;
+      border-color: #355b94;
+    }
+
+    .button.outline {
+      background: transparent;
+      color: #e0c37e;
+    }
+
+    .server {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 0;
+      border-bottom: 1px solid #253047;
+    }
+
+    .server:last-child {
+      border-bottom: none;
+    }
+
+    .server-name {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .server-info {
+      font-size: 11px;
+      color: #9ba7c0;
+    }
+
+    .status {
+      font-size: 11px;
+      color: #e8
