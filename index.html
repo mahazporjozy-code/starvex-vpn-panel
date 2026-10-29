@@ -318,16 +318,7 @@
     </div>
   </footer>
 
-  <script>
-    function showMessage() {
-      alert(
-        "این بخش هنوز فعال نشده است. در مرحله بعد، ورود امن و اتصال به پایگاه داده را راه‌اندازی می‌کنیم."
-      );
-    }
-  </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
@@ -339,55 +330,10 @@ const starvexSupabase = window.supabase.createClient(
 );
 
 async function loadStarvexPlans() {
-  const { data, error } = await starvexSupabase
-    .from("plans")
-    .select("id, name, duration_days, volume_gb, price_toman")
-    .eq("is_active", true)
-    .order("id");
-
   const box = document.getElementById("plans-list");
+  if (!box) return;
 
-  if (error) {
-    console.error("خطا در دریافت پلن‌ها:", error);
-    if (box) box.textContent = "دریافت پلن‌ها با خطا مواجه شد.";
-    return;
-  }
-
-  console.log("پلن‌های STARVEX:", data);
-
-  if (box) {
-    box.innerHTML = data.map(plan => `
-      <div style="background:#111827;border:1px solid #d4af37;border-radius:12px;padding:16px;margin:12px 0;color:white">
-        <h3>${plan.name}</h3>
-        <p>مدت اشتراک: ${plan.duration_days} روز</p>
-        <p>حجم اشتراک: ${plan.volume_gb} گیگابایت</p>
-        <p>قیمت: ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان</p>
-      </div>
-    `).join("");
-  }
-}
-
-document.addEventListener("DOMContentLoaded", loadStarvexPlans);
-</script>
-
-<section style="max-width:600px;margin:30px auto;padding:20px;color:white;text-align:center">
-  <h2 style="color:#d4af37">پلن‌های اشتراک STARVEX</h2>
-  <div id="plans-list">در حال دریافت پلن‌ها...</div>
-</section>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
-coconst SUPABASE_KEY = "sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
-
-const starvexSupabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
-
-async function loadStarvexPlans() {
-  const box = document.getElementById("plans-list");
+  box.textContent = "در حال دریافت پلن‌ها...";
 
   try {
     const { data, error } = await starvexSupabase
@@ -411,9 +357,20 @@ async function loadStarvexPlans() {
         <p>قیمت: ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان</p>
       </div>
     `).join("");
+
   } catch (error) {
     console.error("خطای دریافت پلن‌ها:", error);
-    box.textContent = "خطا: " + error.message;
+    box.textContent = "خطا در دریافت پلن‌ها: " + error.message;
+  }
+}
+
+function showMessage() {
+  const box = document.getElementById("plans-list");
+  if (box) {
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    loadStarvexPlans();
+  } else {
+    alert("بخش پلن‌ها در صفحه پیدا نشد.");
   }
 }
 
