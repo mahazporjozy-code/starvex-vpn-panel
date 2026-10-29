@@ -7,9 +7,7 @@
   <title>STARVEX VPN | پنل اختصاصی</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -60,18 +58,14 @@
       font-size: 12px;
     }
 
-    .hero {
-      padding: 38px 0 24px;
-    }
+    .hero { padding: 38px 0 24px; }
 
     .hero h1 {
       font-size: clamp(25px, 5vw, 38px);
       margin-bottom: 8px;
     }
 
-    .hero h1 span {
-      color: #d9b66d;
-    }
+    .hero h1 span { color: #d9b66d; }
 
     .hero p {
       color: #aab5ca;
@@ -158,9 +152,7 @@
       border-bottom: 1px solid #253047;
     }
 
-    .server:last-child {
-      border-bottom: none;
-    }
+    .server:last-child { border-bottom: none; }
 
     .server-name {
       font-size: 14px;
@@ -188,6 +180,28 @@
       font-size: 13px;
     }
 
+    .plan {
+      background: #111827;
+      border: 1px solid #d9b66d;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 0;
+      color: white;
+    }
+
+    .plan h3 {
+      color: #e0c37e;
+      margin: 0 0 10px;
+    }
+
+    .plan p { margin: 5px 0; }
+
+    .plan-price {
+      font-size: 17px;
+      font-weight: bold;
+      color: #d9b66d;
+    }
+
     footer {
       margin-top: 40px;
       padding: 24px 0;
@@ -198,136 +212,143 @@
     }
 
     @media (max-width: 480px) {
-      .logo {
-        font-size: 23px;
-      }
-
-      .hero {
-        padding-top: 25px;
-      }
-
-      .card {
-        padding: 17px;
-      }
+      .logo { font-size: 23px; }
+      .hero { padding-top: 25px; }
+      .card { padding: 17px; }
     }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <div class="container header-content">
+<header>
+  <div class="container header-content">
+    <div>
+      <div class="logo">STARVEX</div>
+      <div class="subtitle">PREMIUM VPN EXPERIENCE</div>
+    </div>
+    <div class="badge">پنل اختصاصی</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <h1>به دنیای <span>STARVEX</span> خوش آمدید</h1>
+    <p>مدیریت اشتراک‌ها، سرورها و سرویس‌های VPN در یک محیط ساده و حرفه‌ای.</p>
+
+    <div class="notice">
+      ⚠️ این نسخه اولیه است؛ اتصال واقعی VPN و اطلاعات زنده مصرف هنوز فعال نشده‌اند.
+    </div>
+  </section>
+
+  <h2 class="section-title">دسترسی سریع</h2>
+
+  <section class="grid">
+
+    <div class="card">
+      <div class="icon">👤</div>
+      <h3>پنل مشتری</h3>
+      <p>مشاهده اشتراک، حجم مصرفی و تاریخ انقضا.</p>
+      <button class="button" onclick="showComingSoon('پنل مشتری')">
+        ورود به پنل مشتری
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="icon">🛡️</div>
+      <h3>مدیریت ادمین</h3>
+      <p>مدیریت مشتریان، سفارش‌ها و اشتراک‌ها.</p>
+      <button class="button blue" onclick="showComingSoon('مدیریت ادمین')">
+        ورود به مدیریت
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="icon">📦</div>
+      <h3>پلن‌های اشتراک</h3>
+      <p>مشاهده پلن‌ها و اطلاعات قیمت، حجم و مدت اعتبار.</p>
+      <button class="button outline" onclick="showPlans()">
+        مشاهده پلن‌ها
+      </button>
+    </div>
+
+  </section>
+
+  <h2 class="section-title">سرورهای STARVEX</h2>
+
+  <section class="card">
+
+    <div class="server">
       <div>
-        <div class="logo">STARVEX</div>
-        <div class="subtitle">PREMIUM VPN EXPERIENCE</div>
+        <div class="server-name">🇩🇪 STARVEX Germany</div>
+        <div class="server-info">آلمان · VLESS</div>
       </div>
-      <div class="badge">پنل اختصاصی</div>
+      <span class="status">در انتظار راه‌اندازی</span>
     </div>
-  </header>
 
-  <main class="container">
-
-    <section class="hero">
-      <h1>به دنیای <span>STARVEX</span> خوش آمدید</h1>
-      <p>
-        مدیریت اشتراک‌ها، سرورها و سرویس‌های VPN
-        در یک محیط ساده و حرفه‌ای.
-      </p>
-
-      <div class="notice">
-        ⚠️ این نسخه اولیه است؛ هنوز اتصال واقعی VPN و اطلاعات زنده فعال نشده‌اند.
+    <div class="server">
+      <div>
+        <div class="server-name">🇫🇮 STARVEX Finland</div>
+        <div class="server-info">فنلاند · VLESS</div>
       </div>
-    </section>
-
-    <h2 class="section-title">دسترسی سریع</h2>
-
-    <section class="grid">
-
-      <div class="card">
-        <div class="icon">👤</div>
-        <h3>پنل مشتری</h3>
-        <p>مشاهده اشتراک، حجم مصرفی و تاریخ انقضا.</p>
-        <button class="button" onclick="showMessage()">
-          ورود به پنل مشتری
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="icon">🛡️</div>
-        <h3>مدیریت ادمین</h3>
-        <p>مدیریت مشتریان، سفارش‌ها و اشتراک‌ها.</p>
-        <button class="button blue" onclick="showMessage()">
-          ورود به مدیریت
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="icon">📦</div>
-        <h3>پلن‌های اشتراک</h3>
-        <p>آماده‌سازی پلن‌های مختلف با حجم و مدت اعتبار مشخص.</p>
-        <button class="button outline" onclick="showMessage()">
-          مشاهده پلن‌ها
-        </button>
-      </div>
-
-    </section>
-
-    <h2 class="section-title">سرورهای STARVEX</h2>
-
-    <section class="card">
-
-      <div class="server">
-        <div>
-          <div class="server-name">🇩🇪 STARVEX Germany</div>
-          <div class="server-info">آلمان · VLESS</div>
-        </div>
-        <span class="status">در انتظار راه‌اندازی</span>
-      </div>
-
-      <div class="server">
-        <div>
-          <div class="server-name">🇫🇮 STARVEX Finland</div>
-          <div class="server-info">فنلاند · VLESS</div>
-        </div>
-        <span class="status">در انتظار راه‌اندازی</span>
-      </div>
-
-      <div class="server">
-        <div>
-          <div class="server-name">🇳🇱 STARVEX Netherlands</div>
-          <div class="server-info">هلند · VLESS</div>
-        </div>
-        <span class="status">در انتظار راه‌اندازی</span>
-      </div>
-
-    </section>
-
-    <h2 class="section-title">اشتراک‌های من</h2>
-
-    <section class="card">
-      <div class="empty">
-        برای نمایش اشتراک‌ها باید حساب کاربری و اتصال پایگاه داده راه‌اندازی شود.
-      </div>
-    </section>
-
-  </main>
-
-  <footer>
-    <div class="container">
-      © STARVEX VPN — تمامی حقوق محفوظ است.
+      <span class="status">در انتظار راه‌اندازی</span>
     </div>
-  </footer>
 
-  <<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <div class="server">
+      <div>
+        <div class="server-name">🇳🇱 STARVEX Netherlands</div>
+        <div class="server-info">هلند · VLESS</div>
+      </div>
+      <span class="status">در انتظار راه‌اندازی</span>
+    </div>
+
+  </section>
+
+  <h2 class="section-title">پلن‌های اشتراک STARVEX</h2>
+
+  <section class="card">
+    <div id="plans-list" aria-live="polite">
+      برای دریافت پلن‌ها، کمی صبر کنید...
+    </div>
+  </section>
+
+  <h2 class="section-title">اشتراک‌های من</h2>
+
+  <section class="card">
+    <div class="empty">
+      برای نمایش اشتراک‌های شخصی، ابتدا باید ورود امن کاربران راه‌اندازی شود.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    © STARVEX VPN — تمامی حقوق محفوظ است.
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
 const SUPABASE_KEY = "sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
 
-const starvexSupabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+let starvexSupabase = null;
+
+function showComingSoon(sectionName) {
+  alert("بخش «" + sectionName + "» هنوز راه‌اندازی نشده است.");
+}
+
+function showPlans() {
+  const box = document.getElementById("plans-list");
+
+  if (box) {
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    loadStarvexPlans();
+  }
+}
 
 async function loadStarvexPlans() {
   const box = document.getElementById("plans-list");
@@ -336,6 +357,17 @@ async function loadStarvexPlans() {
   box.textContent = "در حال دریافت پلن‌ها...";
 
   try {
+    if (!window.supabase) {
+      throw new Error("کتابخانه اتصال به پایگاه داده بارگذاری نشد.");
+    }
+
+    if (!starvexSupabase) {
+      starvexSupabase = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+    }
+
     const { data, error } = await starvexSupabase
       .from("plans")
       .select("id, name, duration_days, volume_gb, price_toman")
@@ -345,17 +377,19 @@ async function loadStarvexPlans() {
     if (error) throw error;
 
     if (!data || data.length === 0) {
-      box.textContent = "در حال حاضر پلنی ثبت نشده است.";
+      box.textContent = "در حال حاضر پلن فعالی ثبت نشده است.";
       return;
     }
 
     box.innerHTML = data.map(plan => `
-      <div style="background:#111827;border:1px solid #d4af37;border-radius:12px;padding:16px;margin:12px 0;color:white">
-        <h3>${plan.name}</h3>
+      <article class="plan">
+        <h3>${escapeHTML(plan.name)}</h3>
         <p>مدت اشتراک: ${plan.duration_days} روز</p>
         <p>حجم اشتراک: ${plan.volume_gb} گیگابایت</p>
-        <p>قیمت: ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان</p>
-      </div>
+        <p class="plan-price">
+          ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان
+        </p>
+      </article>
     `).join("");
 
   } catch (error) {
@@ -364,14 +398,17 @@ async function loadStarvexPlans() {
   }
 }
 
-function showMessage() {
-  const box = document.getElementById("plans-list");
-  if (box) {
-    box.scrollIntoView({ behavior: "smooth", block: "center" });
-    loadStarvexPlans();
-  } else {
-    alert("بخش پلن‌ها در صفحه پیدا نشد.");
-  }
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, function(character) {
+    const replacements = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    return replacements[character];
+  });
 }
 
 loadStarvexPlans();
