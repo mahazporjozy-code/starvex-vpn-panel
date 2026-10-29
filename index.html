@@ -351,6 +351,18 @@ async function loadStarvexPlans() {
   }
 
   console.log("پلن‌های STARVEX:", data);
+const box = document.getElementById("plans-list");
+
+if (box) {
+  box.innerHTML = data.map(plan => `
+    <div style="background:#111827;border:1px solid #d4af37;border-radius:12px;padding:16px;margin:12px 0;color:white">
+      <h3>${plan.name}</h3>
+      <p>مدت اشتراک: ${plan.duration_days} روز</p>
+      <p>حجم اشتراک: ${plan.volume_gb} گیگابایت</p>
+      <p>قیمت: ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان</p>
+    </div>
+  `).join("");
+}
 }
 
 loadStarvexPlans();
