@@ -1,417 +1,296 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b14">
-  <title>STARVEX VPN | پنل اختصاصی</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STARVEX | Admin Panel</title>
 
-  <style>
-    * { box-sizing: border-box; }
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    body {
-      margin: 0;
-      font-family: Tahoma, Arial, sans-serif;
-      background: #080b14;
-      color: #f5f7ff;
-      line-height: 1.8;
-    }
+<style>
+*{box-sizing:border-box}
 
-    .container {
-      width: 92%;
-      max-width: 1100px;
-      margin: auto;
-    }
+body{
+margin:0;
+background:#101010;
+color:#f5f5f5;
+font-family:Tahoma,Arial;
+}
 
-    header {
-      padding: 24px 0;
-      border-bottom: 1px solid #20283a;
-      background: #0b101d;
-    }
+.container{
+max-width:460px;
+margin:50px auto;
+padding:20px;
+}
 
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
+.card{
+background:#1b1b1b;
+border:1px solid #b99548;
+border-radius:16px;
+padding:25px;
+}
 
-    .logo {
-      font-size: 27px;
-      font-weight: bold;
-      color: #d9b66d;
-      letter-spacing: 2px;
-    }
+h1{
+color:#d6b45c;
+text-align:center;
+letter-spacing:3px;
+}
 
-    .subtitle {
-      font-size: 11px;
-      color: #9ba7c0;
-      letter-spacing: 2px;
-    }
+p{
+text-align:center;
+color:#aaa;
+}
 
-    .badge {
-      padding: 6px 12px;
-      border: 1px solid #34415a;
-      border-radius: 8px;
-      color: #a9c5ff;
-      font-size: 12px;
-    }
+input,button{
+width:100%;
+padding:14px;
+margin-top:12px;
+border-radius:9px;
+font-size:15px;
+}
 
-    .hero { padding: 38px 0 24px; }
+input{
+background:#111;
+border:1px solid #555;
+color:white;
+}
 
-    .hero h1 {
-      font-size: clamp(25px, 5vw, 38px);
-      margin-bottom: 8px;
-    }
+button{
+background:#c5a34c;
+border:0;
+color:#111;
+font-weight:bold;
+cursor:pointer;
+}
 
-    .hero h1 span { color: #d9b66d; }
+#message{
+text-align:center;
+margin-top:15px;
+color:#e2c46b;
+}
 
-    .hero p {
-      color: #aab5ca;
-      font-size: 14px;
-    }
+#panel{display:none}
 
-    .notice {
-      margin-top: 22px;
-      padding: 13px 16px;
-      border: 1px solid #66532c;
-      border-radius: 10px;
-      background: #19170f;
-      color: #e8cc8b;
-      font-size: 12px;
-    }
+.plan{
+border:1px solid #b99548;
+padding:13px;
+margin-top:12px;
+border-radius:9px;
+background:#151515;
+}
 
-    .section-title {
-      margin: 28px 0 15px;
-      font-size: 19px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 15px;
-    }
-
-    .card {
-      background: #101725;
-      border: 1px solid #253047;
-      border-radius: 13px;
-      padding: 21px;
-    }
-
-    .card h3 {
-      margin: 0 0 8px;
-      font-size: 17px;
-    }
-
-    .card p {
-      margin: 0 0 17px;
-      font-size: 13px;
-      color: #aab5ca;
-    }
-
-    .icon {
-      font-size: 27px;
-      margin-bottom: 8px;
-    }
-
-    .button {
-      display: block;
-      width: 100%;
-      border: 1px solid #d9b66d;
-      border-radius: 8px;
-      padding: 11px 12px;
-      background: #d9b66d;
-      color: #10131b;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: bold;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .button.blue {
-      background: #172c50;
-      color: #c7dcff;
-      border-color: #355b94;
-    }
-
-    .button.outline {
-      background: transparent;
-      color: #e0c37e;
-    }
-
-    .server {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 13px 0;
-      border-bottom: 1px solid #253047;
-    }
-
-    .server:last-child { border-bottom: none; }
-
-    .server-name {
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .server-info {
-      font-size: 11px;
-      color: #9ba7c0;
-    }
-
-    .status {
-      font-size: 11px;
-      color: #e8cc8b;
-      background: #292316;
-      border-radius: 6px;
-      padding: 4px 8px;
-      white-space: nowrap;
-    }
-
-    .empty {
-      padding: 18px;
-      text-align: center;
-      color: #9ba7c0;
-      font-size: 13px;
-    }
-
-    .plan {
-      background: #111827;
-      border: 1px solid #d9b66d;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 12px 0;
-      color: white;
-    }
-
-    .plan h3 {
-      color: #e0c37e;
-      margin: 0 0 10px;
-    }
-
-    .plan p { margin: 5px 0; }
-
-    .plan-price {
-      font-size: 17px;
-      font-weight: bold;
-      color: #d9b66d;
-    }
-
-    footer {
-      margin-top: 40px;
-      padding: 24px 0;
-      border-top: 1px solid #20283a;
-      color: #7f8aa1;
-      text-align: center;
-      font-size: 12px;
-    }
-
-    @media (max-width: 480px) {
-      .logo { font-size: 23px; }
-      .hero { padding-top: 25px; }
-      .card { padding: 17px; }
-    }
-  </style>
+</style>
 </head>
 
 <body>
 
-<header>
-  <div class="container header-content">
-    <div>
-      <div class="logo">STARVEX</div>
-      <div class="subtitle">PREMIUM VPN EXPERIENCE</div>
-    </div>
-    <div class="badge">پنل اختصاصی</div>
-  </div>
-</header>
+<div class="container">
+<div class="card">
 
-<main class="container">
+<h1>STARVEX</h1>
+<p>PREMIUM VPN MANAGEMENT</p>
 
-  <section class="hero">
-    <h1>به دنیای <span>STARVEX</span> خوش آمدید</h1>
-    <p>مدیریت اشتراک‌ها، سرورها و سرویس‌های VPN در یک محیط ساده و حرفه‌ای.</p>
+<div id="login">
 
-    <div class="notice">
-      ⚠️ این نسخه اولیه است؛ اتصال واقعی VPN و اطلاعات زنده مصرف هنوز فعال نشده‌اند.
-    </div>
-  </section>
+<h3>ورود مدیر</h3>
 
-  <h2 class="section-title">دسترسی سریع</h2>
+<input id="email" type="email"
+placeholder="ایمیل مدیر">
 
-  <section class="grid">
+<input id="password" type="password"
+placeholder="رمز عبور">
 
-    <div class="card">
-      <div class="icon">👤</div>
-      <h3>پنل مشتری</h3>
-      <p>مشاهده اشتراک، حجم مصرفی و تاریخ انقضا.</p>
-      <button class="button" onclick="showComingSoon('پنل مشتری')">
-        ورود به پنل مشتری
-      </button>
-    </div>
+<button onclick="login()">ورود به پنل</button>
 
-    <div class="card">
-      <div class="icon">🛡️</div>
-      <h3>مدیریت ادمین</h3>
-      <p>مدیریت مشتریان، سفارش‌ها و اشتراک‌ها.</p>
-      <button class="button blue" onclick="showComingSoon('مدیریت ادمین')">
-        ورود به مدیریت
-      </button>
-    </div>
+</div>
 
-    <div class="card">
-      <div class="icon">📦</div>
-      <h3>پلن‌های اشتراک</h3>
-      <p>مشاهده پلن‌ها و اطلاعات قیمت، حجم و مدت اعتبار.</p>
-      <button class="button outline" onclick="showPlans()">
-        مشاهده پلن‌ها
-      </button>
-    </div>
+<div id="panel">
 
-  </section>
+<h3>خوش آمدید مدیر STARVEX</h3>
 
-  <h2 class="section-title">سرورهای STARVEX</h2>
+<p>پنل مدیریت با موفقیت فعال شد.</p>
 
-  <section class="card">
+<button onclick="loadPlans()">
+نمایش پلن‌ها
+</button>
 
-    <div class="server">
-      <div>
-        <div class="server-name">🇩🇪 STARVEX Germany</div>
-        <div class="server-info">آلمان · VLESS</div>
-      </div>
-      <span class="status">در انتظار راه‌اندازی</span>
-    </div>
+<div id="plans"></div>
 
-    <div class="server">
-      <div>
-        <div class="server-name">🇫🇮 STARVEX Finland</div>
-        <div class="server-info">فنلاند · VLESS</div>
-      </div>
-      <span class="status">در انتظار راه‌اندازی</span>
-    </div>
+<button onclick="logout()">
+خروج از حساب
+</button>
 
-    <div class="server">
-      <div>
-        <div class="server-name">🇳🇱 STARVEX Netherlands</div>
-        <div class="server-info">هلند · VLESS</div>
-      </div>
-      <span class="status">در انتظار راه‌اندازی</span>
-    </div>
+</div>
 
-  </section>
+<div id="message"></div>
 
-  <h2 class="section-title">پلن‌های اشتراک STARVEX</h2>
-
-  <section class="card">
-    <div id="plans-list" aria-live="polite">
-      برای دریافت پلن‌ها، کمی صبر کنید...
-    </div>
-  </section>
-
-  <h2 class="section-title">اشتراک‌های من</h2>
-
-  <section class="card">
-    <div class="empty">
-      برای نمایش اشتراک‌های شخصی، ابتدا باید ورود امن کاربران راه‌اندازی شود.
-    </div>
-  </section>
-
-</main>
-
-<footer>
-  <div class="container">
-    © STARVEX VPN — تمامی حقوق محفوظ است.
-  </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</div>
+</div>
 
 <script>
-const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
-const SUPABASE_KEY = "sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
 
-let starvexSupabase = null;
+const SUPABASE_URL =
+"https://hbjonoxlasbhbusctmom.supabase.co";
 
-function showComingSoon(sectionName) {
-  alert("بخش «" + sectionName + "» هنوز راه‌اندازی نشده است.");
+const SUPABASE_KEY =
+"sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
+
+const ADMIN_EMAIL =
+"mahazporjozy@gmail.com";
+
+const db = window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+async function login(){
+
+const email =
+document.getElementById("email").value.trim();
+
+const password =
+document.getElementById("password").value;
+
+const msg =
+document.getElementById("message");
+
+msg.textContent="در حال ورود...";
+
+if(email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+msg.textContent="اجازه ورود ندارید.";
+return;
 }
 
-function showPlans() {
-  const box = document.getElementById("plans-list");
+const {data,error}=await db.auth.signInWithPassword({
+email,
+password
+});
 
-  if (box) {
-    box.scrollIntoView({ behavior: "smooth", block: "center" });
-    loadStarvexPlans();
-  }
+if(error){
+msg.textContent="خطا در ورود: "+error.message;
+return;
 }
 
-async function loadStarvexPlans() {
-  const box = document.getElementById("plans-list");
-  if (!box) return;
+const role =
+data.user.app_metadata?.role;
 
-  box.textContent = "در حال دریافت پلن‌ها...";
-
-  try {
-    if (!window.supabase) {
-      throw new Error("کتابخانه اتصال به پایگاه داده بارگذاری نشد.");
-    }
-
-    if (!starvexSupabase) {
-      starvexSupabase = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-      );
-    }
-
-    const { data, error } = await starvexSupabase
-      .from("plans")
-      .select("id, name, duration_days, volume_gb, price_toman")
-      .eq("is_active", true)
-      .order("id");
-
-    if (error) throw error;
-
-    if (!data || data.length === 0) {
-      box.textContent = "در حال حاضر پلن فعالی ثبت نشده است.";
-      return;
-    }
-
-    box.innerHTML = data.map(plan => `
-      <article class="plan">
-        <h3>${escapeHTML(plan.name)}</h3>
-        <p>مدت اشتراک: ${plan.duration_days} روز</p>
-        <p>حجم اشتراک: ${plan.volume_gb} گیگابایت</p>
-        <p class="plan-price">
-          ${Number(plan.price_toman).toLocaleString("fa-IR")} تومان
-        </p>
-      </article>
-    `).join("");
-
-  } catch (error) {
-    console.error("خطای دریافت پلن‌ها:", error);
-    box.textContent = "خطا در دریافت پلن‌ها: " + error.message;
-  }
+if(role !== "admin"){
+await db.auth.signOut();
+msg.textContent="این حساب دسترسی مدیر ندارد.";
+return;
 }
 
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, function(character) {
-    const replacements = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    };
-    return replacements[character];
-  });
+showPanel();
+
 }
 
-loadStarvexPlans();
+function showPanel(){
+
+document.getElementById("login").style.display="none";
+
+document.getElementById("panel").style.display="block";
+
+document.getElementById("message").textContent=
+"ورود موفقیت‌آمیز بود.";
+
+}
+
+async function loadPlans(){
+
+const box=document.getElementById("plans");
+
+box.textContent="در حال دریافت پلن‌ها...";
+
+const {data,error}=await db
+.from("plans")
+.select("id,name,duration_days,volume_gb")
+.order("id");
+
+if(error){
+box.textContent="خطا: "+error.message;
+return;
+}
+
+if(!data || data.length===0){
+box.textContent="هنوز پلنی ثبت نشده است.";
+return;
+}
+
+box.innerHTML=data.map(p=>`
+
+<div class="plan">
+
+<strong>${escapeHTML(p.name)}</strong>
+
+<br>
+
+مدت: ${Number(p.duration_days)} روز
+
+<br>
+
+حجم: ${Number(p.volume_gb)} گیگابایت
+
+</div>
+
+`).join("");
+
+}
+
+function escapeHTML(value){
+
+return String(value).replace(/[&<>"']/g,function(c){
+return {
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
+}[c];
+});
+
+}
+
+async function logout(){
+
+await db.auth.signOut();
+
+location.reload();
+
+}
+
+async function checkSession(){
+
+const {data}=await db.auth.getSession();
+
+if(!data.session)return;
+
+const user=data.session.user;
+
+if(
+user.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase()
+&& user.app_metadata?.role==="admin"
+){
+
+showPanel();
+
+}else{
+
+await db.auth.signOut();
+
+}
+
+}
+
+db.auth.onAuthStateChange((event,session)=>{
+
+if(event==="SIGNED_OUT"){
+location.reload();
+}
+
+});
+
+checkSession();
+
 </script>
 
 </body>
