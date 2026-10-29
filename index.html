@@ -174,4 +174,157 @@
 
     .status {
       font-size: 11px;
-      color: #e8
+      color: #e8cc8b;
+      background: #292316;
+      border-radius: 6px;
+      padding: 4px 8px;
+      white-space: nowrap;
+    }
+
+    .empty {
+      padding: 18px;
+      text-align: center;
+      color: #9ba7c0;
+      font-size: 13px;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 24px 0;
+      border-top: 1px solid #20283a;
+      color: #7f8aa1;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .logo {
+        font-size: 23px;
+      }
+
+      .hero {
+        padding-top: 25px;
+      }
+
+      .card {
+        padding: 17px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="container header-content">
+      <div>
+        <div class="logo">STARVEX</div>
+        <div class="subtitle">PREMIUM VPN EXPERIENCE</div>
+      </div>
+      <div class="badge">پنل اختصاصی</div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section class="hero">
+      <h1>به دنیای <span>STARVEX</span> خوش آمدید</h1>
+      <p>
+        مدیریت اشتراک‌ها، سرورها و سرویس‌های VPN
+        در یک محیط ساده و حرفه‌ای.
+      </p>
+
+      <div class="notice">
+        ⚠️ این نسخه اولیه است؛ هنوز اتصال واقعی VPN و اطلاعات زنده فعال نشده‌اند.
+      </div>
+    </section>
+
+    <h2 class="section-title">دسترسی سریع</h2>
+
+    <section class="grid">
+
+      <div class="card">
+        <div class="icon">👤</div>
+        <h3>پنل مشتری</h3>
+        <p>مشاهده اشتراک، حجم مصرفی و تاریخ انقضا.</p>
+        <button class="button" onclick="showMessage()">
+          ورود به پنل مشتری
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="icon">🛡️</div>
+        <h3>مدیریت ادمین</h3>
+        <p>مدیریت مشتریان، سفارش‌ها و اشتراک‌ها.</p>
+        <button class="button blue" onclick="showMessage()">
+          ورود به مدیریت
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="icon">📦</div>
+        <h3>پلن‌های اشتراک</h3>
+        <p>آماده‌سازی پلن‌های مختلف با حجم و مدت اعتبار مشخص.</p>
+        <button class="button outline" onclick="showMessage()">
+          مشاهده پلن‌ها
+        </button>
+      </div>
+
+    </section>
+
+    <h2 class="section-title">سرورهای STARVEX</h2>
+
+    <section class="card">
+
+      <div class="server">
+        <div>
+          <div class="server-name">🇩🇪 STARVEX Germany</div>
+          <div class="server-info">آلمان · VLESS</div>
+        </div>
+        <span class="status">در انتظار راه‌اندازی</span>
+      </div>
+
+      <div class="server">
+        <div>
+          <div class="server-name">🇫🇮 STARVEX Finland</div>
+          <div class="server-info">فنلاند · VLESS</div>
+        </div>
+        <span class="status">در انتظار راه‌اندازی</span>
+      </div>
+
+      <div class="server">
+        <div>
+          <div class="server-name">🇳🇱 STARVEX Netherlands</div>
+          <div class="server-info">هلند · VLESS</div>
+        </div>
+        <span class="status">در انتظار راه‌اندازی</span>
+      </div>
+
+    </section>
+
+    <h2 class="section-title">اشتراک‌های من</h2>
+
+    <section class="card">
+      <div class="empty">
+        برای نمایش اشتراک‌ها باید حساب کاربری و اتصال پایگاه داده راه‌اندازی شود.
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      © STARVEX VPN — تمامی حقوق محفوظ است.
+    </div>
+  </footer>
+
+  <script>
+    function showMessage() {
+      alert(
+        "این بخش هنوز فعال نشده است. در مرحله بعد، ورود امن و اتصال به پایگاه داده را راه‌اندازی می‌کنیم."
+      );
+    }
+  </script>
+
+</body>
+</html>
