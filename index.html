@@ -413,7 +413,7 @@ async function loadStarvexPlans() {
     `).join("");
   } catch (error) {
     console.error("خطای دریافت پلن‌ها:", error);
-    box.textContent = "دریافت پلن‌ها ناموفق بود؛ اتصال را بررسی کنید.";
+    box.textContent = "خطا: " + error.message;
   }
 }
 
