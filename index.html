@@ -325,6 +325,19 @@
       );
     }
   </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
+  const SUPABASE_KEY =sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6
+
+  const starvexSupabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  console.log("STARVEX: Supabase client initialized");
+</script>
 
 </body>
 </html>
