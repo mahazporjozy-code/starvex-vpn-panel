@@ -337,6 +337,24 @@
   );
 
   console.log("STARVEX: Supabase client initialized");
+<script>
+async function loadStarvexPlans() {
+  const { data, error } = await starvexSupabase
+    .from("plans")
+    .select("id, name, duration_days, volume_gb, price_toman")
+    .eq("is_active", true)
+    .order("id");
+
+  if (error) {
+    console.error("خطا در دریافت پلن‌ها:", error);
+    return;
+  }
+
+  console.log("پلن‌های STARVEX:", data);
+}
+
+loadStarvexPlans();
+</script>
 </script>
 
 </body>
