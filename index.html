@@ -265,6 +265,93 @@ return {
 
 }
 
+async function loadCustomers(){
+
+    const box = document.getElementById("customers");
+    box.textContent = "در حال دریافت مشتریان...";
+
+    const { data, error } = await db
+        .from("customers")
+        .select("id, full_name, status, created_at")
+        .order("id", { ascending: false });
+
+    if(error){
+        box.textContent = "خطا در دریافت مشتریان: " + error.message;
+        return;
+    }
+
+    if(!data || data.length === 0){
+        box.textContent = "هنوز مشتری ثبت نشده است.";
+        return;
+    }
+
+    box.innerHTML = data.map(c => `
+        <div class="plan">
+            <strong>${escapeHTML(c.full_name || "بدون نام")}</strong>
+            <br>
+            شناسه: ${c.id}
+            <br>
+            وضعیت: ${escapeHTML(c.status)}
+            <br>
+            تاریخ ثبت: ${escapeHTML(c.created_at || "-")}
+        </div>
+    `).join("");
+}
+
+async function showAddCustomer(){
+
+    const box = document.getElementById("customerForm");
+
+    box.innerHTML = `
+        <h4>ثبت مشتری جدید</h4>
+
+        <input
+            id="newCustomerName"
+            type="text"
+            placeholder="نام کامل مشتری"
+        >
+
+        <button onclick="addCustomer()">
+            ثبت مشتری
+        </button>
+    `;
+}
+
+async function addCustomer(){
+
+    const name = document
+        .getElementById("newCustomerName")
+        .value.trim();
+
+    const box = document.getElementById("customerForm");
+
+    if(!name){
+        box.insertAdjacentHTML(
+            "beforeend",
+            "<p>نام مشتری را وارد کنید.</p>"
+        );
+        return;
+    }
+
+    const { error } = await db
+        .from("customers")
+        .insert({
+            full_name: name,
+            status: "active"
+        });
+
+    if(error){
+        box.insertAdjacentHTML(
+            "beforeend",
+            "<p>خطا: " + escapeHTML(error.message) + "</p>"
+        );
+        return;
+    }
+
+    box.innerHTML = "<p>مشتری با موفقیت ثبت شد.</p>";
+
+    await loadCustomers();
+}
 async function logout(){
 
 await db.auth.signOut();
