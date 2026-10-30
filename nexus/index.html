@@ -1,63 +1,827 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#090a0e"><title>STARVEX NEXUS</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080910">
+<title>STARVEX NEXUS</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-:root{--bg:#090a0e;--panel:#12141b;--panel2:#191c25;--gold:#d9ad52;--text:#f4f1e9;--muted:#92939c;--border:#292c36;--green:#53c995;--red:#ed7373}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}.muted{color:var(--muted);font-size:12px;line-height:2}
-#loginPage{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at top,#292113,#090a0e 55%)}
-.login-box{width:100%;max-width:420px;background:var(--panel);border:1px solid #514329;border-radius:18px;padding:28px}
-.brand{text-align:center;color:var(--gold);font-size:28px;font-weight:bold}.tag{text-align:center;color:#999;font-size:10px;letter-spacing:2px;margin:8px 0 28px}
-h2{font-size:17px;color:var(--gold)}input,select{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #353844;background:#090b10;color:white}
-button.primary{padding:12px 16px;border:0;border-radius:8px;background:linear-gradient(110deg,#b98a35,#f0ce80);color:#17130b;font-weight:bold}
-.wide{width:100%;margin-top:10px}.msg{padding:10px;background:#20232d;border-radius:8px;margin-top:10px;font-size:12px;overflow-wrap:anywhere}
-.sidebar{position:fixed;right:0;top:0;bottom:0;width:240px;background:#101116;border-left:1px solid var(--border);padding:20px 14px;z-index:5;overflow:auto}
-.logo{font-size:23px;color:var(--gold);font-weight:bold;padding:8px}.sub{font-size:9px;color:#888;padding:0 8px 20px;letter-spacing:2px}
-.nav{display:block;width:100%;text-align:right;padding:12px;margin:5px 0;border:1px solid transparent;border-radius:8px;background:transparent;color:#bbb}
-.nav.active,.nav:hover{background:#282318;color:#f0ce80;border-color:#514329}
-#main{margin-right:240px;padding:25px;max-width:1600px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.card,.stat{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:15px}
-.stat small{color:var(--muted)}.num{font-size:26px;color:var(--gold);font-weight:bold;margin-top:10px}.title{color:var(--gold);margin:0 0 14px;font-size:16px}
-.tab{display:none}.tab.active{display:block}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px;font-size:12px}th,td{text-align:right;padding:11px;border-bottom:1px solid #2b2e37}th{color:var(--gold)}td{color:#ddd}
-.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.secondary{background:#25221b;color:var(--gold);border:1px solid #514329;border-radius:7px;padding:10px}
-@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:650px){.sidebar{width:260px;transform:translateX(100%);transition:.2s}.sidebar.open{transform:translateX(0)}#main{margin:0;padding:15px}.formgrid{grid-template-columns:1fr}.top{align-items:flex-start;flex-wrap:wrap}}
-</style></head><body>
-<section id="loginPage"><div class="login-box"><div class="brand">STARVEX NEXUS</div><div class="tag">ONE COMMAND. TOTAL CONTROL.</div>
-<h2>ورود به مرکز مدیریت</h2><form id="loginForm"><input id="email" type="email" placeholder="ایمیل" required autocomplete="username"><input id="password" type="password" placeholder="رمز عبور" required autocomplete="current-password"><button class="primary wide" id="loginBtn">ورود امن</button></form><div id="loginMsg" class="msg hidden"></div></div></section>
-<div id="app" class="hidden"><aside class="sidebar" id="sidebar"><div class="logo">STARVEX</div><div class="sub">NEXUS MANAGEMENT</div>
-<button class="nav active" data-tab="overview">داشبورد اصلی</button><button class="nav admin-only" data-tab="resellers">نمایندگی‌ها</button><button class="nav" data-tab="customers">مشتریان</button><button class="nav admin-only" data-tab="servers">سرورها</button><button class="nav admin-only" data-tab="subscriptions">اشتراک‌ها</button><hr><div id="sideUser" class="muted"></div><button class="nav" id="logout">خروج از حساب</button></aside>
-<main id="main"><header class="top"><div><button class="secondary" id="mobileMenu">☰ منو</button> <b id="pageTitle">داشبورد اصلی</b><div class="muted">مدیریت یکپارچه STARVEX NEXUS</div></div><div id="userInfo" class="muted"></div></header>
-<section class="tab active" id="overview"><div class="grid"><div class="stat"><small>نمایندگی‌ها</small><div class="num" id="resellerCount">—</div></div><div class="stat"><small>مشتریان قابل مشاهده</small><div class="num" id="customerCount">—</div></div><div class="stat admin-only"><small>سرورها</small><div class="num" id="serverCount">—</div></div><div class="stat admin-only"><small>اشتراک‌ها</small><div class="num" id="subscriptionCount">—</div></div></div><div class="card"><h2 class="title">وضعیت سیستم</h2><div id="systemStatus" class="muted">در حال بررسی...</div></div></section>
-<section class="tab" id="resellers"><div class="card"><h2 class="title">ایجاد نمایندگی</h2><div class="formgrid"><input id="rName" placeholder="نام نمایندگی"><input id="rEmail" type="email" placeholder="ایمیل"><input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر"></div><button class="primary" id="createReseller">ایجاد نمایندگی</button><p class="muted">ظرفیت پیش‌فرض: ۲۰۰ مشتری</p><div id="rMsg" class="msg hidden"></div></div><div class="card"><h2 class="title">Modireyat zarfiyat</h2><button class="secondary" id="refreshCapacity">بروزرسانی گزارش</button><div id="capacityList" class="muted"></div></div><div class="card"><h2 class="title">فهرست نمایندگی‌ها</h2><div id="resellerList" class="muted"></div></div></section>
-<section class="tab" id="customers"><div class="card"><h2 class="title">ثبت مشتری جدید</h2><div class="formgrid"><input id="cName" maxlength="120" placeholder="نام مشتری (اختیاری)"><input id="cPhone" maxlength="32" placeholder="شماره تلفن (اختیاری)"></div><p class="muted">شناسه مشتری به‌صورت خودکار ساخته می‌شود. نام و شماره تلفن اجباری نیستند.</p><button class="primary" id="saveCustomer">ثبت مشتری</button><div id="cMsg" class="msg hidden"></div></div><div class="card"><h2 class="title">فهرست مشتریان</h2><input id="customerSearch" placeholder="جست‌وجو در مشتریان"><div id="customerList" class="muted">در حال دریافت...</div></div></section>
-<section class="tab" id="servers"><div class="card"><h2 class="title">مدیریت سرورها</h2><div id="serverList" class="muted"></div></div></section>
-<section class="tab" id="subscriptions"><div class="card"><h2 class="title">مدیریت اشتراک‌ها</h2><div id="subscriptionList" class="muted"></div></div></section>
-</main></div>
+:root{
+--bg:#080910;
+--panel:#111321;
+--panel2:#1b1d30;
+--gold:#e9bd62;
+--text:#f4f1e9;
+--muted:#a1a2b0;
+--border:#39334f;
+--purple:#873cff;
+--blue:#258bff;
+--green:#53c995;
+--red:#ed7373;
+}
+*{box-sizing:border-box}
+body{
+margin:0;
+background:
+radial-gradient(ellipse at 85% 15%,#24123b 0,transparent 38%),
+radial-gradient(ellipse at 10% 90%,#101d3c 0,transparent 40%),
+var(--bg);
+color:var(--text);
+font-family:Tahoma,Arial,sans-serif;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.muted{color:var(--muted);font-size:12px;line-height:2}
+
+#loginPage{
+min-height:100vh;
+display:grid;
+place-items:center;
+padding:20px;
+background:radial-gradient(circle at top,#292044,#090a0e 60%);
+}
+.login-box{
+width:100%;
+max-width:420px;
+background:linear-gradient(145deg,#171827,#10111b);
+border:1px solid #514329;
+border-radius:18px;
+padding:28px;
+}
+.brand{
+text-align:center;
+color:var(--gold);
+font-size:28px;
+font-weight:bold;
+}
+.tag{
+text-align:center;
+color:#999;
+font-size:10px;
+letter-spacing:2px;
+margin:8px 0 28px;
+}
+h2{font-size:17px;color:var(--gold)}
+input,select{
+width:100%;
+padding:12px;
+margin:6px 0;
+border-radius:8px;
+border:1px solid #39364e;
+background:#090b10;
+color:white;
+}
+button.primary{
+padding:12px 16px;
+border:0;
+border-radius:8px;
+background:linear-gradient(110deg,#7540ed,#258bff);
+color:white;
+font-weight:bold;
+box-shadow:0 4px 18px #5731a555;
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.wide{width:100%;margin-top:10px}
+.msg{
+padding:10px;
+background:#20232d;
+border-radius:8px;
+margin-top:10px;
+font-size:12px;
+overflow-wrap:anywhere;
+}
+
+.sidebar{
+position:fixed;
+right:0;
+top:0;
+bottom:0;
+width:240px;
+background:linear-gradient(180deg,#111321,#090a12);
+border-left:1px solid var(--border);
+padding:20px 14px;
+z-index:10;
+overflow:auto;
+}
+.logo{
+font-size:23px;
+color:var(--gold);
+font-weight:bold;
+padding:8px;
+}
+.sub{
+font-size:9px;
+color:#888;
+padding:0 8px 20px;
+letter-spacing:2px;
+}
+.nav{
+display:block;
+width:100%;
+text-align:right;
+padding:12px;
+margin:5px 0;
+border:1px solid transparent;
+border-radius:8px;
+background:transparent;
+color:#bbb;
+}
+.nav.active,.nav:hover{
+background:#302044;
+color:#fff;
+border-color:#8154c8;
+}
+#main{
+margin-right:240px;
+padding:25px;
+max-width:1600px;
+}
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+margin-bottom:22px;
+}
+.grid{
+display:grid;
+grid-template-columns:repeat(4,minmax(0,1fr));
+gap:12px;
+}
+.card,.stat{
+background:linear-gradient(145deg,#171827,#10111b);
+border:1px solid var(--border);
+border-radius:12px;
+padding:18px;
+margin-bottom:15px;
+}
+.stat small{color:var(--muted)}
+.num{
+font-size:26px;
+color:var(--gold);
+font-weight:bold;
+margin-top:10px;
+}
+.title{
+color:var(--gold);
+margin:0 0 14px;
+font-size:16px;
+}
+.tab{display:none}
+.tab.active{display:block}
+.tablewrap{overflow:auto}
+table{
+width:100%;
+border-collapse:collapse;
+min-width:600px;
+font-size:12px;
+}
+th,td{
+text-align:right;
+padding:11px;
+border-bottom:1px solid #2b2e37;
+}
+th{color:var(--gold)}
+td{color:#ddd}
+.formgrid{
+display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:8px;
+}
+.secondary{
+background:linear-gradient(110deg,#252044,#152c4a);
+color:#e4d5ff;
+border:1px solid #6250a0;
+border-radius:7px;
+padding:10px;
+}
+#mobileBackdrop{
+display:none;
+position:fixed;
+inset:0;
+background:#0009;
+z-index:9;
+}
+#mobileBackdrop.show{display:block}
+
+@media(max-width:850px){
+.grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:650px){
+.sidebar{
+width:260px;
+transform:translateX(110%);
+transition:transform .22s ease;
+z-index:10;
+}
+.sidebar.open{transform:translateX(0)}
+#main{margin:0;padding:15px}
+.formgrid{grid-template-columns:1fr}
+.top{align-items:flex-start;flex-wrap:wrap}
+}
+</style>
+</head>
+
+<body>
+
+<section id="loginPage">
+<div class="login-box">
+<div class="brand">STARVEX NEXUS</div>
+<div class="tag">ONE COMMAND. TOTAL CONTROL.</div>
+<h2>ورود به مرکز مدیریت</h2>
+
+<form id="loginForm">
+<input id="email" type="email" placeholder="ایمیل" required autocomplete="username">
+<input id="password" type="password" placeholder="رمز عبور" required autocomplete="current-password">
+<button class="primary wide" id="loginBtn">ورود امن</button>
+</form>
+
+<div id="loginMsg" class="msg hidden"></div>
+</div>
+</section>
+
+<div id="app" class="hidden">
+
+<div id="mobileBackdrop"></div>
+
+<aside class="sidebar" id="sidebar">
+<div class="logo">STARVEX</div>
+<div class="sub">NEXUS MANAGEMENT</div>
+
+<button class="nav active" data-tab="overview">داشبورد اصلی</button>
+<button class="nav admin-only" data-tab="resellers">نمایندگی‌ها</button>
+<button class="nav" data-tab="customers">مشتریان</button>
+<button class="nav admin-only" data-tab="servers">سرورها</button>
+<button class="nav admin-only" data-tab="subscriptions">اشتراک‌ها</button>
+
+<hr>
+<div id="sideUser" class="muted"></div>
+<button class="nav" id="logout">خروج از حساب</button>
+</aside>
+
+<main id="main">
+
+<header class="top">
+<div>
+<button class="secondary" id="mobileMenu">☰ منو</button>
+<b id="pageTitle">داشبورد اصلی</b>
+<div class="muted">مدیریت یکپارچه STARVEX NEXUS</div>
+</div>
+<div id="userInfo" class="muted"></div>
+</header>
+
+<section class="tab active" id="overview">
+<div class="grid">
+<div class="stat">
+<small>نمایندگی‌ها</small>
+<div class="num" id="resellerCount">—</div>
+</div>
+<div class="stat">
+<small>مشتریان قابل مشاهده</small>
+<div class="num" id="customerCount">—</div>
+</div>
+<div class="stat admin-only">
+<small>سرورها</small>
+<div class="num" id="serverCount">—</div>
+</div>
+<div class="stat admin-only">
+<small>اشتراک‌ها</small>
+<div class="num" id="subscriptionCount">—</div>
+</div>
+</div>
+
+<div class="card">
+<h2 class="title">وضعیت سیستم</h2>
+<div id="systemStatus" class="muted">در حال بررسی...</div>
+</div>
+</section>
+
+<section class="tab" id="resellers">
+
+<div class="card">
+<h2 class="title">ایجاد نمایندگی</h2>
+<div class="formgrid">
+<input id="rName" placeholder="نام نمایندگی">
+<input id="rEmail" type="email" placeholder="ایمیل">
+<input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر">
+</div>
+<button class="primary" id="createReseller">ایجاد نمایندگی</button>
+<p class="muted">ظرفیت پیش‌فرض: ۲۰۰ مشتری</p>
+<div id="rMsg" class="msg hidden"></div>
+</div>
+
+<div class="card">
+<h2 class="title">Modireyat zarfiyat</h2>
+<button class="secondary" id="refreshCapacity">بروزرسانی گزارش</button>
+<div id="capacityList" class="muted"></div>
+</div>
+
+<div class="card">
+<h2 class="title">فهرست نمایندگی‌ها</h2>
+<div id="resellerList" class="muted"></div>
+</div>
+
+</section>
+
+<section class="tab" id="customers">
+
+<div class="card">
+<h2 class="title">ثبت مشتری جدید</h2>
+
+<div class="formgrid">
+<input id="cName" maxlength="120" placeholder="نام مشتری (اختیاری)">
+</div>
+
+<p class="muted">
+شناسه مشتری به‌صورت خودکار ساخته می‌شود.
+ثبت نام مشتری اختیاری است.
+</p>
+
+<button class="primary" id="saveCustomer">ثبت مشتری</button>
+<div id="cMsg" class="msg hidden"></div>
+</div>
+
+<div class="card">
+<h2 class="title">فهرست مشتریان</h2>
+<input id="customerSearch" placeholder="جست‌وجو در مشتریان">
+<div id="customerList" class="muted">در حال دریافت...</div>
+</div>
+
+</section>
+
+<section class="tab" id="servers">
+<div class="card">
+<h2 class="title">مدیریت سرورها</h2>
+<div id="serverList" class="muted"></div>
+</div>
+</section>
+
+<section class="tab" id="subscriptions">
+<div class="card">
+<h2 class="title">مدیریت اشتراک‌ها</h2>
+<div id="subscriptionList" class="muted"></div>
+</div>
+</section>
+
+</main>
+</div>
+
 <script>
 const SUPABASE_URL="https://hbjonoxlasbhbusctmom.supabase.co";
 const SUPABASE_KEY="sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
+
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const $=id=>document.getElementById(id);let role=null,sessionUser=null,customersCache=[];
-function msg(id,t){$(id).textContent=t;$(id).classList.remove("hidden")}
-function fail(id,e){msg(id,"خطا: "+(e?.message||e))}
-async function callFunction(name,body){const {data:{session},error}=await db.auth.getSession();if(error)throw error;if(!session)throw Error("نشست ورود منقضی شده است.");const res=await fetch(`${SUPABASE_URL}/functions/v1/${name}`,{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${session.access_token}`,"apikey":SUPABASE_KEY},body:JSON.stringify(body)});const out=await res.json().catch(()=>({error:"پاسخ نامعتبر سرور"}));if(!res.ok)throw Error(out.error||"درخواست ناموفق بود");return out}
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginBtn").disabled=true;try{const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error)throw error;await checkSession()}catch(e){msg("loginMsg",e.message)}finally{$("loginBtn").disabled=false}});
-async function checkSession(){const {data,error}=await db.auth.getSession();if(error)throw error;const u=data.session?.user;if(!u){$("app").classList.add("hidden");$("loginPage").classList.remove("hidden");return}role=u.app_metadata?.role;if(!["admin","reseller"].includes(role)){await db.auth.signOut();msg("loginMsg","نقش این حساب تعریف نشده است.");return}sessionUser=u;$("loginPage").classList.add("hidden");$("app").classList.remove("hidden");$("userInfo").textContent=u.email;$("sideUser").textContent=`${u.email} | ${role==="admin"?"مدیر":"نماینده"}`;document.querySelectorAll(".admin-only").forEach(x=>x.classList.toggle("hidden",role!=="admin"));await loadAll()}
-function openTab(id){if(role!=="admin"&&!["overview","customers"].includes(id))return;document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".nav[data-tab]").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));$("pageTitle").textContent=({overview:"داشبورد اصلی",resellers:"نمایندگی‌ها",customers:"مشتریان",servers:"سرورها",subscriptions:"اشتراک‌ها"})[id];if(id==="resellers"&&role==="admin")loadCapacity()}
-document.querySelectorAll(".nav[data-tab]").forEach(b=>b.onclick=()=>openTab(b.dataset.tab));$("mobileMenu").onclick=()=>$("sidebar").classList.toggle("open");$("logout").onclick=async()=>{await db.auth.signOut();location.reload()};
-function table(boxId,rows,keys){const box=$(boxId);if(!rows?.length){box.textContent="اطلاعاتی برای نمایش وجود ندارد.";return}const t=document.createElement("table"),h=document.createElement("tr");keys.forEach(([k,l])=>{const th=document.createElement("th");th.textContent=l;h.append(th)});t.append(h);rows.forEach(r=>{const tr=document.createElement("tr");keys.forEach(([k])=>{const td=document.createElement("td");const v=r[k];td.textContent=v==null?"—":(/(password|secret|private.?key|access.?token|refresh.?token|api.?key|subscription.?token)/i.test(k)?"••••••••":String(v));tr.append(td)});t.append(tr)});const w=document.createElement("div");w.className="tablewrap";w.append(t);box.replaceChildren(w)}
-async function loadTable(name,box,count,keys){const {data,error,count:n}=await db.from(name).select("*",{count:"exact"}).limit(100);if(error)throw error;if(count)$(count).textContent=n??data.length;table(box,data,keys||Object.keys(data[0]||{}).slice(0,6).map(k=>[k,k]))}
-async function loadCapacity(){if(role!=="admin")return;try{const {data,error}=await db.rpc("get_reseller_capacity");if(error)throw error;$("resellerCount").textContent=data.length;const box=$("capacityList");if(!Array.isArray(data)||!data.length){box.textContent="هنوز نمایندگی‌ای ثبت نشده است.";return}const wrap=document.createElement("div");wrap.className="tablewrap";const t=document.createElement("table");const h=document.createElement("tr");["نمایندگی","ظرفیت فعلی","مشتری ثبت‌شده","ظرفیت باقی‌مانده","ظرفیت جدید","عملیات"].forEach(v=>{const th=document.createElement("th");th.textContent=v;h.append(th)});t.append(h);data.forEach(x=>{const tr=document.createElement("tr");[x.display_name||x.reseller_id,x.max_customers,x.current_customers,x.remaining_customers].forEach(v=>{const td=document.createElement("td");td.textContent=v??"—";tr.append(td)});const inputCell=document.createElement("td"),inp=document.createElement("input");inp.type="number";inp.min=Number(x.current_customers||0);inp.max="100000";inp.value=x.max_customers??200;inp.style.width="100px";inputCell.append(inp);tr.append(inputCell);const action=document.createElement("td"),btn=document.createElement("button");btn.className="secondary";btn.textContent="ذخیره ظرفیت";btn.onclick=async()=>{btn.disabled=true;try{const value=Number(inp.value);if(!Number.isInteger(value)||value<Number(x.current_customers||0)||value>100000)throw Error("ظرفیت باید عدد صحیح و حداقل برابر تعداد مشتریان فعلی باشد.");const {error}=await db.rpc("set_reseller_capacity",{p_reseller_id:x.reseller_id,p_max_customers:value});if(error)throw error;msg("capacityList","ظرفیت با موفقیت به‌روزرسانی شد.");await loadCapacity()}catch(e){fail("capacityList",e)}finally{btn.disabled=false}};action.append(btn);tr.append(action);t.append(tr)});wrap.append(t);box.replaceChildren(wrap)}catch(e){fail("capacityList",e)}}
-async function loadCustomers(){try{const {data,error}=await db.from("customers").select("*").order("created_at",{ascending:false}).limit(200);if(error)throw error;customersCache=data||[];$("customerCount").textContent=customersCache.length;renderCustomers()}catch(e){fail("customerList",e)}}
-function renderCustomers(){const q=$("customerSearch").value.trim().toLowerCase();const rows=customersCache.filter(c=>JSON.stringify(c).toLowerCase().includes(q));const keys=[["customer_code","شناسه مشتری"],["full_name","نام"],["phone","تلفن"],["status","وضعیت"],["created_at","تاریخ ثبت"]];table("customerList",rows,keys)}
+const $=id=>document.getElementById(id);
+
+let role=null;
+let sessionUser=null;
+let customersCache=[];
+
+function msg(id,t){
+$(id).textContent=t;
+$(id).classList.remove("hidden");
+}
+
+function fail(id,e){
+msg(id,"خطا: "+(e?.message||e));
+}
+
+async function callFunction(name,body){
+const {data:{session},error}=await db.auth.getSession();
+if(error)throw error;
+if(!session)throw Error("نشست ورود منقضی شده است.");
+
+const res=await fetch(`${SUPABASE_URL}/functions/v1/${name}`,{
+method:"POST",
+headers:{
+"Content-Type":"application/json",
+"Authorization":`Bearer ${session.access_token}`,
+"apikey":SUPABASE_KEY
+},
+body:JSON.stringify(body)
+});
+
+const out=await res.json().catch(()=>({error:"پاسخ نامعتبر سرور"}));
+if(!res.ok)throw Error(out.error||"درخواست ناموفق بود");
+return out;
+}
+
+$("loginForm").addEventListener("submit",async e=>{
+e.preventDefault();
+$("loginBtn").disabled=true;
+
+try{
+const {error}=await db.auth.signInWithPassword({
+email:$("email").value.trim(),
+password:$("password").value
+});
+if(error)throw error;
+await checkSession();
+}catch(e){
+msg("loginMsg",e.message);
+}finally{
+$("loginBtn").disabled=false;
+}
+});
+
+async function checkSession(){
+const {data,error}=await db.auth.getSession();
+if(error)throw error;
+
+const u=data.session?.user;
+
+if(!u){
+$("app").classList.add("hidden");
+$("loginPage").classList.remove("hidden");
+return;
+}
+
+role=u.app_metadata?.role;
+
+if(!["admin","reseller"].includes(role)){
+await db.auth.signOut();
+msg("loginMsg","نقش این حساب تعریف نشده است.");
+return;
+}
+
+sessionUser=u;
+
+$("loginPage").classList.add("hidden");
+$("app").classList.remove("hidden");
+$("userInfo").textContent=u.email;
+$("sideUser").textContent=`${u.email} | ${role==="admin"?"مدیر":"نماینده"}`;
+
+document.querySelectorAll(".admin-only").forEach(x=>{
+x.classList.toggle("hidden",role!=="admin");
+});
+
+await loadAll();
+}
+
+function closeMobileMenu(){
+$("sidebar").classList.remove("open");
+$("mobileBackdrop").classList.remove("show");
+}
+
+function openTab(id){
+
+if(role!=="admin"&&!["overview","customers"].includes(id))return;
+
+document.querySelectorAll(".tab").forEach(x=>{
+x.classList.remove("active");
+});
+
+$(id).classList.add("active");
+
+document.querySelectorAll(".nav[data-tab]").forEach(x=>{
+x.classList.toggle("active",x.dataset.tab===id);
+});
+
+$("pageTitle").textContent=({
+overview:"داشبورد اصلی",
+resellers:"نمایندگی‌ها",
+customers:"مشتریان",
+servers:"سرورها",
+subscriptions:"اشتراک‌ها"
+})[id];
+
+closeMobileMenu();
+
+if(id==="resellers"&&role==="admin")loadCapacity();
+}
+
+document.querySelectorAll(".nav[data-tab]").forEach(b=>{
+b.onclick=()=>openTab(b.dataset.tab);
+});
+
+$("mobileMenu").onclick=()=>{
+$("sidebar").classList.toggle("open");
+$("mobileBackdrop").classList.toggle("show");
+};
+
+$("mobileBackdrop").onclick=closeMobileMenu;
+
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape")closeMobileMenu();
+});
+
+$("logout").onclick=async()=>{
+await db.auth.signOut();
+location.reload();
+};
+
+function table(boxId,rows,keys){
+
+const box=$(boxId);
+
+if(!rows?.length){
+box.textContent="اطلاعاتی برای نمایش وجود ندارد.";
+return;
+}
+
+const t=document.createElement("table");
+const h=document.createElement("tr");
+
+keys.forEach(([k,l])=>{
+const th=document.createElement("th");
+th.textContent=l;
+h.append(th);
+});
+
+t.append(h);
+
+rows.forEach(r=>{
+const tr=document.createElement("tr");
+
+keys.forEach(([k])=>{
+const td=document.createElement("td");
+const v=r[k];
+
+td.textContent=v==null?"—":
+(/(password|secret|private.?key|access.?token|refresh.?token|api.?key|subscription.?token)/i.test(k)?"••••••••":String(v));
+
+tr.append(td);
+});
+
+t.append(tr);
+});
+
+const w=document.createElement("div");
+w.className="tablewrap";
+w.append(t);
+box.replaceChildren(w);
+}
+
+async function loadTable(name,box,count,keys){
+
+const {data,error,count:n}=await db
+.from(name)
+.select("*",{count:"exact"})
+.limit(100);
+
+if(error)throw error;
+
+if(count)$(count).textContent=n??data.length;
+
+table(
+box,
+data,
+keys||Object.keys(data[0]||{}).slice(0,6).map(k=>[k,k])
+);
+}
+
+async function loadCapacity(){
+
+if(role!=="admin")return;
+
+try{
+
+const {data,error}=await db.rpc("get_reseller_capacity");
+if(error)throw error;
+
+if(!Array.isArray(data))throw Error("پاسخ ظرفیت نامعتبر است.");
+
+$("resellerCount").textContent=data.length;
+
+const box=$("capacityList");
+
+if(!data.length){
+box.textContent="هنوز نمایندگی‌ای ثبت نشده است.";
+return;
+}
+
+const wrap=document.createElement("div");
+wrap.className="tablewrap";
+
+const t=document.createElement("table");
+const h=document.createElement("tr");
+
+["نمایندگی","ظرفیت فعلی","مشتری ثبت‌شده","ظرفیت باقی‌مانده","ظرفیت جدید","عملیات"].forEach(v=>{
+const th=document.createElement("th");
+th.textContent=v;
+h.append(th);
+});
+
+t.append(h);
+
+data.forEach(x=>{
+
+const tr=document.createElement("tr");
+
+[
+x.display_name||x.reseller_id,
+x.max_customers,
+x.current_customers,
+x.remaining_customers
+].forEach(v=>{
+const td=document.createElement("td");
+td.textContent=v??"—";
+tr.append(td);
+});
+
+const inputCell=document.createElement("td");
+const inp=document.createElement("input");
+
+inp.type="number";
+inp.min=Number(x.current_customers||0);
+inp.max="100000";
+inp.value=x.max_customers??200;
+inp.style.width="100px";
+
+inputCell.append(inp);
+tr.append(inputCell);
+
+const action=document.createElement("td");
+const btn=document.createElement("button");
+
+btn.className="secondary";
+btn.textContent="ذخیره ظرفیت";
+
+btn.onclick=async()=>{
+
+btn.disabled=true;
+
+try{
+
+const value=Number(inp.value);
+
+if(!Number.isInteger(value)||
+value<Number(x.current_customers||0)||
+value>100000){
+throw Error("ظرفیت باید عدد صحیح و حداقل برابر تعداد مشتریان فعلی باشد.");
+}
+
+const {error}=await db.rpc("set_reseller_capacity",{
+p_reseller_id:x.reseller_id,
+p_max_customers:value
+});
+
+if(error)throw error;
+
+msg("capacityList","ظرفیت با موفقیت به‌روزرسانی شد.");
+await loadCapacity();
+
+}catch(e){
+fail("capacityList",e);
+}finally{
+btn.disabled=false;
+}
+};
+
+action.append(btn);
+tr.append(action);
+t.append(tr);
+});
+
+wrap.append(t);
+box.replaceChildren(wrap);
+
+}catch(e){
+fail("capacityList",e);
+}
+}
+
+async function loadCustomers(){
+
+try{
+
+const {data,error}=await db
+.from("customers")
+.select("id,customer_code,full_name,status,created_at,reseller_id")
+.order("created_at",{ascending:false})
+.limit(200);
+
+if(error)throw error;
+
+customersCache=data||[];
+$("customerCount").textContent=customersCache.length;
+
+renderCustomers();
+
+}catch(e){
+fail("customerList",e);
+}
+}
+
+function renderCustomers(){
+
+const q=$("customerSearch").value.trim().toLowerCase();
+
+const rows=customersCache.filter(c=>
+JSON.stringify(c).toLowerCase().includes(q)
+);
+
+const keys=[
+["customer_code","شناسه مشتری"],
+["full_name","نام"],
+["status","وضعیت"],
+["created_at","تاریخ ثبت"]
+];
+
+table("customerList",rows,keys);
+}
+
 $("customerSearch").oninput=renderCustomers;
-$("saveCustomer").onclick=async()=>{const b=$("saveCustomer");b.disabled=true;try{const body={full_name:$("cName").value.trim()||null,phone:$("cPhone").value.trim()||null};const out=await callFunction("create-customer",body);msg("cMsg",`مشتری ثبت شد. شناسه: ${out.customer.customer_code}`);$("cName").value=$("cPhone").value="";await loadCustomers()}catch(e){fail("cMsg",e)}finally{b.disabled=false}};
-$("createReseller").onclick=async()=>{const b=$("createReseller");b.disabled=true;try{const out=await callFunction("create-reseller",{display_name:$("rName").value.trim(),email:$("rEmail").value.trim(),password:$("rPassword").value});msg("rMsg","نمایندگی ایجاد شد: "+(out.reseller?.id||"موفق"));await loadCapacity();await loadTable("resellers","resellerList","resellerCount")}catch(e){fail("rMsg",e)}finally{b.disabled=false}};
+
+$("saveCustomer").onclick=async()=>{
+
+const b=$("saveCustomer");
+b.disabled=true;
+
+try{
+
+const body={
+full_name:$("cName").value.trim()||null
+};
+
+const out=await callFunction("create-customer",body);
+
+if(!out.customer)throw Error("پاسخ ثبت مشتری معتبر نیست.");
+
+msg("cMsg",`مشتری ثبت شد. شناسه: ${out.customer.customer_code||"ثبت شد"}`);
+
+$("cName").value="";
+
+await loadCustomers();
+
+}catch(e){
+fail("cMsg",e);
+}finally{
+b.disabled=false;
+}
+};
+
+$("createReseller").onclick=async()=>{
+
+const b=$("createReseller");
+b.disabled=true;
+
+try{
+
+const out=await callFunction("create-reseller",{
+display_name:$("rName").value.trim(),
+email:$("rEmail").value.trim(),
+password:$("rPassword").value
+});
+
+msg("rMsg","نمایندگی ایجاد شد: "+(out.reseller?.id||"موفق"));
+
+await loadCapacity();
+await loadTable("resellers","resellerList","resellerCount");
+
+}catch(e){
+fail("rMsg",e);
+}finally{
+b.disabled=false;
+}
+};
+
 $("refreshCapacity").onclick=loadCapacity;
-async function loadAll(){try{$("systemStatus").textContent="در حال اتصال به Supabase...";await loadCustomers();if(role==="admin"){await loadCapacity();await loadTable("resellers","resellerList","resellerCount");await loadTable("servers","serverList","serverCount");await loadTable("subscriptions","subscriptionList","subscriptionCount");$("systemStatus").textContent="اتصال برقرار است؛ نقش مدیر."}else{$("systemStatus").textContent="حساب نماینده فعال است."}}catch(e){$("systemStatus").textContent=e.message}}
-db.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){role=null;$("app").classList.add("hidden");$("loginPage").classList.remove("hidden")}});
+
+async function loadAll(){
+
+try{
+
+$("systemStatus").textContent="در حال اتصال به Supabase...";
+
+await loadCustomers();
+
+if(role==="admin"){
+
+await loadCapacity();
+
+await loadTable("resellers","resellerList","resellerCount");
+await loadTable("servers","serverList","serverCount");
+await loadTable("subscriptions","subscriptionList","subscriptionCount");
+
+$("systemStatus").textContent="اتصال برقرار است؛ نقش مدیر.";
+
+}else{
+
+$("systemStatus").textContent="حساب نماینده فعال است.";
+
+}
+
+}catch(e){
+$("systemStatus").textContent=e.message;
+}
+}
+
+db.auth.onAuthStateChange(event=>{
+
+if(event==="SIGNED_OUT"){
+role=null;
+$("app").classList.add("hidden");
+$("loginPage").classList.remove("hidden");
+}
+
+});
+
 checkSession().catch(e=>msg("loginMsg",e.message));
-</script></body></html>
+
+</script>
+</body>
+</html>
