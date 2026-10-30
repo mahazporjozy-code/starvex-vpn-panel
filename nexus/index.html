@@ -3,264 +3,499 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090a0e">
 <title>STARVEX NEXUS</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
+:root{
+ --bg:#090a0e;
+ --panel:#12141b;
+ --panel2:#191c25;
+ --gold:#d9ad52;
+ --gold2:#f0ce80;
+ --text:#f4f1e9;
+ --muted:#92939c;
+ --border:#292c36;
+ --green:#53c995;
+ --red:#ed7373;
+}
 *{box-sizing:border-box}
-body{margin:0;background:#08090d;color:#eee;font-family:Tahoma,Arial,sans-serif}
-header{padding:25px;background:#111;border-bottom:1px solid #a78338}
-.brand{font-size:27px;font-weight:bold;color:#e5bd62;letter-spacing:2px}
-.subtitle{font-size:11px;color:#aaa;margin-top:8px;letter-spacing:2px}
-.container{max-width:1150px;margin:30px auto;padding:15px}
-.card{background:#12141b;border:1px solid #303039;border-radius:13px;padding:22px;margin-bottom:18px}
-h2{color:#e5bd62;font-size:18px}
-input,button{width:100%;padding:13px;border-radius:8px;margin:7px 0;font-size:14px}
-input{background:#090b10;color:white;border:1px solid #41414a}
-button{background:#c59b43;color:#08090d;border:0;font-weight:bold;cursor:pointer}
-button:hover{background:#e5bd62}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
-.stat{background:#191b23;border:1px solid #35323a;padding:20px;border-radius:12px}
-.stat span{display:block;color:#aaa;font-size:13px}
-.stat strong{display:block;color:#e5bd62;font-size:27px;margin-top:12px}
-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
-nav button{width:auto;padding:11px 18px;background:#20212a;color:#e5bd62;border:1px solid #4a402c}
-nav button.active{background:#c59b43;color:#111}
+body{
+ margin:0;background:var(--bg);color:var(--text);
+ font-family:Tahoma,Arial,sans-serif;
+}
+button,input{font-family:inherit}
+button{cursor:pointer}
 .hidden{display:none!important}
-.muted{color:#999;font-size:12px;line-height:2}
-.message{padding:12px;border-radius:8px;background:#20212a;margin:10px 0;line-height:1.8}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
-td,th{padding:12px;border-bottom:1px solid #30313a;text-align:right}
-th{color:#e5bd62}
+.muted{color:var(--muted);font-size:12px;line-height:2}
+.gold{color:var(--gold)}
+/* LOGIN */
+#loginPage{
+ min-height:100vh;display:flex;align-items:center;
+ justify-content:center;padding:20px;
+ background:radial-gradient(circle at top,#292113 0,#090a0e 48%);
+}
+.login-box{
+ width:100%;max-width:420px;background:#12141b;
+ border:1px solid #514329;border-radius:18px;
+ padding:32px;box-shadow:0 20px 70px #0008;
+}
+.brand{text-align:center;color:var(--gold);font-size:29px;font-weight:bold;letter-spacing:2px}
+.tagline{text-align:center;color:#999;font-size:10px;letter-spacing:2px;margin:10px 0 30px}
+h2{font-size:17px;color:var(--gold);margin:0 0 18px}
+input{
+ width:100%;padding:14px;margin:7px 0;
+ border-radius:8px;border:1px solid #353844;
+ background:#090b10;color:white;font-size:14px;outline:none;
+}
+input:focus{border-color:var(--gold)}
+.primary{
+ width:100%;padding:13px;border:0;border-radius:8px;
+ background:linear-gradient(110deg,#b98a35,#f0ce80);
+ color:#17130b;font-weight:bold;font-size:14px;margin-top:12px;
+}
+.primary:disabled{opacity:.6;cursor:wait}
+.message{
+ padding:12px;border-radius:8px;background:#20232d;
+ margin-top:12px;font-size:12px;line-height:2;
+ overflow-wrap:anywhere;
+}
+/* APP LAYOUT */
+#app{min-height:100vh}
+.sidebar{
+ position:fixed;right:0;top:0;bottom:0;width:245px;
+ background:#101116;border-left:1px solid var(--border);
+ padding:24px 16px;z-index:10;overflow-y:auto;
+}
+.logo{font-size:23px;color:var(--gold);font-weight:bold;letter-spacing:1px;padding:5px 8px}
+.logo-sub{font-size:9px;color:#888;letter-spacing:2px;padding:5px 8px 25px}
+.menu-title{font-size:10px;color:#777;padding:15px 10px 8px}
+.nav-btn{
+ display:block;width:100%;text-align:right;padding:13px 14px;
+ margin:5px 0;border:1px solid transparent;border-radius:8px;
+ background:transparent;color:#b9bac2;font-size:13px;
+}
+.nav-btn:hover,.nav-btn.active{
+ background:#282318;color:var(--gold2);
+ border-color:#514329;
+}
+.sidebar-bottom{margin-top:35px;border-top:1px solid var(--border);padding-top:15px}
+#main{margin-right:245px;padding:28px;max-width:1600px}
+.topbar{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:12px;margin-bottom:25px;
+}
+.page-title{font-size:22px;font-weight:bold}
+.user-info{font-size:12px;color:var(--muted);text-align:left}
+.mobile-menu{
+ display:none;background:#20212a;color:var(--gold);
+ border:1px solid var(--border);padding:10px 13px;border-radius:8px;
+}
+.card{
+ background:var(--panel);border:1px solid var(--border);
+ border-radius:13px;padding:22px;margin-bottom:18px;
+}
+.grid{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:15px;margin-bottom:20px;
+}
+.stat{
+ background:linear-gradient(145deg,#191b23,#111319);
+ border:1px solid #30313a;border-radius:12px;padding:20px;
+}
+.stat-label{font-size:12px;color:var(--muted)}
+.stat-value{font-size:28px;color:var(--gold);font-weight:bold;margin-top:13px}
+.section-title{color:var(--gold);font-size:16px;margin:0 0 18px}
 .table-wrap{overflow-x:auto}
-#logout{background:#29242a;color:#f1c66a}
-.capacity-input{width:100px;min-width:90px;margin:0;padding:9px}
-.capacity-save{width:auto;padding:9px 14px;margin:3px}
-.status-active{color:#62d69b}
-.status-inactive{color:#ff7777}
-.small-btn{width:auto;padding:9px 14px}
+table{width:100%;border-collapse:collapse;min-width:600px;font-size:12px}
+th,td{text-align:right;padding:13px 11px;border-bottom:1px solid #2b2e37}
+th{color:var(--gold);background:#191b23;white-space:nowrap}
+td{color:#ddd}
+tr:hover td{background:#191b23}
+.small-input{width:100px;padding:9px;margin:0}
+.small-btn{
+ width:auto;padding:9px 14px;border:0;border-radius:7px;
+ background:var(--gold);color:#15120a;font-weight:bold;
+}
+.secondary-btn{
+ width:auto;padding:10px 15px;border-radius:7px;
+ border:1px solid #514329;background:#25221b;color:var(--gold);
+}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.status-active{color:var(--green)}
+.status-inactive{color:var(--red)}
+.tab{display:none}
+.tab.active{display:block}
+.empty{padding:20px;color:var(--muted);font-size:13px}
+#overlay{
+ display:none;position:fixed;inset:0;background:#0009;z-index:9;
+}
+@media(max-width:900px){
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .sidebar{transform:translateX(100%);transition:.25s;width:260px}
+ .sidebar.open{transform:translateX(0)}
+ #main{margin-right:0;padding:18px 13px}
+ .mobile-menu{display:block}
+ .topbar{justify-content:flex-start;flex-wrap:wrap}
+ .user-info{margin-right:auto}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{padding:15px}
+ .stat-value{font-size:23px}
+ .card{padding:16px}
+ .form-grid{grid-template-columns:1fr}
+ #overlay.show{display:block}
+}
 </style>
 </head>
+
 <body>
 
-<header>
-<div class="brand">STARVEX NEXUS</div>
-<div class="subtitle">ONE COMMAND. TOTAL CONTROL.</div>
-</header>
+<!-- LOGIN -->
+<section id="loginPage">
+ <div class="login-box">
+  <div class="brand">STARVEX NEXUS</div>
+  <div class="tagline">ONE COMMAND. TOTAL CONTROL.</div>
+  <h2>ورود به مرکز مدیریت</h2>
+  <p class="muted">برای ورود، اطلاعات حساب خود را وارد کنید.</p>
 
-<div class="container">
-
-<section id="login" class="card">
-<h2>ورود به مرکز مدیریت</h2>
-<p class="muted">ورود امن مدیر و نمایندگان STARVEX</p>
-<input id="email" type="email" placeholder="ایمیل">
-<input id="password" type="password" placeholder="رمز عبور">
-<button onclick="login()">ورود امن</button>
-<div id="loginMsg" class="message hidden"></div>
+  <form id="loginForm">
+   <input id="email" type="email" placeholder="ایمیل" autocomplete="username" required>
+   <input id="password" type="password" placeholder="رمز عبور" autocomplete="current-password" required>
+   <button class="primary" id="loginButton" type="submit">ورود امن</button>
+  </form>
+  <div id="loginMsg" class="message hidden"></div>
+ </div>
 </section>
 
-<section id="dashboard" class="hidden">
+<!-- APPLICATION -->
+<div id="app" class="hidden">
 
-<div class="card">
-<h2>مرکز کنترل STARVEX</h2>
-<div id="welcome" class="muted"></div>
-<button id="logout" onclick="logout()">خروج از حساب</button>
-</div>
+ <div id="overlay"></div>
 
-<nav>
-<button class="active" onclick="showTab('overview',this)">داشبورد</button>
-<button onclick="showTab('resellers',this)">نمایندگی‌ها</button>
-<button onclick="showTab('customers',this)">مشتریان</button>
-<button onclick="showTab('servers',this)">سرورها</button>
-<button onclick="showTab('subscriptions',this)">اشتراک‌ها</button>
-</nav>
+ <aside class="sidebar" id="sidebar">
+  <div class="logo">STARVEX</div>
+  <div class="logo-sub">NEXUS MANAGEMENT</div>
 
-<section id="overview" class="tab">
-<div class="grid">
-<div class="stat"><span>نمایندگی‌ها</span><strong id="resellerCount">—</strong></div>
-<div class="stat"><span>مشتریان</span><strong id="customerCount">—</strong></div>
-<div class="stat"><span>سرورها</span><strong id="serverCount">—</strong></div>
-<div class="stat"><span>اشتراک‌ها</span><strong id="subscriptionCount">—</strong></div>
-</div>
+  <div class="menu-title">مرکز کنترل</div>
+  <button class="nav-btn active" data-tab="overview">▦ داشبورد اصلی</button>
 
-<div class="card" style="margin-top:18px">
-<h2>وضعیت سیستم</h2>
-<div id="systemStatus" class="muted">در حال بررسی...</div>
-</div>
-</section>
+  <div class="menu-title">مدیریت مجموعه</div>
+  <button class="nav-btn admin-only" data-tab="resellers">♙ نمایندگی‌ها</button>
+  <button class="nav-btn" data-tab="customers">♧ مشتریان</button>
+  <button class="nav-btn admin-only" data-tab="servers">▤ سرورها</button>
+  <button class="nav-btn admin-only" data-tab="subscriptions">◷ اشتراک‌ها</button>
 
-<section id="resellers" class="tab hidden">
+  <div class="sidebar-bottom">
+   <div id="sidebarUser" class="muted"></div>
+   <button class="nav-btn" id="logoutButton">↪ خروج از حساب</button>
+  </div>
+ </aside>
 
-<div class="card" id="createResellerBox">
-<h2>ایجاد نمایندگی جدید</h2>
-<input id="rName" placeholder="نام نمایندگی">
-<input id="rEmail" type="email" placeholder="ایمیل نمایندگی">
-<input id="rPassword" type="password" placeholder="رمز عبور اولیه حداقل ۱۲ کاراکتر">
-<button onclick="createReseller()">ایجاد نمایندگی</button>
-<p class="muted">ظرفیت پیش‌فرض: ۲۰۰ مشتری</p>
-<div id="resellerMsg" class="message hidden"></div>
-</div>
+ <main id="main">
+  <div class="topbar">
+   <button class="mobile-menu" id="mobileMenu">☰ منو</button>
+   <div>
+    <div class="page-title" id="pageTitle">داشبورد اصلی</div>
+    <div class="muted">مدیریت یکپارچه STARVEX NEXUS</div>
+   </div>
+   <div class="user-info" id="userInfo"></div>
+  </div>
 
-<div class="card">
-<h2>مدیریت ظرفیت نمایندگی‌ها</h2>
-<p class="muted">ظرفیت مشتریان هر نمایندگی را مشاهده و مدیریت کنید.</p>
-<button class="small-btn" onclick="loadResellerCapacity()">بروزرسانی گزارش ظرفیت</button>
-<div id="capacityList" class="muted">در حال دریافت اطلاعات ظرفیت...</div>
-<div id="capacityMsg" class="message hidden"></div>
-</div>
+  <!-- OVERVIEW -->
+  <section class="tab active" id="overview">
+   <div class="grid">
+    <div class="stat">
+     <div class="stat-label">نمایندگی‌ها</div>
+     <div class="stat-value" id="resellerCount">—</div>
+    </div>
+    <div class="stat">
+     <div class="stat-label">مشتریان قابل مشاهده</div>
+     <div class="stat-value" id="customerCount">—</div>
+    </div>
+    <div class="stat admin-only">
+     <div class="stat-label">سرورها</div>
+     <div class="stat-value" id="serverCount">—</div>
+    </div>
+    <div class="stat admin-only">
+     <div class="stat-label">اشتراک‌ها</div>
+     <div class="stat-value" id="subscriptionCount">—</div>
+    </div>
+   </div>
 
-<div class="card">
-<h2>فهرست نمایندگی‌ها</h2>
-<div id="resellerList" class="muted">در حال دریافت...</div>
-</div>
+   <div class="card">
+    <h2 class="section-title">وضعیت سیستم</h2>
+    <div id="systemStatus" class="muted">در حال بررسی ارتباط...</div>
+   </div>
 
-</section>
+   <div class="card">
+    <h2 class="section-title">خوش آمدید</h2>
+    <p class="muted">
+     به مرکز مدیریت STARVEX NEXUS خوش آمدید.
+     از منوی کناری برای مدیریت بخش‌های مجاز حساب خود استفاده کنید.
+    </p>
+   </div>
+  </section>
 
-<section id="customers" class="tab hidden">
-<div class="card">
-<h2>مدیریت مشتریان</h2>
-<div id="customerList" class="muted">در حال دریافت...</div>
-</div>
-</section>
+  <!-- RESELLERS -->
+  <section class="tab" id="resellers">
 
-<section id="servers" class="tab hidden">
-<div class="card">
-<h2>مدیریت سرورها</h2>
-<div id="serverList" class="muted">در حال دریافت...</div>
-</div>
-</section>
+   <div class="card">
+    <h2 class="section-title">ایجاد نمایندگی جدید</h2>
+    <div class="form-grid">
+     <input id="rName" placeholder="نام نمایندگی">
+     <input id="rEmail" type="email" placeholder="ایمیل نمایندگی">
+     <input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر">
+    </div>
+    <button class="primary" id="createResellerButton">ایجاد نمایندگی</button>
+    <p class="muted">ظرفیت پیش‌فرض هر نمایندگی: ۲۰۰ مشتری</p>
+    <div id="resellerMsg" class="message hidden"></div>
+   </div>
 
-<section id="subscriptions" class="tab hidden">
-<div class="card">
-<h2>مدیریت اشتراک‌ها</h2>
-<div id="subscriptionList" class="muted">در حال دریافت...</div>
-</div>
-</section>
+   <div class="card">
+    <h2 class="section-title">مدیریت ظرفیت نمایندگی‌ها</h2>
+    <button class="secondary-btn" id="refreshCapacity">بروزرسانی گزارش</button>
+    <div id="capacityMsg" class="message hidden"></div>
+    <div id="capacityList" class="empty">در حال دریافت اطلاعات...</div>
+   </div>
 
-</section>
+   <div class="card">
+    <h2 class="section-title">فهرست نمایندگی‌ها</h2>
+    <div id="resellerList" class="empty">در حال دریافت...</div>
+   </div>
+  </section>
+
+  <!-- CUSTOMERS -->
+  <section class="tab" id="customers">
+   <div class="card">
+    <h2 class="section-title">مدیریت مشتریان</h2>
+    <div id="customerList" class="empty">در حال دریافت...</div>
+   </div>
+  </section>
+
+  <!-- SERVERS -->
+  <section class="tab" id="servers">
+   <div class="card">
+    <h2 class="section-title">مدیریت سرورها</h2>
+    <div id="serverList" class="empty">در حال دریافت...</div>
+   </div>
+  </section>
+
+  <!-- SUBSCRIPTIONS -->
+  <section class="tab" id="subscriptions">
+   <div class="card">
+    <h2 class="section-title">مدیریت اشتراک‌ها</h2>
+    <div id="subscriptionList" class="empty">در حال دریافت...</div>
+   </div>
+  </section>
+
+ </main>
 </div>
 
 <script>
-const URL="https://hbjonoxlasbhbusctmom.supabase.co";
-const KEY="sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
-const db=window.supabase.createClient(URL,KEY);
-const FUNCTION_URL=URL+"/functions/v1/create-reseller";
+/* SUPABASE CONFIG */
+const SUPABASE_URL="https://hbjonoxlasbhbusctmom.supabase.co";
+const SUPABASE_KEY="sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
+const FUNCTION_URL=SUPABASE_URL+"/functions/v1/create-reseller";
+
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let role=null;
+let currentUser=null;
 
-function msg(id,text){
- const e=document.getElementById(id);
- e.textContent=text;
- e.classList.remove("hidden");
+const $=id=>document.getElementById(id);
+
+function showMessage(id,text){
+ const el=$(id);
+ el.textContent=text;
+ el.classList.remove("hidden");
 }
 
-async function login(){
- const email=document.getElementById("email").value.trim();
- const password=document.getElementById("password").value;
+function hideMessage(id){
+ $(id).classList.add("hidden");
+}
+
+function setLoading(button,loading,text){
+ button.disabled=loading;
+ button.textContent=loading?"در حال انجام...":text;
+}
+
+/* LOGIN */
+$("loginForm").addEventListener("submit",async function(e){
+ e.preventDefault();
+
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ const button=$("loginButton");
+
+ hideMessage("loginMsg");
 
  if(!email||!password){
-  msg("loginMsg","ایمیل و رمز عبور را وارد کنید.");
+  showMessage("loginMsg","ایمیل و رمز عبور را وارد کنید.");
   return;
  }
 
- const {error}=await db.auth.signInWithPassword({email,password});
+ setLoading(button,true,"ورود امن");
 
- if(error){
-  msg("loginMsg","خطای ورود: "+error.message);
-  return;
+ try{
+  const {data,error}=await db.auth.signInWithPassword({
+   email:email,
+   password:password
+  });
+
+  if(error){
+   showMessage("loginMsg","ورود ناموفق: "+error.message);
+   return;
+  }
+
+  if(!data.session){
+   showMessage("loginMsg","نشست ورود ایجاد نشد. دوباره تلاش کنید.");
+   return;
+  }
+
+  await checkSession();
+
+ }catch(error){
+  showMessage("loginMsg","خطای ارتباط: "+error.message);
+ }finally{
+  setLoading(button,false,"ورود امن");
  }
+});
 
- await checkSession();
-}
-
+/* SESSION */
 async function checkSession(){
- const {data:{session}}=await db.auth.getSession();
+ try{
+  const {data,error}=await db.auth.getSession();
 
- if(!session){
-  document.getElementById("login").classList.remove("hidden");
-  document.getElementById("dashboard").classList.add("hidden");
-  return;
+  if(error)throw error;
+
+  const session=data.session;
+
+  if(!session){
+   $("loginPage").classList.remove("hidden");
+   $("app").classList.add("hidden");
+   return;
+  }
+
+  const user=session.user;
+  const userRole=user.app_metadata?.role;
+
+  if(userRole!=="admin"&&userRole!=="reseller"){
+   await db.auth.signOut();
+   showMessage("loginMsg","نقش این حساب تعریف نشده است. مدیر سیستم باید دسترسی آن را بررسی کند.");
+   return;
+  }
+
+  role=userRole;
+  currentUser=user;
+
+  $("loginPage").classList.add("hidden");
+  $("app").classList.remove("hidden");
+
+  $("userInfo").textContent=user.email;
+  $("sidebarUser").textContent=
+   "حساب: "+user.email+"\nسطح دسترسی: "+(role==="admin"?"مدیر":"نماینده");
+
+  document.querySelectorAll(".admin-only").forEach(el=>{
+   el.classList.toggle("hidden",role!=="admin");
+  });
+
+  await loadData();
+
+ }catch(error){
+  $("loginPage").classList.remove("hidden");
+  $("app").classList.add("hidden");
+  showMessage("loginMsg","خطای بررسی حساب: "+error.message);
  }
-
- role=session.user.app_metadata?.role;
-
- if(role!=="admin"&&role!=="reseller"){
-  await db.auth.signOut();
-  msg("loginMsg","این حساب اجازه ورود ندارد.");
-  return;
- }
-
- document.getElementById("login").classList.add("hidden");
- document.getElementById("dashboard").classList.remove("hidden");
-
- document.getElementById("welcome").textContent=
- "حساب: "+session.user.email+" | سطح دسترسی: "+role;
-
- if(role!=="admin"){
-  document.querySelectorAll("nav button")[1].classList.add("hidden");
-  document.querySelectorAll("nav button")[3].classList.add("hidden");
-  document.querySelectorAll("nav button")[4].classList.add("hidden");
-  document.getElementById("createResellerBox").classList.add("hidden");
- }
-
- await loadData();
 }
 
-async function logout(){
+/* LOGOUT */
+$("logoutButton").addEventListener("click",async()=>{
  await db.auth.signOut();
  location.reload();
-}
+});
 
-function showTab(id,btn){
- document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));
- document.getElementById(id).classList.remove("hidden");
+/* NAVIGATION */
+function openTab(tabId){
+ const allowed=["overview","resellers","customers","servers","subscriptions"];
 
- document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
- btn.classList.add("active");
+ if(!allowed.includes(tabId))return;
+ if(role!=="admin"&&tabId!=="overview"&&tabId!=="customers")return;
 
- if(id==="resellers"&&role==="admin"){
+ document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
+ $(tabId).classList.add("active");
+
+ document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>{
+  btn.classList.toggle("active",btn.dataset.tab===tabId);
+ });
+
+ const titles={
+  overview:"داشبورد اصلی",
+  resellers:"مدیریت نمایندگی‌ها",
+  customers:"مدیریت مشتریان",
+  servers:"مدیریت سرورها",
+  subscriptions:"مدیریت اشتراک‌ها"
+ };
+
+ $("pageTitle").textContent=titles[tabId];
+
+ closeMobileMenu();
+
+ if(tabId==="resellers"&&role==="admin"){
   loadResellerCapacity();
  }
 }
 
-async function loadTable(name,boxId,countId){
- const box=document.getElementById(boxId);
+document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>{
+ btn.addEventListener("click",()=>openTab(btn.dataset.tab));
+});
 
- const {data,error,count}=await db
- .from(name)
- .select("*",{count:"exact"})
- .limit(50);
+/* MOBILE MENU */
+function closeMobileMenu(){
+ $("sidebar").classList.remove("open");
+ $("overlay").classList.remove("show");
+}
 
- if(error){
-  box.textContent="خطا در دریافت اطلاعات: "+error.message;
-  document.getElementById(countId).textContent="خطا";
+$("mobileMenu").addEventListener("click",()=>{
+ $("sidebar").classList.toggle("open");
+ $("overlay").classList.toggle("show");
+});
+
+$("overlay").addEventListener("click",closeMobileMenu);
+
+/* TABLE BUILDER */
+function renderTable(boxId,rows,columns){
+ const box=$(boxId);
+
+ if(!rows||!rows.length){
+  box.textContent="اطلاعاتی برای نمایش وجود ندارد.";
+  box.className="empty";
   return;
  }
 
- document.getElementById(countId).textContent=count??data.length;
-
- if(!data.length){
-  box.textContent="هنوز اطلاعاتی ثبت نشده است.";
-  return;
- }
-
- const columns=Object.keys(data[0]).slice(0,6);
  const table=document.createElement("table");
  const head=document.createElement("tr");
 
- columns.forEach(c=>{
+ columns.forEach(col=>{
   const th=document.createElement("th");
-  th.textContent=c;
+  th.textContent=col.label;
   head.appendChild(th);
  });
 
  table.appendChild(head);
 
- data.forEach(row=>{
+ rows.forEach(row=>{
   const tr=document.createElement("tr");
 
-  columns.forEach(c=>{
+  columns.forEach(col=>{
    const td=document.createElement("td");
-   td.textContent=row[c]===null?"—":String(row[c]);
+   const value=row[col.key];
+
+   td.textContent=value===null||value===undefined
+    ?"—":String(value);
+
    tr.appendChild(td);
   });
 
@@ -270,142 +505,230 @@ async function loadTable(name,boxId,countId){
  const wrap=document.createElement("div");
  wrap.className="table-wrap";
  wrap.appendChild(table);
+
+ box.className="";
  box.replaceChildren(wrap);
 }
 
-/* گزارش ظرفیت نمایندگان */
+/* LOAD TABLES */
+async function loadTable(tableName,boxId,countId){
+ const box=$(boxId);
+ box.textContent="در حال دریافت اطلاعات...";
 
+ try{
+  const {data,error,count}=await db
+   .from(tableName)
+   .select("*",{count:"exact"})
+   .limit(50);
+
+  if(error)throw error;
+
+  if(countId)$(countId).textContent=count??data.length;
+
+  if(!data.length){
+   box.textContent="اطلاعاتی ثبت نشده است.";
+   return;
+  }
+
+  const columns=Object.keys(data[0]).slice(0,7)
+   .map(key=>({key,label:key}));
+
+  renderTable(boxId,data,columns);
+
+ }catch(error){
+  box.textContent="خطا در دریافت اطلاعات: "+error.message;
+  if(countId)$(countId).textContent="خطا";
+ }
+}
+
+/* CAPACITY REPORT */
 async function loadResellerCapacity(){
  if(role!=="admin")return;
 
- const box=document.getElementById("capacityList");
+ const box=$("capacityList");
  box.textContent="در حال دریافت گزارش ظرفیت...";
 
- const {data,error}=await db.rpc("get_reseller_capacity");
+ try{
+  const {data,error}=await db.rpc("get_reseller_capacity");
 
- if(error){
-  box.textContent="خطا در دریافت ظرفیت: "+error.message;
-  return;
- }
+  if(error)throw error;
 
- document.getElementById("resellerCount").textContent=data.length;
+  $("resellerCount").textContent=data.length;
 
- if(!data.length){
-  box.textContent="هنوز نمایندگی‌ای ثبت نشده است.";
-  return;
- }
-
- const table=document.createElement("table");
- const head=document.createElement("tr");
-
- [
-  "شناسه",
-  "نام نمایندگی",
-  "ظرفیت کل",
-  "مشتریان فعلی",
-  "ظرفیت باقی‌مانده",
-  "وضعیت",
-  "ظرفیت جدید",
-  "عملیات"
- ].forEach(title=>{
-  const th=document.createElement("th");
-  th.textContent=title;
-  head.appendChild(th);
- });
-
- table.appendChild(head);
-
- data.forEach(item=>{
-  const tr=document.createElement("tr");
-
-  function cell(value){
-   const td=document.createElement("td");
-   td.textContent=value;
-   tr.appendChild(td);
-   return td;
+  if(!data.length){
+   box.textContent="هنوز نمایندگی‌ای ثبت نشده است.";
+   return;
   }
 
-  cell(item.reseller_id);
-  cell(item.display_name||"بدون نام");
-  cell(item.max_customers);
-  cell(item.current_customers);
-  cell(item.remaining_customers);
+  const table=document.createElement("table");
+  const head=document.createElement("tr");
 
-  const status=cell(item.is_active?"فعال":"غیرفعال");
-  status.className=item.is_active?"status-active":"status-inactive";
-
-  const inputCell=cell("");
-  const input=document.createElement("input");
-  input.type="number";
-  input.min=item.current_customers;
-  input.step="1";
-  input.value=item.max_customers;
-  input.className="capacity-input";
-  inputCell.appendChild(input);
-
-  const actionCell=cell("");
-  const button=document.createElement("button");
-  button.textContent="ذخیره";
-  button.className="capacity-save";
-
-  button.addEventListener("click",async()=>{
-   await saveResellerCapacity(
-    item.reseller_id,
-    input.value,
-    button
-   );
+  [
+   "شناسه","نام نمایندگی","ظرفیت کل",
+   "مشتریان فعلی","ظرفیت باقی‌مانده","وضعیت",
+   "ظرفیت جدید","عملیات"
+  ].forEach(label=>{
+   const th=document.createElement("th");
+   th.textContent=label;
+   head.appendChild(th);
   });
 
-  actionCell.appendChild(button);
-  table.appendChild(tr);
- });
+  table.appendChild(head);
 
- const wrap=document.createElement("div");
- wrap.className="table-wrap";
- wrap.appendChild(table);
+  data.forEach(item=>{
+   const tr=document.createElement("tr");
 
- box.replaceChildren(wrap);
+   function addCell(value){
+    const td=document.createElement("td");
+    td.textContent=value;
+    tr.appendChild(td);
+    return td;
+   }
+
+   addCell(item.reseller_id);
+   addCell(item.display_name||"بدون نام");
+   addCell(item.max_customers);
+   addCell(item.current_customers);
+   addCell(item.remaining_customers);
+
+   const status=addCell(item.is_active?"فعال":"غیرفعال");
+   status.className=item.is_active?"status-active":"status-inactive";
+
+   const inputCell=addCell("");
+   const input=document.createElement("input");
+   input.type="number";
+   input.min=item.current_customers;
+   input.step="1";
+   input.value=item.max_customers;
+   input.className="small-input";
+   inputCell.appendChild(input);
+
+   const actionCell=addCell("");
+   const button=document.createElement("button");
+   button.className="small-btn";
+   button.textContent="ذخیره";
+
+   button.addEventListener("click",()=>{
+    saveCapacity(item.reseller_id,input.value,button);
+   });
+
+   actionCell.appendChild(button);
+   table.appendChild(tr);
+  });
+
+  const wrap=document.createElement("div");
+  wrap.className="table-wrap";
+  wrap.appendChild(table);
+
+  box.className="";
+  box.replaceChildren(wrap);
+
+ }catch(error){
+  box.textContent="خطا در گزارش ظرفیت: "+error.message;
+ }
 }
 
-/* ذخیره ظرفیت از طریق تابع امن دیتابیس */
+/* SAVE CAPACITY */
+async function saveCapacity(id,value,button){
+ if(role!=="admin")return;
 
-async function saveResellerCapacity(resellerId,value,button){
- if(role!=="admin"){
-  msg("capacityMsg","فقط مدیر اجازه تغییر ظرفیت دارد.");
+ const capacity=Number(value);
+
+ if(!Number.isSafeInteger(capacity)||capacity<0){
+  showMessage("capacityMsg","ظرفیت باید عدد صحیح و غیرمنفی باشد.");
   return;
  }
 
- const newCapacity=Number(value);
+ setLoading(button,true,"ذخیره");
 
- if(!Number.isInteger(newCapacity)||newCapacity<0){
-  msg("capacityMsg","ظرفیت باید یک عدد صحیح و غیرمنفی باشد.");
-  return;
+ try{
+  const {error}=await db.rpc("set_reseller_capacity",{
+   p_reseller_id:id,
+   p_max_customers:capacity
+  });
+
+  if(error)throw error;
+
+  showMessage("capacityMsg","ظرفیت نمایندگی با موفقیت ذخیره شد.");
+  await loadResellerCapacity();
+
+ }catch(error){
+  showMessage("capacityMsg","خطا در ذخیره ظرفیت: "+error.message);
+ }finally{
+  button.disabled=false;
+  button.textContent="ذخیره";
  }
-
- button.disabled=true;
- button.textContent="در حال ذخیره...";
-
- const {error}=await db.rpc("set_reseller_capacity",{
-  p_reseller_id:resellerId,
-  p_max_customers:newCapacity
- });
-
- button.disabled=false;
- button.textContent="ذخیره";
-
- if(error){
-  msg("capacityMsg","ذخیره انجام نشد: "+error.message);
-  return;
- }
-
- msg("capacityMsg","ظرفیت نمایندگی با موفقیت بروزرسانی شد.");
-
- await loadResellerCapacity();
 }
 
-/* دریافت اطلاعات پنل */
+$("refreshCapacity").addEventListener("click",loadResellerCapacity);
 
+/* CREATE RESELLER */
+$("createResellerButton").addEventListener("click",createReseller);
+
+async function createReseller(){
+ if(role!=="admin")return;
+
+ const name=$("rName").value.trim();
+ const email=$("rEmail").value.trim();
+ const password=$("rPassword").value;
+ const button=$("createResellerButton");
+
+ hideMessage("resellerMsg");
+
+ if(!name||!email||password.length<12){
+  showMessage("resellerMsg","نام، ایمیل و رمز عبور حداقل ۱۲ کاراکتری لازم است.");
+  return;
+ }
+
+ setLoading(button,true,"ایجاد نمایندگی");
+
+ try{
+  const {data:{session},error:sessionError}=await db.auth.getSession();
+
+  if(sessionError)throw sessionError;
+  if(!session)throw new Error("نشست ورود منقضی شده است.");
+
+  const response=await fetch(FUNCTION_URL,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "Authorization":"Bearer "+session.access_token,
+    "apikey":SUPABASE_KEY
+   },
+   body:JSON.stringify({
+    display_name:name,
+    email:email,
+    password:password
+   })
+  });
+
+  const result=await response.json();
+
+  if(!response.ok){
+   throw new Error(result.error||"ایجاد نمایندگی ناموفق بود.");
+  }
+
+  showMessage("resellerMsg","نمایندگی با موفقیت ایجاد شد. شناسه: "+result.reseller.id);
+
+  $("rName").value="";
+  $("rEmail").value="";
+  $("rPassword").value="";
+
+  await loadResellerCapacity();
+  await loadTable("resellers","resellerList","resellerCount");
+
+ }catch(error){
+  showMessage("resellerMsg","خطا: "+error.message);
+ }finally{
+  button.disabled=false;
+  button.textContent="ایجاد نمایندگی";
+ }
+}
+
+/* INITIAL DATA */
 async function loadData(){
+ $("systemStatus").textContent="در حال اتصال به پایگاه داده...";
+
  await loadTable("customers","customerList","customerCount");
 
  if(role==="admin"){
@@ -413,76 +736,28 @@ async function loadData(){
   await loadTable("resellers","resellerList","resellerCount");
   await loadTable("servers","serverList","serverCount");
   await loadTable("subscriptions","subscriptionList","subscriptionCount");
- }
 
- document.getElementById("systemStatus").textContent=
- "ارتباط با Supabase برقرار است.";
-}
+  $("systemStatus").textContent="اتصال به Supabase برقرار است. سطح دسترسی: مدیر.";
+ }else{
+  $("resellerCount").textContent="—";
+  $("serverCount").textContent="—";
+  $("subscriptionCount").textContent="—";
 
-/* ایجاد نمایندگی */
-
-async function createReseller(){
- const name=document.getElementById("rName").value.trim();
- const email=document.getElementById("rEmail").value.trim();
- const password=document.getElementById("rPassword").value;
-
- if(role!=="admin")return;
-
- if(!name||!email||password.length<12){
-  msg("resellerMsg","نام، ایمیل و رمز حداقل ۱۲ کاراکتری لازم است.");
-  return;
- }
-
- const {data:{session}}=await db.auth.getSession();
-
- if(!session){
-  msg("resellerMsg","نشست منقضی شده است.");
-  return;
- }
-
- try{
-  const response=await fetch(FUNCTION_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "Authorization":"Bearer "+session.access_token,
-    "apikey":KEY
-   },
-   body:JSON.stringify({
-    display_name:name,
-    email,
-    password
-   })
-  });
-
-  const result=await response.json();
-
-  if(!response.ok){
-   msg("resellerMsg","خطا: "+(result.error||"ایجاد نمایندگی انجام نشد."));
-   return;
-  }
-
-  msg("resellerMsg","نمایندگی با موفقیت ایجاد شد. شناسه: "+result.reseller.id);
-
-  document.getElementById("rName").value="";
-  document.getElementById("rEmail").value="";
-  document.getElementById("rPassword").value="";
-
-  await loadResellerCapacity();
-  await loadTable("resellers","resellerList","resellerCount");
-
- }catch(e){
-  msg("resellerMsg","خطای ارتباط با سرور.");
+  $("systemStatus").textContent="حساب نماینده فعال است. اطلاعات قابل دسترس بر اساس سطح دسترسی نمایش داده می‌شود.";
  }
 }
 
+/* AUTH STATE */
 db.auth.onAuthStateChange((event)=>{
  if(event==="SIGNED_OUT"){
-  document.getElementById("login").classList.remove("hidden");
-  document.getElementById("dashboard").classList.add("hidden");
+  role=null;
+  currentUser=null;
+  $("app").classList.add("hidden");
+  $("loginPage").classList.remove("hidden");
  }
 });
 
+/* START */
 checkSession();
 </script>
 </body>
