@@ -34,7 +34,6 @@ button{cursor:pointer}
 button:disabled{opacity:.55;cursor:wait}
 .hidden{display:none!important}
 .muted{color:var(--muted);font-size:12px;line-height:2}
-.gold{color:var(--gold)}
 .message{
  padding:12px;
  border-radius:8px;
@@ -327,6 +326,56 @@ h2{font-size:17px;color:var(--gold);margin:0 0 18px}
  margin-left:7px;
 }
 .status-dot.offline{background:var(--red)}
+
+/* GLOBAL SEARCH */
+.global-search-wrap{
+ position:relative;
+ flex:1;
+ max-width:430px;
+ min-width:220px;
+}
+.global-search{
+ margin:0;
+ width:100%;
+ max-width:none;
+}
+.global-search-results{
+ position:absolute;
+ top:calc(100% + 7px);
+ right:0;
+ left:0;
+ z-index:30;
+ background:#151720;
+ border:1px solid #514329;
+ border-radius:10px;
+ box-shadow:0 14px 35px #000b;
+ max-height:360px;
+ overflow:auto;
+}
+.global-result{
+ display:block;
+ width:100%;
+ padding:12px 14px;
+ text-align:right;
+ background:transparent;
+ border:0;
+ border-bottom:1px solid #292c36;
+ color:var(--text);
+ font-size:12px;
+ line-height:1.9;
+}
+.global-result:hover{background:#282318}
+.global-result strong{
+ color:var(--gold2);
+ display:block;
+}
+.global-result small{color:var(--muted)}
+.global-empty{
+ padding:14px;
+ color:var(--muted);
+ font-size:12px;
+}
+
 @media(max-width:900px){
  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
@@ -348,49 +397,43 @@ h2{font-size:17px;color:var(--gold);margin:0 0 18px}
  .form-grid{grid-template-columns:1fr}
  #overlay.show{display:block}
  .search-input{max-width:100%}
+ .global-search-wrap{
+  order:3;
+  flex-basis:100%;
+  max-width:none;
+ }
 }
 </style>
-</head>
-
-<body>
 
 <!-- LOGIN -->
 <section id="loginPage">
  <div class="login-box">
   <div class="brand">STARVEX NEXUS</div>
   <div class="tagline">ONE COMMAND. TOTAL CONTROL.</div>
-
   <h2>ورود به مرکز مدیریت</h2>
   <p class="muted">برای ورود، اطلاعات حساب خود را وارد کنید.</p>
-
   <form id="loginForm">
    <input id="email" type="email" placeholder="ایمیل" autocomplete="username" required>
    <input id="password" type="password" placeholder="رمز عبور" autocomplete="current-password" required>
    <button class="primary" id="loginButton" type="submit">ورود امن</button>
   </form>
-
   <div id="loginMsg" class="message hidden"></div>
  </div>
 </section>
 
 <!-- APPLICATION -->
 <div id="app" class="hidden">
-
  <div id="overlay"></div>
-
  <aside class="sidebar" id="sidebar">
   <div class="logo">STARVEX</div>
   <div class="logo-sub">NEXUS MANAGEMENT</div>
-
   <div class="menu-title">مرکز کنترل</div>
   <button class="nav-btn active" data-tab="overview">▦ داشبورد اصلی</button>
-
   <div class="menu-title">مدیریت مجموعه</div>
   <button class="nav-btn admin-only" data-tab="resellers">♙ نمایندگی‌ها</button>
   <button class="nav-btn" data-tab="customers">♧ مشتریان</button>
   <button class="nav-btn admin-only" data-tab="servers">▤ سرورها</button>
   <button class="nav-btn admin-only" data-tab="subscriptions">◷ اشتراک‌ها</button>
-
   <div class="sidebar-bottom">
    <div id="sidebarUser" class="muted"></div>
    <button class="nav-btn" id="logoutButton">↪ خروج از حساب</button>
@@ -398,115 +441,77 @@ h2{font-size:17px;color:var(--gold);margin:0 0 18px}
  </aside>
 
  <main id="main">
-
   <div class="topbar">
    <button class="mobile-menu" id="mobileMenu">☰ منو</button>
-
    <div>
     <div class="page-title" id="pageTitle">داشبورد اصلی</div>
     <div class="muted">مدیریت یکپارچه STARVEX NEXUS</div>
    </div>
-
+   <div class="global-search-wrap">
+    <input id="globalSearch" class="global-search" type="search"
+     placeholder="جست‌وجوی سراسری مشتری یا نمایندگی..." autocomplete="off">
+    <div id="globalSearchResults" class="global-search-results hidden"></div>
+   </div>
    <div class="user-info" id="userInfo"></div>
   </div>
 
   <!-- OVERVIEW -->
   <section class="tab active" id="overview">
-
    <div class="toolbar">
     <div class="muted">نمای کلی وضعیت مجموعه</div>
     <button class="secondary-btn" id="refreshDashboard">⟳ بروزرسانی داشبورد</button>
    </div>
-
    <div class="grid">
-
-    <div class="stat admin-only">
-     <div class="stat-label">نمایندگی‌ها</div>
-     <div class="stat-value" id="resellerCount">—</div>
-    </div>
-
-    <div class="stat">
-     <div class="stat-label">مشتریان قابل مشاهده</div>
-     <div class="stat-value" id="customerCount">—</div>
-    </div>
-
-    <div class="stat admin-only">
-     <div class="stat-label">سرورها</div>
-     <div class="stat-value" id="serverCount">—</div>
-    </div>
-
-    <div class="stat admin-only">
-     <div class="stat-label">اشتراک‌ها</div>
-     <div class="stat-value" id="subscriptionCount">—</div>
-    </div>
-
+    <div class="stat admin-only"><div class="stat-label">نمایندگی‌ها</div><div class="stat-value" id="resellerCount">—</div></div>
+    <div class="stat"><div class="stat-label">مشتریان قابل مشاهده</div><div class="stat-value" id="customerCount">—</div></div>
+    <div class="stat admin-only"><div class="stat-label">سرورها</div><div class="stat-value" id="serverCount">—</div></div>
+    <div class="stat admin-only"><div class="stat-label">اشتراک‌ها</div><div class="stat-value" id="subscriptionCount">—</div></div>
    </div>
-
    <div class="card">
     <h2 class="section-title">وضعیت سیستم</h2>
     <div id="systemStatus" class="muted">در حال بررسی ارتباط...</div>
     <div class="last-update" id="lastUpdate">آخرین بروزرسانی: هنوز انجام نشده</div>
    </div>
-
    <div class="card">
     <h2 class="section-title">خوش آمدید</h2>
-    <p class="muted">
-     به مرکز مدیریت STARVEX NEXUS خوش آمدید.
-     از منوی کناری برای مدیریت بخش‌های مجاز حساب خود استفاده کنید.
-    </p>
+    <p class="muted">به مرکز مدیریت STARVEX NEXUS خوش آمدید. از منوی کناری برای مدیریت بخش‌های مجاز حساب خود استفاده کنید.</p>
    </div>
-
   </section>
 
   <!-- RESELLERS -->
   <section class="tab" id="resellers">
-
    <div class="card">
     <h2 class="section-title">ایجاد نمایندگی جدید</h2>
-
     <div class="form-grid">
      <input id="rName" placeholder="نام نمایندگی">
      <input id="rEmail" type="email" placeholder="ایمیل نمایندگی">
      <input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر">
     </div>
-
     <button class="primary" id="createResellerButton">ایجاد نمایندگی</button>
-
     <p class="muted">ظرفیت پیش‌فرض هر نمایندگی: ۲۰۰ مشتری</p>
     <div id="resellerMsg" class="message hidden"></div>
    </div>
-
    <div class="card">
     <h2 class="section-title">Modireyat zarfiyat</h2>
-
     <button class="secondary-btn" id="refreshCapacity">⟳ بروزرسانی گزارش ظرفیت</button>
-
     <div id="capacityMsg" class="message hidden"></div>
     <div id="capacityList" class="empty">در حال دریافت اطلاعات...</div>
    </div>
-
    <div class="card">
     <h2 class="section-title">فهرست نمایندگی‌ها</h2>
-
-    <div class="toolbar">
-     <input id="resellerSearch" class="search-input" placeholder="جست‌وجو در نمایندگی‌ها...">
-    </div>
-
+    <div class="toolbar"><input id="resellerSearch" class="search-input" placeholder="جست‌وجو در نمایندگی‌ها..."></div>
     <div id="resellerList" class="empty">در حال دریافت...</div>
    </div>
-
   </section>
 
   <!-- CUSTOMERS -->
   <section class="tab" id="customers">
    <div class="card">
     <h2 class="section-title">مدیریت مشتریان</h2>
-
     <div class="toolbar">
      <input id="customerSearch" class="search-input" placeholder="جست‌وجو در مشتریان...">
      <button class="secondary-btn" id="refreshCustomers">⟳ بروزرسانی</button>
     </div>
-
     <div id="customerList" class="empty">در حال دریافت...</div>
    </div>
   </section>
@@ -515,12 +520,10 @@ h2{font-size:17px;color:var(--gold);margin:0 0 18px}
   <section class="tab" id="servers">
    <div class="card">
     <h2 class="section-title">مدیریت سرورها</h2>
-
     <div class="toolbar">
      <input id="serverSearch" class="search-input" placeholder="جست‌وجو در سرورها...">
      <button class="secondary-btn" id="refreshServers">⟳ بروزرسانی</button>
     </div>
-
     <div id="serverList" class="empty">در حال دریافت...</div>
    </div>
   </section>
@@ -529,971 +532,1453 @@ h2{font-size:17px;color:var(--gold);margin:0 0 18px}
   <section class="tab" id="subscriptions">
    <div class="card">
     <h2 class="section-title">مدیریت اشتراک‌ها</h2>
-
     <div class="toolbar">
      <input id="subscriptionSearch" class="search-input" placeholder="جست‌وجو در اشتراک‌ها...">
      <button class="secondary-btn" id="refreshSubscriptions">⟳ بروزرسانی</button>
     </div>
-
     <div id="subscriptionList" class="empty">در حال دریافت...</div>
    </div>
   </section>
-
  </main>
 </div>
-
 <script>
-/* =========================================
-   SUPABASE CONFIG
-========================================= */
+"use strict";
+
+/* ================================
+   STARVEX NEXUS CONFIGURATION
+================================ */
 
 const SUPABASE_URL = "https://hbjonoxlasbhbusctmom.supabase.co";
 const SUPABASE_KEY = "sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
-const FUNCTION_URL = SUPABASE_URL + "/functions/v1/create-reseller";
 
-const db = window.supabase.createClient(
- SUPABASE_URL,
- SUPABASE_KEY
-);
+const ADMIN_EMAIL = "mahazporjozy@gmail.com";
+const CREATE_RESELLER_FUNCTION =
+  SUPABASE_URL + "/functions/v1/create-reseller";
 
-let role = null;
+const DEFAULT_RESELLER_CAPACITY = 200;
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ================================
+   APPLICATION STATE
+================================ */
+
 let currentUser = null;
-let isRefreshing = false;
+let currentRole = null;
+let currentProfile = null;
 
-const PAGE_SIZE = 20;
+let customersData = [];
+let resellersData = [];
+let serversData = [];
+let subscriptionsData = [];
 
-const tableState = {
- customers:{page:0,search:"",rows:[],total:0},
- resellers:{page:0,search:"",rows:[],total:0},
- servers:{page:0,search:"",rows:[],total:0},
- subscriptions:{page:0,search:"",rows:[],total:0}
+let capacityData = [];
+
+let tablePages = {
+  customers: 1,
+  resellers: 1,
+  servers: 1,
+  subscriptions: 1
 };
+
+const PAGE_SIZE = 15;
 
 const $ = id => document.getElementById(id);
 
-
-/* =========================================
-   MESSAGE HELPERS
-========================================= */
-
-function showMessage(id,text,type="info"){
- const el = $(id);
- el.textContent = text;
- el.className = "message " + type;
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
 }
 
-function hideMessage(id){
- $(id).classList.add("hidden");
+function normalizeText(value) {
+  return String(value ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک");
 }
 
-function setLoading(button,loading,normalText){
- button.disabled = loading;
- button.textContent = loading ? "در حال انجام..." : normalText;
+function showMessage(elementId, message, type = "info") {
+  const element = $(elementId);
+  if (!element) return;
+
+  element.textContent = message;
+  element.className = "message " + type;
+  element.classList.remove("hidden");
 }
 
-function formatDate(date){
- try{
-  return new Intl.DateTimeFormat("fa-IR",{
-   dateStyle:"medium",
-   timeStyle:"short"
-  }).format(date);
- }catch(e){
-  return date.toLocaleString();
- }
+function hideMessage(elementId) {
+  const element = $(elementId);
+  if (!element) return;
+
+  element.classList.add("hidden");
 }
 
-function setLastUpdate(){
- $("lastUpdate").textContent =
-  "آخرین بروزرسانی: " + formatDate(new Date());
+function setButtonLoading(buttonId, loading, loadingText = "در حال انجام...") {
+  const button = $(buttonId);
+  if (!button) return;
+
+  if (loading) {
+    button.dataset.originalText = button.textContent;
+    button.textContent = loadingText;
+    button.disabled = true;
+  } else {
+    button.textContent = button.dataset.originalText || button.textContent;
+    button.disabled = false;
+  }
 }
 
+function formatDate(value) {
+  if (!value) return "—";
 
-/* =========================================
-   LOGIN
-========================================= */
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
 
-$("loginForm").addEventListener("submit",async function(e){
+  return date.toLocaleDateString("fa-IR");
+}
 
- e.preventDefault();
+function formatNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? number.toLocaleString("fa-IR")
+    : "۰";
+}
 
- const email = $("email").value.trim();
- const password = $("password").value;
- const button = $("loginButton");
+function customerCode(id) {
+  return "STX-" + String(id).padStart(6, "0");
+}
 
- hideMessage("loginMsg");
+function isAdmin() {
+  return currentRole === "admin";
+}
 
- if(!email || !password){
-  showMessage("loginMsg","ایمیل و رمز عبور را وارد کنید.","error");
-  return;
- }
+function isReseller() {
+  return currentRole === "reseller";
+}
 
- setLoading(button,true,"ورود امن");
+/* ================================
+   AUTHENTICATION
+================================ */
 
- try{
-
-  const {data,error} = await db.auth.signInWithPassword({
-   email,
-   password
+async function login(email, password) {
+  const { data, error } = await db.auth.signInWithPassword({
+    email: email.trim(),
+    password
   });
 
-  if(error) throw error;
+  if (error) throw error;
 
-  if(!data.session){
-   throw new Error("نشست ورود ایجاد نشد.");
+  return data;
+}
+
+async function logout() {
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    console.error("Logout error:", error);
   }
 
-  await checkSession();
+  currentUser = null;
+  currentRole = null;
+  currentProfile = null;
 
- }catch(error){
+  showLoginPage();
+}
 
-  showMessage("loginMsg","ورود ناموفق: " + error.message,"error");
+function showLoginPage() {
+  $("app").classList.add("hidden");
+  $("loginPage").classList.remove("hidden");
 
- }finally{
+  $("loginForm").reset();
+  hideMessage("loginMsg");
+}
 
-  setLoading(button,false,"ورود امن");
-
- }
-
-});
-
-
-/* =========================================
-   SESSION MANAGEMENT
-========================================= */
-
-async function checkSession(){
-
- try{
-
-  const {data,error} = await db.auth.getSession();
-
-  if(error) throw error;
-
-  const session = data.session;
-
-  if(!session){
-
-   $("loginPage").classList.remove("hidden");
-   $("app").classList.add("hidden");
-
-   return;
-  }
-
-  const user = session.user;
-  const userRole = user.app_metadata?.role;
-
-  if(userRole !== "admin" && userRole !== "reseller"){
-
-   await db.auth.signOut();
-
-   showMessage(
-    "loginMsg",
-    "نقش این حساب تعریف نشده است. مدیر سیستم باید دسترسی آن را بررسی کند.",
-    "error"
-   );
-
-   return;
-  }
-
-  role = userRole;
-  currentUser = user;
-
+function showApplication() {
   $("loginPage").classList.add("hidden");
   $("app").classList.remove("hidden");
-
-  $("userInfo").textContent = user.email;
-
-  $("sidebarUser").textContent =
-   "حساب: " + user.email +
-   "\nسطح دسترسی: " +
-   (role === "admin" ? "مدیر" : "نماینده");
-
-  document.querySelectorAll(".admin-only").forEach(el=>{
-   el.classList.toggle("hidden",role !== "admin");
-  });
-
-  await loadData();
-
- }catch(error){
-
-  $("loginPage").classList.remove("hidden");
-  $("app").classList.add("hidden");
-
-  showMessage(
-   "loginMsg",
-   "خطای بررسی حساب: " + error.message,
-   "error"
-  );
-
- }
-
 }
 
+async function initializeSession(session) {
+  if (!session || !session.user) {
+    currentUser = null;
+    currentRole = null;
+    currentProfile = null;
 
-/* =========================================
-   LOGOUT
-========================================= */
+    showLoginPage();
+    return;
+  }
 
-$("logoutButton").addEventListener("click",async()=>{
+  currentUser = session.user;
 
- try{
-  await db.auth.signOut();
- }finally{
-  location.reload();
- }
+  const metadata = currentUser.app_metadata || {};
+  const declaredRole = metadata.role;
 
+  if (currentUser.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+    currentRole = "admin";
+  } else if (declaredRole === "reseller") {
+    currentRole = "reseller";
+  } else {
+    currentRole = null;
+  }
+
+  if (!currentRole) {
+    await db.auth.signOut();
+    showLoginPage();
+
+    showMessage(
+      "loginMsg",
+      "این حساب مجوز ورود به STARVEX NEXUS را ندارد.",
+      "error"
+    );
+
+    return;
+  }
+
+  showApplication();
+
+  updateUserInterface();
+  applyRolePermissions();
+
+  await loadDashboard();
+}
+
+function updateUserInterface() {
+  if (!currentUser) return;
+
+  const roleText = isAdmin()
+    ? "مدیر اصلی"
+    : "نمایندگی";
+
+  const email = currentUser.email || "حساب کاربری";
+
+  $("userInfo").textContent = email + " | " + roleText;
+  $("sidebarUser").textContent = email + " | " + roleText;
+}
+
+function applyRolePermissions() {
+  document.querySelectorAll(".admin-only").forEach(element => {
+    element.classList.toggle("hidden", !isAdmin());
+  });
+
+  if (!isAdmin()) {
+    const restrictedTabs = ["resellers", "servers", "subscriptions"];
+
+    restrictedTabs.forEach(tab => {
+      const section = $(tab);
+      if (section) section.classList.remove("active");
+    });
+  }
+}
+
+/* ================================
+   AUTH EVENT LISTENERS
+================================ */
+
+$("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  hideMessage("loginMsg");
+  setButtonLoading("loginButton", true, "در حال ورود...");
+
+  try {
+    const email = $("email").value;
+    const password = $("password").value;
+
+    await login(email, password);
+
+  } catch (error) {
+    console.error("Login error:", error);
+
+    showMessage(
+      "loginMsg",
+      error.message || "ورود انجام نشد. اطلاعات حساب را بررسی کنید.",
+      "error"
+    );
+
+  } finally {
+    setButtonLoading("loginButton", false);
+  }
 });
 
+$("logoutButton").addEventListener("click", logout);
 
-/* =========================================
+db.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT") {
+    currentUser = null;
+    currentRole = null;
+    currentProfile = null;
+    showLoginPage();
+  }
+});
+
+/* ================================
    NAVIGATION
-========================================= */
-
-function openTab(tabId){
-
- const allowed = [
-  "overview",
-  "resellers",
-  "customers",
-  "servers",
-  "subscriptions"
- ];
-
- if(!allowed.includes(tabId)) return;
-
- if(
-  role !== "admin" &&
-  tabId !== "overview" &&
-  tabId !== "customers"
- ) return;
-
- document.querySelectorAll(".tab").forEach(el=>{
-  el.classList.remove("active");
- });
-
- $(tabId).classList.add("active");
-
- document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>{
-  btn.classList.toggle("active",btn.dataset.tab === tabId);
- });
-
- const titles = {
-  overview:"داشبورد اصلی",
-  resellers:"مدیریت نمایندگی‌ها",
-  customers:"مدیریت مشتریان",
-  servers:"مدیریت سرورها",
-  subscriptions:"مدیریت اشتراک‌ها"
- };
-
- $("pageTitle").textContent = titles[tabId];
-
- closeMobileMenu();
-
-}
-
-document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>{
- btn.addEventListener("click",()=>openTab(btn.dataset.tab));
-});
-
-
-/* =========================================
-   MOBILE MENU
-========================================= */
-
-function closeMobileMenu(){
- $("sidebar").classList.remove("open");
- $("overlay").classList.remove("show");
-}
-
-$("mobileMenu").addEventListener("click",()=>{
- $("sidebar").classList.toggle("open");
- $("overlay").classList.toggle("show");
-});
-
-$("overlay").addEventListener("click",closeMobileMenu);
-
-
-/* =========================================
-   SAFE TABLE RENDERING
-========================================= */
-
-function renderTable(boxId,rows,stateName){
-
- const box = $(boxId);
- const state = tableState[stateName];
-
- if(!rows || !rows.length){
-
-  box.textContent = "اطلاعاتی برای نمایش وجود ندارد.";
-  box.className = "empty";
-
-  return;
- }
-
- const filtered = rows.filter(row=>{
-
-  if(!state.search) return true;
-
-  const search = state.search.toLowerCase();
-
-  return Object.values(row).some(value=>
-   String(value ?? "").toLowerCase().includes(search)
-  );
-
- });
-
- if(!filtered.length){
-
-  box.textContent = "موردی مطابق جست‌وجو پیدا نشد.";
-  box.className = "empty";
-
-  return;
- }
-
- const start = state.page * PAGE_SIZE;
- const pageRows = filtered.slice(start,start + PAGE_SIZE);
-
- const table = document.createElement("table");
- const head = document.createElement("tr");
-
- /*
-  نمایش فقط چند ستون عمومی.
-  توجه: این فهرست، جایگزین RLS نیست.
- */
-
- const keys = Object.keys(pageRows[0]).slice(0,7);
-
- keys.forEach(key=>{
-
-  const th = document.createElement("th");
-  th.textContent = key;
-
-  head.appendChild(th);
-
- });
-
- table.appendChild(head);
-
- pageRows.forEach(row=>{
-
-  const tr = document.createElement("tr");
-
-  keys.forEach(key=>{
-
-   const td = document.createElement("td");
-
-   const value = row[key];
-
-   td.textContent =
-    value === null || value === undefined
-     ? "—"
-     : String(value);
-
-   tr.appendChild(td);
-
-  });
-
-  table.appendChild(tr);
-
- });
-
- const wrap = document.createElement("div");
- wrap.className = "table-wrap";
- wrap.appendChild(table);
-
- const pagination = document.createElement("div");
- pagination.className = "pagination";
-
- const totalPages = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
-
- const previous = document.createElement("button");
- previous.textContent = "صفحه قبل";
- previous.disabled = state.page <= 0;
-
- previous.addEventListener("click",()=>{
-  state.page--;
-  renderTable(boxId,rows,stateName);
- });
-
- const next = document.createElement("button");
- next.textContent = "صفحه بعد";
- next.disabled = state.page >= totalPages - 1;
-
- next.addEventListener("click",()=>{
-  state.page++;
-  renderTable(boxId,rows,stateName);
- });
-
- const info = document.createElement("span");
- info.textContent =
-  "صفحه " + (state.page+1) + " از " + totalPages +
-  " | تعداد نتایج: " + filtered.length;
-
- pagination.append(previous,info,next);
-
- box.className = "";
- box.replaceChildren(wrap,pagination);
-
-}
-
-
-/* =========================================
-   TABLE DATA
-========================================= */
-
-const tableConfig = {
-
- customers:{
-  table:"customers",
-  box:"customerList",
-  count:"customerCount"
- },
-
- resellers:{
-  table:"resellers",
-  box:"resellerList",
-  count:"resellerCount"
- },
-
- servers:{
-  table:"servers",
-  box:"serverList",
-  count:"serverCount"
- },
-
- subscriptions:{
-  table:"subscriptions",
-  box:"subscriptionList",
-  count:"subscriptionCount"
- }
-
+================================ */
+
+const tabTitles = {
+  overview: "داشبورد اصلی",
+  resellers: "مدیریت نمایندگی‌ها",
+  customers: "مدیریت مشتریان",
+  servers: "مدیریت سرورها",
+  subscriptions: "مدیریت اشتراک‌ها"
 };
 
-async function loadTable(name){
-
- const config = tableConfig[name];
-
- if(!config) return false;
-
- const box = $(config.box);
- box.textContent = "در حال دریافت اطلاعات...";
-
- try{
-
-  const {data,error,count} = await db
-   .from(config.table)
-   .select("*",{count:"exact"})
-   .range(0,999);
-
-  if(error) throw error;
-
-  const rows = data || [];
-
-  tableState[name].rows = rows;
-  tableState[name].total = count ?? rows.length;
-  tableState[name].page = 0;
-
-  if(config.count){
-   $(config.count).textContent =
-    tableState[name].total;
-  }
-
-  renderTable(config.box,rows,name);
-
-  return true;
-
- }catch(error){
-
-  box.textContent =
-   "خطا در دریافت اطلاعات: " + error.message;
-
-  if(config.count){
-   $(config.count).textContent = "خطا";
-  }
-
-  return false;
-
- }
-
-}
-
-
-/* =========================================
-   CAPACITY REPORT
-========================================= */
-
-async function loadResellerCapacity(){
-
- if(role !== "admin") return false;
-
- const box = $("capacityList");
- box.textContent = "در حال دریافت گزارش ظرفیت...";
-
- try{
-
-  const {data,error} = await db.rpc("get_reseller_capacity");
-
-  if(error) throw error;
-
-  const rows = data || [];
-
-  $("resellerCount").textContent = rows.length;
-
-  if(!rows.length){
-
-   box.textContent = "هنوز نمایندگی‌ای ثبت نشده است.";
-   return true;
-
-  }
-
-  const table = document.createElement("table");
-  const head = document.createElement("tr");
-
-  const labels = [
-   "شناسه",
-   "نام نمایندگی",
-   "ظرفیت کل",
-   "مشتریان فعلی",
-   "ظرفیت باقی‌مانده",
-   "وضعیت",
-   "ظرفیت جدید",
-   "عملیات"
+function navigateTo(tabName) {
+  const allowedTabs = [
+    "overview",
+    "customers",
+    ...(isAdmin()
+      ? ["resellers", "servers", "subscriptions"]
+      : [])
   ];
 
-  labels.forEach(label=>{
+  if (!allowedTabs.includes(tabName)) {
+    return;
+  }
 
-   const th = document.createElement("th");
-   th.textContent = label;
-   head.appendChild(th);
-
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.classList.remove("active");
   });
 
-  table.appendChild(head);
+  document.querySelectorAll(".nav-btn[data-tab]").forEach(button => {
+    button.classList.remove("active");
+  });
 
-  rows.forEach(item=>{
+  const target = $(tabName);
 
-   const tr = document.createElement("tr");
+  if (target) {
+    target.classList.add("active");
+  }
 
-   function addCell(value){
+  const activeButton = document.querySelector(
+    `.nav-btn[data-tab="${tabName}"]`
+  );
 
-    const td = document.createElement("td");
-    td.textContent = String(value ?? "—");
-    tr.appendChild(td);
+  if (activeButton) {
+    activeButton.classList.add("active");
+  }
 
-    return td;
+  $("pageTitle").textContent = tabTitles[tabName] || "STARVEX NEXUS";
 
-   }
+  closeMobileMenu();
+}
 
-   addCell(item.reseller_id);
-   addCell(item.display_name || "بدون نام");
-   addCell(item.max_customers);
-   addCell(item.current_customers);
-   addCell(item.remaining_customers);
+document.querySelectorAll(".nav-btn[data-tab]").forEach(button => {
+  button.addEventListener("click", () => {
+    navigateTo(button.dataset.tab);
+  });
+});
 
-   const status = addCell(
-    item.is_active ? "فعال" : "غیرفعال"
-   );
+/* ================================
+   MOBILE NAVIGATION
+================================ */
 
-   status.className =
-    item.is_active ? "status-active" : "status-inactive";
+function openMobileMenu() {
+  $("sidebar").classList.add("open");
+  $("overlay").classList.add("show");
+}
 
-   const inputCell = addCell("");
+function closeMobileMenu() {
+  $("sidebar").classList.remove("open");
+  $("overlay").classList.remove("show");
+}
 
-   const input = document.createElement("input");
+$("mobileMenu").addEventListener("click", openMobileMenu);
+$("overlay").addEventListener("click", closeMobileMenu);
 
-   input.type = "number";
-   input.min = String(Number(item.current_customers || 0));
-   input.step = "1";
-   input.value = String(item.max_customers ?? 200);
-   input.className = "small-input";
+/* ================================
+   SAFE DATA HELPERS
+================================ */
 
-   inputCell.appendChild(input);
+function getSafeValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return "—";
+  }
 
-   const actionCell = addCell("");
+  if (typeof value === "boolean") {
+    return value ? "فعال" : "غیرفعال";
+  }
 
-   const button = document.createElement("button");
-   button.className = "small-btn";
-   button.textContent = "ذخیره";
+  if (typeof value === "object") {
+    return JSON.stringify(value);
+  }
 
-   button.addEventListener("click",()=>{
-    saveCapacity(
-     item.reseller_id,
-     input.value,
-     Number(item.current_customers || 0),
-     button
+  return String(value);
+}
+
+function safeStatus(value) {
+  const active = [
+    "active",
+    "فعال",
+    "enabled",
+    "true"
+  ].includes(normalizeText(value));
+
+  return active
+    ? '<span class="status-active">فعال</span>'
+    : '<span class="status-inactive">غیرفعال</span>';
+}
+
+function showEmpty(elementId, message) {
+  const element = $(elementId);
+  if (!element) return;
+
+  element.innerHTML = `<div class="empty">${escapeHTML(message)}</div>`;
+}
+
+function showSystemMessage(message, online = true) {
+  $("systemStatus").innerHTML =
+    `<span class="status-dot ${online ? "" : "offline"}"></span>` +
+    escapeHTML(message);
+}
+
+/* ================================
+   INITIAL APPLICATION START
+================================ */
+
+async function startApplication() {
+  try {
+    const { data, error } = await db.auth.getSession();
+
+    if (error) throw error;
+
+    await initializeSession(data.session);
+
+  } catch (error) {
+    console.error("Initialization error:", error);
+
+    showLoginPage();
+
+    showMessage(
+      "loginMsg",
+      "ارتباط با سامانه برقرار نشد. اتصال اینترنت را بررسی کنید.",
+      "error"
     );
-   });
-
-   actionCell.appendChild(button);
-   table.appendChild(tr);
-
-  });
-
-  const wrap = document.createElement("div");
-  wrap.className = "table-wrap";
-  wrap.appendChild(table);
-
-  box.className = "";
-  box.replaceChildren(wrap);
-
-  return true;
-
- }catch(error){
-
-  box.textContent =
-   "خطا در گزارش ظرفیت: " + error.message;
-
-  return false;
-
- }
-
+  }
 }
 
-
-/* =========================================
-   SAVE CAPACITY
-========================================= */
-
-async function saveCapacity(id,value,currentCustomers,button){
-
- if(role !== "admin") return;
-
- hideMessage("capacityMsg");
-
- const capacity = Number(value);
-
- if(!Number.isSafeInteger(capacity) || capacity < 0){
-
-  showMessage(
-   "capacityMsg",
-   "ظرفیت باید یک عدد صحیح و غیرمنفی باشد.",
-   "error"
-  );
-
-  return;
- }
-
- if(capacity < currentCustomers){
-
-  showMessage(
-   "capacityMsg",
-   "ظرفیت جدید نمی‌تواند کمتر از تعداد مشتریان فعلی باشد.",
-   "error"
-  );
-
-  return;
- }
-
- setLoading(button,true,"ذخیره");
-
- try{
-
-  const {error} = await db.rpc("set_reseller_capacity",{
-   p_reseller_id:id,
-   p_max_customers:capacity
-  });
-
-  if(error) throw error;
-
-  showMessage(
-   "capacityMsg",
-   "ظرفیت نمایندگی با موفقیت ذخیره شد.",
-   "success"
-  );
-
-  await loadResellerCapacity();
-
- }catch(error){
-
-  showMessage(
-   "capacityMsg",
-   "خطا در ذخیره ظرفیت: " + error.message,
-   "error"
-  );
-
-  button.disabled = false;
-  button.textContent = "ذخیره";
-
- }
-
-}
-
-$("refreshCapacity").addEventListener("click",async()=>{
-
- hideMessage("capacityMsg");
-
- await loadResellerCapacity();
-
-});
-
-
-/* =========================================
-   CREATE RESELLER
-========================================= */
-
-$("createResellerButton").addEventListener(
- "click",
- createReseller
-);
-
-async function createReseller(){
-
- if(role !== "admin") return;
-
- const name = $("rName").value.trim();
- const email = $("rEmail").value.trim();
- const password = $("rPassword").value;
-
- const button = $("createResellerButton");
-
- hideMessage("resellerMsg");
-
- if(!name || !email || password.length < 12){
-
-  showMessage(
-   "resellerMsg",
-   "نام، ایمیل و رمز عبور حداقل ۱۲ کاراکتری لازم است.",
-   "error"
-  );
-
-  return;
- }
-
- setLoading(button,true,"ایجاد نمایندگی");
-
- try{
-
-  const {data:{session},error:sessionError} =
-   await db.auth.getSession();
-
-  if(sessionError) throw sessionError;
-
-  if(!session){
-   throw new Error("نشست ورود منقضی شده است.");
-  }
-
-  const response = await fetch(FUNCTION_URL,{
-   method:"POST",
-
-   headers:{
-    "Content-Type":"application/json",
-    "Authorization":"Bearer " + session.access_token,
-    "apikey":SUPABASE_KEY
-   },
-
-   body:JSON.stringify({
-    display_name:name,
-    email:email,
-    password:password
-   })
-
-  });
-
-  const result = await response.json().catch(()=>({}));
-
-  if(!response.ok){
-
-   throw new Error(
-    result.error || "ایجاد نمایندگی ناموفق بود."
-   );
-
-  }
-
-  const resellerId = result.reseller?.id;
-
-  showMessage(
-   "resellerMsg",
-   resellerId
-    ? "نمایندگی با موفقیت ایجاد شد. شناسه: " + resellerId
-    : "درخواست ایجاد نمایندگی با موفقیت انجام شد.",
-   "success"
-  );
-
-  $("rName").value = "";
-  $("rEmail").value = "";
-  $("rPassword").value = "";
-
-  await loadResellerCapacity();
-  await loadTable("resellers");
-
- }catch(error){
-
-  showMessage(
-   "resellerMsg",
-   "خطا: " + error.message,
-   "error"
-  );
-
- }finally{
-
-  setLoading(button,false,"ایجاد نمایندگی");
-
- }
-
-}
-
-
-/* =========================================
-   DASHBOARD REFRESH
-========================================= */
-
-async function loadData(){
-
- if(isRefreshing) return;
-
- isRefreshing = true;
-
- const button = $("refreshDashboard");
-
- if(button){
-  setLoading(button,true,"⟳ بروزرسانی داشبورد");
- }
-
- $("systemStatus").textContent =
-  "در حال بررسی ارتباط با پایگاه داده...";
-
- const results = [];
-
- try{
-
-  results.push(
-   await loadTable("customers")
-  );
-
-  if(role === "admin"){
-
-   results.push(
-    await loadResellerCapacity()
-   );
-
-   results.push(
-    await loadTable("resellers")
-   );
-
-   results.push(
-    await loadTable("servers")
-   );
-
-   results.push(
-    await loadTable("subscriptions")
-   );
-
-  }else{
-
-   $("resellerCount").textContent = "—";
-   $("serverCount").textContent = "—";
-   $("subscriptionCount").textContent = "—";
-
-  }
-
-  const failed = results.filter(result=>result === false).length;
-
-  if(failed === 0){
-
-   $("systemStatus").innerHTML =
-    '<span class="status-dot"></span> ارتباط با بخش‌های قابل دسترس برقرار است.';
-
-  }else{
-
-   $("systemStatus").innerHTML =
-    '<span class="status-dot offline"></span> برخی بخش‌ها با خطا مواجه شده‌اند. جزئیات هر بخش را بررسی کنید.';
-
-  }
-
-  setLastUpdate();
-
- }catch(error){
-
-  $("systemStatus").textContent =
-   "خطا در بروزرسانی: " + error.message;
-
- }finally{
-
-  isRefreshing = false;
-
-  if(button){
-   setLoading(button,false,"⟳ بروزرسانی داشبورد");
-  }
-
- }
-
-}
-
-$("refreshDashboard").addEventListener("click",loadData);
-
-
-/* =========================================
-   SEARCH
-========================================= */
-
-function setupSearch(inputId,name){
-
- $(inputId).addEventListener("input",event=>{
-
-  tableState[name].search =
-   event.target.value.trim();
-
-  tableState[name].page = 0;
-
-  renderTable(
-   tableConfig[name].box,
-   tableState[name].rows,
-   name
-  );
-
- });
-
-}
-
-setupSearch("customerSearch","customers");
-setupSearch("resellerSearch","resellers");
-setupSearch("serverSearch","servers");
-setupSearch("subscriptionSearch","subscriptions");
-
-
-/* =========================================
-   SECTION REFRESH
-========================================= */
-
-$("refreshCustomers").addEventListener(
- "click",()=>loadTable("customers")
-);
-
-$("refreshServers").addEventListener(
- "click",()=>loadTable("servers")
-);
-
-$("refreshSubscriptions").addEventListener(
- "click",()=>loadTable("subscriptions")
-);
-
-
-/* =========================================
-   AUTH STATE
-========================================= */
-
-db.auth.onAuthStateChange((event)=>{
-
- if(event === "SIGNED_OUT"){
-
-  role = null;
-  currentUser = null;
-
-  $("app").classList.add("hidden");
-  $("loginPage").classList.remove("hidden");
-
- }
-
-});
-
-
-/* =========================================
-   START
-========================================= */
-
-checkSession();
+document.addEventListener("DOMContentLoaded", startApplication);
 
 </script>
+<script>
+/* ================================
+   DATABASE ACCESS
+================================ */
 
+async function fetchTable(tableName, options = {}) {
+  let query = db
+    .from(tableName)
+    .select("*", { count: "exact" });
+
+  if (options.orderBy) {
+    query = query.order(options.orderBy, {
+      ascending: options.ascending ?? false
+    });
+  }
+
+  if (options.resellerId) {
+    query = query.eq("reseller_id", options.resellerId);
+  }
+
+  const { data, error, count } = await query.range(0, 999);
+
+  if (error) throw error;
+
+  return {
+    data: data || [],
+    count: count ?? data?.length ?? 0
+  };
+}
+
+/* ================================
+   DASHBOARD
+================================ */
+
+async function loadDashboard() {
+  showSystemMessage("در حال دریافت اطلاعات...");
+
+  try {
+    const customerOptions = {};
+
+    if (isReseller()) {
+      customerOptions.resellerId = currentUser.id;
+    }
+
+    const customerResult = await fetchTable(
+      "customers",
+      customerOptions
+    );
+
+    customersData = customerResult.data;
+
+    $("customerCount").textContent =
+      formatNumber(customerResult.count);
+
+    if (isAdmin()) {
+      const [resellerResult, serverResult, subscriptionResult] =
+        await Promise.all([
+          fetchTable("resellers"),
+          fetchTable("servers"),
+          fetchTable("subscriptions")
+        ]);
+
+      resellersData = resellerResult.data;
+      serversData = serverResult.data;
+      subscriptionsData = subscriptionResult.data;
+
+      $("resellerCount").textContent =
+        formatNumber(resellerResult.count);
+
+      $("serverCount").textContent =
+        formatNumber(serverResult.count);
+
+      $("subscriptionCount").textContent =
+        formatNumber(subscriptionResult.count);
+    }
+
+    $("lastUpdate").textContent =
+      "آخرین بروزرسانی: " +
+      new Date().toLocaleString("fa-IR");
+
+    showSystemMessage("ارتباط با پایگاه داده برقرار است.", true);
+
+    renderCustomers();
+    renderGlobalSearch();
+
+    if (isAdmin()) {
+      renderResellers();
+      renderServers();
+      renderSubscriptions();
+      renderCapacity();
+    }
+
+  } catch (error) {
+    console.error("Dashboard error:", error);
+
+    showSystemMessage(
+      "خطا در دریافت اطلاعات. دسترسی جداول و اتصال را بررسی کنید.",
+      false
+    );
+  }
+}
+
+$("refreshDashboard").addEventListener("click", loadDashboard);
+
+/* ================================
+   CUSTOMER MANAGEMENT
+================================ */
+
+function getCustomerSearchText(customer) {
+  return normalizeText([
+    customerCode(customer.id),
+    customer.id,
+    customer.full_name,
+    customer.email,
+    customer.telegram_user_id,
+    customer.status,
+    customer.notes
+  ].join(" "));
+}
+
+function renderCustomers() {
+  const container = $("customerList");
+  if (!container) return;
+
+  const search = normalizeText($("customerSearch").value);
+
+  const filtered = customersData.filter(customer =>
+    getCustomerSearchText(customer).includes(search)
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / PAGE_SIZE)
+  );
+
+  tablePages.customers = Math.min(
+    tablePages.customers,
+    totalPages
+  );
+
+  const start = (tablePages.customers - 1) * PAGE_SIZE;
+  const rows = filtered.slice(start, start + PAGE_SIZE);
+
+  if (!rows.length) {
+    showEmpty("customerList", "مشتری‌ای برای نمایش پیدا نشد.");
+    return;
+  }
+
+  let html = `
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>کد مشتری</th>
+          <th>شناسه</th>
+          <th>نام مشتری</th>
+          <th>ایمیل</th>
+          <th>شناسه تلگرام</th>
+          <th>تاریخ ثبت</th>
+          <th>وضعیت</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  rows.forEach(customer => {
+    html += `
+      <tr>
+        <td><strong>${escapeHTML(customerCode(customer.id))}</strong></td>
+        <td>${escapeHTML(customer.id)}</td>
+        <td>${escapeHTML(customer.full_name || "—")}</td>
+        <td>${escapeHTML(customer.email || "—")}</td>
+        <td>${escapeHTML(customer.telegram_user_id || "—")}</td>
+        <td>${escapeHTML(formatDate(customer.created_at))}</td>
+        <td>${safeStatus(customer.status)}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+    </div>
+  `;
+
+  html += renderPagination(
+    "customers",
+    filtered.length,
+    totalPages
+  );
+
+  container.innerHTML = html;
+}
+
+/* ================================
+   RESELLER MANAGEMENT
+================================ */
+
+function getResellerSearchText(reseller) {
+  return normalizeText([
+    reseller.id,
+    reseller.display_name,
+    reseller.user_id,
+    reseller.parent_reseller_id,
+    reseller.is_active
+  ].join(" "));
+}
+
+function renderResellers() {
+  const container = $("resellerList");
+  if (!container || !isAdmin()) return;
+
+  const search = normalizeText($("resellerSearch").value);
+
+  const filtered = resellersData.filter(reseller =>
+    getResellerSearchText(reseller).includes(search)
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / PAGE_SIZE)
+  );
+
+  tablePages.resellers = Math.min(
+    tablePages.resellers,
+    totalPages
+  );
+
+  const start = (tablePages.resellers - 1) * PAGE_SIZE;
+  const rows = filtered.slice(start, start + PAGE_SIZE);
+
+  if (!rows.length) {
+    showEmpty("resellerList", "نمایندگی‌ای برای نمایش پیدا نشد.");
+    return;
+  }
+
+  let html = `
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>شناسه</th>
+          <th>نام نمایندگی</th>
+          <th>شناسه حساب</th>
+          <th>ظرفیت مشتری</th>
+          <th>حداکثر زیرنمایندگی</th>
+          <th>وضعیت</th>
+          <th>تاریخ ایجاد</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  rows.forEach(reseller => {
+    html += `
+      <tr>
+        <td>${escapeHTML(reseller.id)}</td>
+        <td>${escapeHTML(reseller.display_name || "—")}</td>
+        <td>${escapeHTML(reseller.user_id || "—")}</td>
+        <td>${formatNumber(reseller.max_customers ?? DEFAULT_RESELLER_CAPACITY)}</td>
+        <td>${formatNumber(reseller.max_subresellers ?? 0)}</td>
+        <td>${safeStatus(reseller.is_active)}</td>
+        <td>${escapeHTML(formatDate(reseller.created_at))}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+    </div>
+  `;
+
+  html += renderPagination(
+    "resellers",
+    filtered.length,
+    totalPages
+  );
+
+  container.innerHTML = html;
+}
+
+/* ================================
+   RESELLER CAPACITY
+================================ */
+
+async function loadCapacity() {
+  if (!isAdmin()) return;
+
+  const container = $("capacityList");
+
+  container.innerHTML =
+    '<div class="empty">در حال دریافت گزارش ظرفیت...</div>';
+
+  try {
+    const { data, error } = await db.rpc(
+      "get_reseller_capacity"
+    );
+
+    if (error) throw error;
+
+    capacityData = data || [];
+
+    renderCapacity();
+
+  } catch (error) {
+    console.error("Capacity error:", error);
+
+    showMessage(
+      "capacityMsg",
+      "دریافت گزارش ظرفیت ناموفق بود: " + error.message,
+      "error"
+    );
+
+    showEmpty(
+      "capacityList",
+      "گزارش ظرفیت در دسترس نیست. نام و دسترسی تابع دیتابیس را بررسی کنید."
+    );
+  }
+}
+
+function renderCapacity() {
+  if (!isAdmin()) return;
+
+  const container = $("capacityList");
+
+  if (!capacityData.length) {
+    showEmpty(
+      "capacityList",
+      "برای نمایش گزارش، دکمه بروزرسانی ظرفیت را بزنید."
+    );
+    return;
+  }
+
+  let html = `
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>شناسه نمایندگی</th>
+          <th>نام نمایندگی</th>
+          <th>مشتریان فعلی</th>
+          <th>ظرفیت مجاز</th>
+          <th>ظرفیت باقی‌مانده</th>
+          <th>ظرفیت جدید</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  capacityData.forEach(item => {
+    const reseller = resellersData.find(
+      row => String(row.id) === String(item.reseller_id)
+    );
+
+    const current = Number(
+      item.current_customers ?? item.customer_count ?? 0
+    );
+
+    const maximum = Number(
+      item.max_customers ?? DEFAULT_RESELLER_CAPACITY
+    );
+
+    const remaining = Math.max(0, maximum - current);
+
+    html += `
+      <tr>
+        <td>${escapeHTML(item.reseller_id)}</td>
+        <td>${escapeHTML(
+          reseller?.display_name ||
+          item.display_name ||
+          "—"
+        )}</td>
+        <td>${formatNumber(current)}</td>
+        <td>${formatNumber(maximum)}</td>
+        <td>${formatNumber(remaining)}</td>
+        <td>
+          <input
+            class="small-input"
+            type="number"
+            min="${current}"
+            max="100000"
+            value="${maximum}"
+            id="capacity-${escapeHTML(item.reseller_id)}"
+          >
+        </td>
+        <td>
+          <button
+            class="small-btn"
+            onclick="updateCapacity('${escapeHTML(item.reseller_id)}', ${current})"
+          >ثبت</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+async function updateCapacity(resellerId, currentCustomers) {
+  if (!isAdmin()) return;
+
+  const input = $("capacity-" + resellerId);
+
+  if (!input) return;
+
+  const newCapacity = Number(input.value);
+
+  if (
+    !Number.isInteger(newCapacity) ||
+    newCapacity < currentCustomers ||
+    newCapacity > 100000
+  ) {
+    showMessage(
+      "capacityMsg",
+      "ظرفیت باید عدد صحیح و حداقل برابر تعداد مشتریان فعلی باشد.",
+      "error"
+    );
+    return;
+  }
+
+  try {
+    const { error } = await db.rpc(
+      "set_reseller_capacity",
+      {
+        p_reseller_id: resellerId,
+        p_max_customers: newCapacity
+      }
+    );
+
+    if (error) throw error;
+
+    showMessage(
+      "capacityMsg",
+      "ظرفیت نمایندگی با موفقیت بروزرسانی شد.",
+      "success"
+    );
+
+    await loadCapacity();
+
+  } catch (error) {
+    console.error("Update capacity error:", error);
+
+    showMessage(
+      "capacityMsg",
+      "ثبت ظرفیت ناموفق بود: " + error.message,
+      "error"
+    );
+  }
+}
+
+$("refreshCapacity").addEventListener("click", loadCapacity);
+
+/* ================================
+   CREATE RESELLER
+================================ */
+
+async function createReseller() {
+  if (!isAdmin()) return;
+
+  hideMessage("resellerMsg");
+
+  const displayName = $("rName").value.trim();
+  const email = $("rEmail").value.trim();
+  const password = $("rPassword").value;
+
+  if (!displayName || !email || !password) {
+    showMessage(
+      "resellerMsg",
+      "لطفاً تمام فیلدهای ضروری را تکمیل کنید.",
+      "error"
+    );
+    return;
+  }
+
+  if (password.length < 12) {
+    showMessage(
+      "resellerMsg",
+      "رمز اولیه باید حداقل ۱۲ کاراکتر داشته باشد.",
+      "error"
+    );
+    return;
+  }
+
+  setButtonLoading(
+    "createResellerButton",
+    true,
+    "در حال ایجاد نمایندگی..."
+  );
+
+  try {
+    const { data: sessionData } =
+      await db.auth.getSession();
+
+    const accessToken =
+      sessionData.session?.access_token;
+
+    if (!accessToken) {
+      throw new Error("نشست ورود معتبر نیست.");
+    }
+
+    const response = await fetch(
+      CREATE_RESELLER_FUNCTION,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + accessToken,
+          "apikey": SUPABASE_KEY
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          display_name: displayName,
+          max_customers: DEFAULT_RESELLER_CAPACITY
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message ||
+        result.error ||
+        "ایجاد نمایندگی ناموفق بود."
+      );
+    }
+
+    $("rName").value = "";
+    $("rEmail").value = "";
+    $("rPassword").value = "";
+
+    showMessage(
+      "resellerMsg",
+      "نمایندگی با موفقیت ایجاد شد.",
+      "success"
+    );
+
+    await loadDashboard();
+
+  } catch (error) {
+    console.error("Create reseller error:", error);
+
+    showMessage(
+      "resellerMsg",
+      error.message || "خطا در ایجاد نمایندگی.",
+      "error"
+    );
+
+  } finally {
+    setButtonLoading("createResellerButton", false);
+  }
+}
+
+$("createResellerButton").addEventListener(
+  "click",
+  createReseller
+);
+
+/* ================================
+   SERVERS
+================================ */
+
+function renderServers() {
+  if (!isAdmin()) return;
+
+  renderGenericTable(
+    "serverList",
+    serversData,
+    $("serverSearch").value,
+    "servers"
+  );
+}
+
+/* ================================
+   SUBSCRIPTIONS
+================================ */
+
+function renderSubscriptions() {
+  if (!isAdmin()) return;
+
+  renderGenericTable(
+    "subscriptionList",
+    subscriptionsData,
+    $("subscriptionSearch").value,
+    "subscriptions"
+  );
+}
+
+/* ================================
+   GENERIC TABLE RENDERER
+================================ */
+
+function renderGenericTable(
+  containerId,
+  data,
+  searchValue,
+  tableName
+) {
+  const container = $(containerId);
+  if (!container) return;
+
+  const blockedFields = [
+    "subscription_token",
+    "access_token",
+    "refresh_token",
+    "private_key",
+    "secret",
+    "password",
+    "api_key"
+  ];
+
+  const safeData = data.map(row => {
+    const result = {};
+
+    Object.keys(row).forEach(key => {
+      if (!blockedFields.includes(key.toLowerCase())) {
+        result[key] = row[key];
+      }
+    });
+
+    return result;
+  });
+
+  const search = normalizeText(searchValue);
+
+  const filtered = safeData.filter(row =>
+    normalizeText(
+      Object.entries(row)
+        .map(([key, value]) => key + " " + getSafeValue(value))
+        .join(" ")
+    ).includes(search)
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / PAGE_SIZE)
+  );
+
+  tablePages[tableName] = Math.min(
+    tablePages[tableName],
+    totalPages
+  );
+
+  const start = (tablePages[tableName] - 1) * PAGE_SIZE;
+
+  const rows = filtered.slice(
+    start,
+    start + PAGE_SIZE
+  );
+
+  if (!rows.length) {
+    container.innerHTML =
+      '<div class="empty">اطلاعاتی برای نمایش وجود ندارد.</div>';
+    return;
+  }
+
+  const columns = Object.keys(rows[0]).slice(0, 7);
+
+  let html = `
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          ${columns.map(key =>
+            `<th>${escapeHTML(key)}</th>`
+          ).join("")}
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  rows.forEach(row => {
+    html += "<tr>";
+
+    columns.forEach(key => {
+      html += `
+        <td>${escapeHTML(getSafeValue(row[key]))}</td>
+      `;
+    });
+
+    html += "</tr>";
+  });
+
+  html += `
+      </tbody>
+    </table>
+    </div>
+  `;
+
+  html += renderPagination(
+    tableName,
+    filtered.length,
+    totalPages
+  );
+
+  container.innerHTML = html;
+}
+
+/* ================================
+   PAGINATION
+================================ */
+
+function renderPagination(tableName, totalItems, totalPages) {
+  const current = tablePages[tableName];
+
+  return `
+    <div class="pagination">
+      <button
+        ${current <= 1 ? "disabled" : ""}
+        onclick="changePage('${tableName}', -1)"
+      >قبلی</button>
+
+      <span>
+        صفحه ${formatNumber(current)}
+        از ${formatNumber(totalPages)}
+        | ${formatNumber(totalItems)} مورد
+      </span>
+
+      <button
+        ${current >= totalPages ? "disabled" : ""}
+        onclick="changePage('${tableName}', 1)"
+      >بعدی</button>
+    </div>
+  `;
+}
+
+function changePage(tableName, direction) {
+  const current = tablePages[tableName] || 1;
+
+  tablePages[tableName] = Math.max(
+    1,
+    current + direction
+  );
+
+  switch (tableName) {
+    case "customers":
+      renderCustomers();
+      break;
+
+    case "resellers":
+      renderResellers();
+      break;
+
+    case "servers":
+      renderServers();
+      break;
+
+    case "subscriptions":
+      renderSubscriptions();
+      break;
+  }
+}
+
+/* ================================
+   SEARCH INPUT EVENTS
+================================ */
+
+$("customerSearch").addEventListener("input", () => {
+  tablePages.customers = 1;
+  renderCustomers();
+});
+
+$("resellerSearch").addEventListener("input", () => {
+  tablePages.resellers = 1;
+  renderResellers();
+});
+
+$("serverSearch").addEventListener("input", () => {
+  tablePages.servers = 1;
+  renderServers();
+});
+
+$("subscriptionSearch").addEventListener("input", () => {
+  tablePages.subscriptions = 1;
+  renderSubscriptions();
+});
+
+$("refreshCustomers").addEventListener("click", async () => {
+  try {
+    const options = {};
+
+    if (isReseller()) {
+      options.resellerId = currentUser.id;
+    }
+
+    const result = await fetchTable("customers", options);
+
+    customersData = result.data;
+
+    renderCustomers();
+    renderGlobalSearch();
+
+  } catch (error) {
+    showEmpty(
+      "customerList",
+      "دریافت اطلاعات مشتریان ناموفق بود."
+    );
+  }
+});
+
+$("refreshServers").addEventListener("click", async () => {
+  if (!isAdmin()) return;
+
+  try {
+    const result = await fetchTable("servers");
+    serversData = result.data;
+    renderServers();
+  } catch (error) {
+    showEmpty("serverList", "دریافت سرورها ناموفق بود.");
+  }
+});
+
+$("refreshSubscriptions").addEventListener("click", async () => {
+  if (!isAdmin()) return;
+
+  try {
+    const result = await fetchTable("subscriptions");
+    subscriptionsData = result.data;
+    renderSubscriptions();
+  } catch (error) {
+    showEmpty(
+      "subscriptionList",
+      "دریافت اشتراک‌ها ناموفق بود."
+    );
+  }
+});
+
+</script>
+<script>
+/* ================================
+   GLOBAL SEARCH
+================================ */
+
+function renderGlobalSearch() {
+  const input = $("globalSearch");
+  const resultsBox = $("globalSearchResults");
+
+  if (!input || !resultsBox) return;
+
+  const query = normalizeText(input.value);
+
+  if (query.length < 2) {
+    resultsBox.classList.add("hidden");
+    resultsBox.innerHTML = "";
+    return;
+  }
+
+  const results = [];
+
+  // Search customers
+  customersData.forEach(customer => {
+    const code = customerCode(customer.id);
+
+    const searchable = normalizeText([
+      code,
+      customer.id,
+      customer.full_name,
+      customer.email,
+      customer.telegram_user_id
+    ].join(" "));
+
+    if (searchable.includes(query)) {
+      results.push({
+        type: "customer",
+        id: customer.id,
+        title: code,
+        subtitle:
+          (customer.full_name || "بدون نام") +
+          " | " +
+          (customer.email || "بدون ایمیل")
+      });
+    }
+  });
+
+  // Search resellers (admin only)
+  if (isAdmin()) {
+    resellersData.forEach(reseller => {
+      const searchable = getResellerSearchText(reseller);
+
+      if (searchable.includes(query)) {
+        results.push({
+          type: "reseller",
+          id: reseller.id,
+          title: reseller.display_name || "نمایندگی بدون نام",
+          subtitle: "شناسه نمایندگی: " + reseller.id
+        });
+      }
+    });
+  }
+
+  if (!results.length) {
+    resultsBox.innerHTML =
+      '<div class="global-empty">نتیجه‌ای پیدا نشد.</div>';
+
+    resultsBox.classList.remove("hidden");
+    return;
+  }
+
+  resultsBox.innerHTML = results
+    .slice(0, 15)
+    .map((item, index) => `
+      <button
+        class="global-result"
+        type="button"
+        data-result-index="${index}"
+      >
+        <strong>
+          ${escapeHTML(item.title)}
+        </strong>
+        <small>
+          ${item.type === "customer" ? "مشتری" : "نمایندگی"}
+          | ${escapeHTML(item.subtitle)}
+        </small>
+      </button>
+    `)
+    .join("");
+
+  resultsBox.querySelectorAll("[data-result-index]")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        const item = results[
+          Number(button.dataset.resultIndex)
+        ];
+
+        openGlobalSearchResult(item);
+      });
+    });
+
+  resultsBox.classList.remove("hidden");
+}
+
+function openGlobalSearchResult(item) {
+  if (!item) return;
+
+  const resultsBox = $("globalSearchResults");
+
+  resultsBox.classList.add("hidden");
+
+  if (item.type === "customer") {
+    navigateTo("customers");
+
+    $("customerSearch").value = customerCode(item.id);
+
+    tablePages.customers = 1;
+
+    renderCustomers();
+
+    return;
+  }
+
+  if (item.type === "reseller" && isAdmin()) {
+    navigateTo("resellers");
+
+    $("resellerSearch").value = String(item.id);
+
+    tablePages.resellers = 1;
+
+    renderResellers();
+  }
+}
+
+$("globalSearch").addEventListener(
+  "input",
+  renderGlobalSearch
+);
+
+$("globalSearch").addEventListener(
+  "keydown",
+  event => {
+    if (event.key === "Escape") {
+      $("globalSearchResults").classList.add("hidden");
+      $("globalSearch").blur();
+    }
+
+    if (event.key === "Enter") {
+      const firstResult = $("globalSearchResults")
+        .querySelector("[data-result-index]");
+
+      if (firstResult) {
+        firstResult.click();
+      }
+    }
+  }
+);
+
+document.addEventListener("click", event => {
+  const wrapper = document.querySelector(
+    ".global-search-wrap"
+  );
+
+  if (
+    wrapper &&
+    !wrapper.contains(event.target)
+  ) {
+    $("globalSearchResults").classList.add("hidden");
+  }
+});
+
+/* ================================
+   FINAL INITIALIZATION
+================================ */
+
+console.info("STARVEX NEXUS initialized.");
+
+</script>
 </body>
 </html>
