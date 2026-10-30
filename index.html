@@ -153,9 +153,16 @@ const SUPABASE_KEY =
 const ADMIN_EMAIL =
 "mahazporjozy@gmail.com";
 
+// بررسی بارگذاری کتابخانه Supabase
+if (!window.supabase) {
+    alert("خطا: کتابخانه Supabase بارگذاری نشده است.");
+    throw new Error("Supabase library not loaded");
+}
+
+// اتصال به دیتابیس
 const db = window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
+    SUPABASE_URL,
+    SUPABASE_KEY
 );
 
 async function login(){
