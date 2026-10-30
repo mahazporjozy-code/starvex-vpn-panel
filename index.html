@@ -8,75 +8,95 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{box-sizing:border-box}
-
-body{
-margin:0;
-background:#101010;
-color:#f5f5f5;
-font-family:Tahoma,Arial;
+* {
+    box-sizing: border-box;
 }
 
-.container{
-max-width:460px;
-margin:50px auto;
-padding:20px;
+body {
+    margin: 0;
+    background: #101010;
+    color: #f5f5f5;
+    font-family: Tahoma, Arial;
 }
 
-.card{
-background:#1b1b1b;
-border:1px solid #b99548;
-border-radius:16px;
-padding:25px;
+.container {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 15px;
 }
 
-h1{
-color:#d6b45c;
-text-align:center;
-letter-spacing:3px;
+.card {
+    background: #1b1b1b;
+    border: 1px solid #b99548;
+    border-radius: 16px;
+    padding: 22px;
 }
 
-p{
-text-align:center;
-color:#aaa;
+h1 {
+    color: #d6b45c;
+    text-align: center;
+    letter-spacing: 3px;
 }
 
-input,button{
-width:100%;
-padding:14px;
-margin-top:12px;
-border-radius:9px;
-font-size:15px;
+h3, h4 {
+    color: #d6b45c;
 }
 
-input{
-background:#111;
-border:1px solid #555;
-color:white;
+p {
+    text-align: center;
+    color: #aaa;
 }
 
-button{
-background:#c5a34c;
-border:0;
-color:#111;
-font-weight:bold;
-cursor:pointer;
+input, button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border-radius: 9px;
+    font-size: 15px;
 }
 
-#message{
-text-align:center;
-margin-top:15px;
-color:#e2c46b;
+input {
+    background: #111;
+    border: 1px solid #555;
+    color: white;
 }
 
-#panel{display:none}
+button {
+    background: #c5a34c;
+    border: 0;
+    color: #111;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-.plan{
-border:1px solid #b99548;
-padding:13px;
-margin-top:12px;
-border-radius:9px;
-background:#151515;
+button:active {
+    opacity: 0.8;
+}
+
+#panel {
+    display: none;
+}
+
+.plan {
+    border: 1px solid #b99548;
+    padding: 13px;
+    margin-top: 12px;
+    border-radius: 9px;
+    background: #151515;
+    overflow-wrap: anywhere;
+}
+
+#message {
+    text-align: center;
+    margin-top: 15px;
+    color: #e2c46b;
+    overflow-wrap: anywhere;
+}
+
+.section {
+    margin-top: 25px;
+    border-top: 1px solid #444;
+    padding-top: 15px;
 }
 
 </style>
@@ -90,19 +110,31 @@ background:#151515;
 <h1>STARVEX</h1>
 <p>PREMIUM VPN MANAGEMENT</p>
 
+<!-- ورود مدیر -->
+
 <div id="login">
 
 <h3>ورود مدیر</h3>
 
-<input id="email" type="email"
-placeholder="ایمیل مدیر">
+<input
+id="email"
+type="email"
+placeholder="ایمیل مدیر"
+>
 
-<input id="password" type="password"
-placeholder="رمز عبور">
+<input
+id="password"
+type="password"
+placeholder="رمز عبور"
+>
 
-<button onclick="login()">ورود به پنل</button>
+<button type="button" id="loginBtn">
+ورود به پنل
+</button>
 
 </div>
+
+<!-- پنل مدیریت -->
 
 <div id="panel">
 
@@ -110,20 +142,31 @@ placeholder="رمز عبور">
 
 <p>پنل مدیریت با موفقیت فعال شد.</p>
 
-<button onclick="loadPlans()">
+<!-- پلن ها -->
+
+<div class="section">
+
+<h3>مدیریت پلن‌ها</h3>
+
+<button type="button" id="plansBtn">
 نمایش پلن‌ها
 </button>
 
 <div id="plans"></div>
-<hr>
+
+</div>
+
+<!-- مشتریان -->
+
+<div class="section">
 
 <h3>مدیریت مشتریان STARVEX</h3>
 
-<button onclick="loadCustomers()">
+<button type="button" id="customersBtn">
 مشاهده مشتریان
 </button>
 
-<button onclick="showAddCustomer()">
+<button type="button" id="addCustomerBtn">
 ثبت مشتری جدید
 </button>
 
@@ -131,7 +174,9 @@ placeholder="رمز عبور">
 
 <div id="customers"></div>
 
-<button onclick="logout()">
+</div>
+
+<button type="button" id="logoutBtn">
 خروج از حساب
 </button>
 
@@ -144,6 +189,8 @@ placeholder="رمز عبور">
 
 <script>
 
+// تنظیمات Supabase
+
 const SUPABASE_URL =
 "https://hbjonoxlasbhbusctmom.supabase.co";
 
@@ -153,250 +200,412 @@ const SUPABASE_KEY =
 const ADMIN_EMAIL =
 "mahazporjozy@gmail.com";
 
-// بررسی بارگذاری کتابخانه Supabase
+const message = document.getElementById("message");
+
+// بررسی کتابخانه
+
 if (!window.supabase) {
-    alert("خطا: کتابخانه Supabase بارگذاری نشده است.");
+
+    message.textContent =
+    "خطا: کتابخانه Supabase بارگذاری نشده است.";
+
     throw new Error("Supabase library not loaded");
 }
 
-// اتصال به دیتابیس
+// اتصال دیتابیس
+
 const db = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
 
-async function login(){
 
-const email =
-document.getElementById("email").value.trim();
+// نمایش پیام
 
-const password =
-document.getElementById("password").value;
-
-const msg =
-document.getElementById("message");
-
-msg.textContent="در حال ورود...";
-
-if(email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
-msg.textContent="اجازه ورود ندارید.";
-return;
+function showMessage(text) {
+    message.textContent = text;
 }
 
-const {data,error}=await db.auth.signInWithPassword({
-email,
-password
-});
 
-if(error){
-msg.textContent="خطا در ورود: "+error.message;
-return;
-}
+// ایمن سازی متن
 
-const role =
-data.user.app_metadata?.role;
+function escapeHTML(value) {
 
-if(role !== "admin"){
-await db.auth.signOut();
-msg.textContent="این حساب دسترسی مدیر ندارد.";
-return;
-}
+    return String(value ?? "").replace(/[&<>"']/g, function(c) {
 
-showPanel();
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[c];
+
+    });
 
 }
 
-function showPanel(){
 
-document.getElementById("login").style.display="none";
+// ورود مدیر
 
-document.getElementById("panel").style.display="block";
+async function login() {
 
-document.getElementById("message").textContent=
-"ورود موفقیت‌آمیز بود.";
+    const email =
+    document.getElementById("email").value.trim();
 
-}
+    const password =
+    document.getElementById("password").value;
 
-async function loadPlans(){
+    showMessage("در حال ورود...");
 
-const box=document.getElementById("plans");
+    if (
+        email.toLowerCase() !==
+        ADMIN_EMAIL.toLowerCase()
+    ) {
 
-box.textContent="در حال دریافت پلن‌ها...";
-
-const {data,error}=await db
-.from("plans")
-.select("id,name,duration_days,volume_gb")
-.order("id");
-
-if(error){
-box.textContent="خطا: "+error.message;
-return;
-}
-
-if(!data || data.length===0){
-box.textContent="هنوز پلنی ثبت نشده است.";
-return;
-}
-
-box.innerHTML=data.map(p=>`
-
-<div class="plan">
-
-<strong>${escapeHTML(p.name)}</strong>
-
-<br>
-
-مدت: ${Number(p.duration_days)} روز
-
-<br>
-
-حجم: ${Number(p.volume_gb)} گیگابایت
-
-</div>
-
-`).join("");
-
-}
-
-function escapeHTML(value){
-
-return String(value).replace(/[&<>"']/g,function(c){
-return {
-"&":"&amp;",
-"<":"&lt;",
-">":"&gt;",
-'"':"&quot;",
-"'":"&#39;"
-}[c];
-});
-
-}
-
-async function loadCustomers(){
-
-    const box = document.getElementById("customers");
-    box.textContent = "در حال دریافت مشتریان...";
-
-    const { data, error } = await db
-        .from("customers")
-        .select("id, full_name, status, created_at")
-        .order("id", { ascending: false });
-
-    if(error){
-        box.textContent = "خطا در دریافت مشتریان: " + error.message;
+        showMessage("اجازه ورود ندارید.");
         return;
+
     }
 
-    if(!data || data.length === 0){
-        box.textContent = "هنوز مشتری ثبت نشده است.";
+    if (!password) {
+
+        showMessage("رمز عبور را وارد کنید.");
         return;
+
     }
 
-    box.innerHTML = data.map(c => `
-        <div class="plan">
-            <strong>${escapeHTML(c.full_name || "بدون نام")}</strong>
-            <br>
-            شناسه: ${c.id}
-            <br>
-            وضعیت: ${escapeHTML(c.status)}
-            <br>
-            تاریخ ثبت: ${escapeHTML(c.created_at || "-")}
-        </div>
-    `).join("");
-}
+    try {
 
-async function showAddCustomer(){
-
-    const box = document.getElementById("customerForm");
-
-    box.innerHTML = `
-        <h4>ثبت مشتری جدید</h4>
-
-        <input
-            id="newCustomerName"
-            type="text"
-            placeholder="نام کامل مشتری"
-        >
-
-        <button onclick="addCustomer()">
-            ثبت مشتری
-        </button>
-    `;
-}
-
-async function addCustomer(){
-
-    const name = document
-        .getElementById("newCustomerName")
-        .value.trim();
-
-    const box = document.getElementById("customerForm");
-
-    if(!name){
-        box.insertAdjacentHTML(
-            "beforeend",
-            "<p>نام مشتری را وارد کنید.</p>"
-        );
-        return;
-    }
-
-    const { error } = await db
-        .from("customers")
-        .insert({
-            full_name: name,
-            status: "active"
+        const { data, error } =
+        await db.auth.signInWithPassword({
+            email,
+            password
         });
 
-    if(error){
-        box.insertAdjacentHTML(
-            "beforeend",
-            "<p>خطا: " + escapeHTML(error.message) + "</p>"
-        );
-        return;
+        if (error) {
+
+            showMessage("خطا در ورود: " + error.message);
+            return;
+
+        }
+
+        if (data.user.app_metadata?.role !== "admin") {
+
+            await db.auth.signOut();
+
+            showMessage("این حساب دسترسی مدیر ندارد.");
+            return;
+
+        }
+
+        showPanel();
+
+    } catch (error) {
+
+        showMessage("خطا: " + error.message);
+
     }
 
-    box.innerHTML = "<p>مشتری با موفقیت ثبت شد.</p>";
-
-    await loadCustomers();
-}
-async function logout(){
-
-await db.auth.signOut();
-
-location.reload();
-
 }
 
-async function checkSession(){
 
-const {data}=await db.auth.getSession();
+// نمایش پنل
 
-if(!data.session)return;
+function showPanel() {
 
-const user=data.session.user;
+    document.getElementById("login").style.display = "none";
 
-if(
-user.email?.toLowerCase()===ADMIN_EMAIL.toLowerCase()
-&& user.app_metadata?.role==="admin"
-){
+    document.getElementById("panel").style.display = "block";
 
-showPanel();
-
-}else{
-
-await db.auth.signOut();
+    showMessage("ورود موفقیت‌آمیز بود.");
 
 }
 
+
+// نمایش پلن ها
+
+async function loadPlans() {
+
+    const box = document.getElementById("plans");
+
+    box.textContent = "در حال دریافت پلن‌ها...";
+
+    try {
+
+        const { data, error } = await db
+            .from("plans")
+            .select("id,name,duration_days,volume_gb")
+            .order("id");
+
+        if (error) {
+
+            box.textContent = "خطا: " + error.message;
+            return;
+
+        }
+
+        if (!data || data.length === 0) {
+
+            box.textContent = "هنوز پلنی ثبت نشده است.";
+            return;
+
+        }
+
+        box.innerHTML = data.map(p => `
+
+            <div class="plan">
+
+                <strong>${escapeHTML(p.name)}</strong>
+
+                <br>
+
+                مدت: ${Number(p.duration_days)} روز
+
+                <br>
+
+                حجم: ${Number(p.volume_gb)} گیگابایت
+
+            </div>
+
+        `).join("");
+
+    } catch (error) {
+
+        box.textContent = "خطا: " + error.message;
+
+    }
+
 }
 
-db.auth.onAuthStateChange((event,session)=>{
 
-if(event==="SIGNED_OUT"){
-location.reload();
+// نمایش مشتریان
+
+async function loadCustomers() {
+
+    const box = document.getElementById("customers");
+
+    box.textContent = "در حال دریافت مشتریان...";
+
+    try {
+
+        const { data, error } = await db
+            .from("customers")
+            .select("id,full_name,status,created_at")
+            .order("id", { ascending: false });
+
+        if (error) {
+
+            box.textContent =
+            "خطا در دریافت مشتریان: " + error.message;
+
+            return;
+
+        }
+
+        if (!data || data.length === 0) {
+
+            box.textContent = "هنوز مشتری ثبت نشده است.";
+            return;
+
+        }
+
+        box.innerHTML = data.map(c => `
+
+            <div class="plan">
+
+                <strong>
+                    ${escapeHTML(c.full_name || "بدون نام")}
+                </strong>
+
+                <br>
+
+                شناسه: ${escapeHTML(c.id)}
+
+                <br>
+
+                وضعیت: ${escapeHTML(c.status || "-")}
+
+                <br>
+
+                تاریخ ثبت:
+                ${escapeHTML(c.created_at || "-")}
+
+            </div>
+
+        `).join("");
+
+    } catch (error) {
+
+        box.textContent =
+        "خطا: " + error.message;
+
+    }
+
 }
 
-});
+
+// نمایش فرم ثبت مشتری
+
+function showAddCustomer() {
+
+    const box =
+    document.getElementById("customerForm");
+
+    box.innerHTML = `
+
+        <div class="plan">
+
+            <h4>ثبت مشتری جدید</h4>
+
+            <input
+                id="newCustomerName"
+                type="text"
+                placeholder="نام کامل مشتری"
+            >
+
+            <button type="button" id="saveCustomerBtn">
+                ثبت مشتری
+            </button>
+
+        </div>
+
+    `;
+
+    document
+        .getElementById("saveCustomerBtn")
+        .addEventListener("click", addCustomer);
+
+}
+
+
+// ثبت مشتری
+
+async function addCustomer() {
+
+    const input =
+    document.getElementById("newCustomerName");
+
+    const box =
+    document.getElementById("customerForm");
+
+    const name = input.value.trim();
+
+    if (!name) {
+
+        showMessage("نام مشتری را وارد کنید.");
+        return;
+
+    }
+
+    showMessage("در حال ثبت مشتری...");
+
+    try {
+
+        const { error } = await db
+            .from("customers")
+            .insert({
+                full_name: name,
+                status: "active"
+            });
+
+        if (error) {
+
+            showMessage("خطا در ثبت مشتری: " + error.message);
+            return;
+
+        }
+
+        box.innerHTML =
+        '<div class="plan">مشتری با موفقیت ثبت شد.</div>';
+
+        showMessage("ثبت مشتری موفق بود.");
+
+        await loadCustomers();
+
+    } catch (error) {
+
+        showMessage("خطا: " + error.message);
+
+    }
+
+}
+
+
+// خروج
+
+async function logout() {
+
+    await db.auth.signOut();
+
+    location.reload();
+
+}
+
+
+// بررسی نشست قبلی
+
+async function checkSession() {
+
+    try {
+
+        const { data, error } =
+        await db.auth.getSession();
+
+        if (error || !data.session) {
+            return;
+        }
+
+        const user = data.session.user;
+
+        if (
+            user.email?.toLowerCase() ===
+            ADMIN_EMAIL.toLowerCase()
+            &&
+            user.app_metadata?.role === "admin"
+        ) {
+
+            showPanel();
+
+        } else {
+
+            await db.auth.signOut();
+
+        }
+
+    } catch (error) {
+
+        showMessage("خطا در بررسی حساب: " + error.message);
+
+    }
+
+}
+
+
+// اتصال دکمه‌ها
+
+document
+    .getElementById("loginBtn")
+    .addEventListener("click", login);
+
+document
+    .getElementById("plansBtn")
+    .addEventListener("click", loadPlans);
+
+document
+    .getElementById("customersBtn")
+    .addEventListener("click", loadCustomers);
+
+document
+    .getElementById("addCustomerBtn")
+    .addEventListener("click", showAddCustomer);
+
+document
+    .getElementById("logoutBtn")
+    .addEventListener("click", logout);
+
+
+// شروع بررسی حساب
 
 checkSession();
 
