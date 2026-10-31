@@ -1390,7 +1390,25 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
    <div class="card"><div class="dashboard-head"><h2 class="section-title">فهرست سرورها</h2><button class="secondary-btn" id="refreshServers" type="button">بروزرسانی</button></div><div id="serverList" class="empty">در حال دریافت...</div></div>
   </section>
   <section class="tab" id="subscriptions">
-   <div class="card"><h2 class="section-title">مدیریت اشتراک‌ها</h2><div id="subscriptionList" class="empty">در حال دریافت...</div></div>
+   <div class="card">
+    <div class="dashboard-head"><h2 class="section-title">ثبت و ویرایش اشتراک</h2><span class="muted">فقط مدیر اصلی</span></div>
+    <input id="subEditId" type="hidden">
+    <div class="form-grid">
+     <label>مشتری *<select id="subCustomer"><option value="">در حال دریافت مشتریان...</option></select></label>
+     <label>طرح اشتراک<select id="subPlan"><option value="">بدون طرح مشخص</option></select></label>
+     <label>وضعیت اشتراک<select id="subStatus"><option value="pending">در انتظار</option><option value="active">فعال</option><option value="paused">متوقف</option><option value="expired">منقضی</option><option value="cancelled">لغوشده</option></select></label>
+     <label>حجم کل (GB) *<input id="subVolume" type="number" min="1" step="1" placeholder="مثلاً 50"></label>
+     <label>تاریخ و ساعت انقضا<input id="subExpires" type="datetime-local"></label>
+    </div>
+    <p class="muted">حجم نامحدود در این فرم تعریف نشده است. این اطلاعات در دیتابیس ثبت می‌شوند و به‌تنهایی محدودیت یا تمدید واقعی را روی سرور VPN اعمال نمی‌کنند.</p>
+    <button class="primary" id="saveSubscription" type="button">ثبت اشتراک</button>
+    <button class="secondary-btn hidden" id="cancelSubscriptionEdit" type="button">لغو ویرایش</button>
+    <div id="subscriptionMsg" class="message hidden" role="status"></div>
+   </div>
+   <div class="card">
+    <div class="dashboard-head"><h2 class="section-title">فهرست اشتراک‌ها</h2><button class="secondary-btn" id="refreshSubscriptions" type="button">بروزرسانی</button></div>
+    <div id="subscriptionList" class="empty">در حال دریافت...</div>
+   </div>
   </section>
  </main>
 </div>
@@ -1491,6 +1509,7 @@ function openTab(tabId){
  if(tabId==="resellers"&&role==="admin")loadResellerCapacity();
  if(tabId==="customers")loadCustomerResellerOptions();
  if(tabId==="servers"&&role==="admin")loadServers();
+ if(tabId==="subscriptions"&&role==="admin"){loadSubscriptionOptions();loadSubscriptions();}
 }
 document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.go)));
@@ -1842,6 +1861,94 @@ $("saveServerButton").addEventListener("click",saveServer);
 $("cancelServerEdit").addEventListener("click",()=>{resetServerForm();hideMessage("serverMsg")});
 $("refreshServers").addEventListener("click",loadServers);
 
+/* مدیریت اشتراک‌ها - فقط مدیر اصلی */
+function resetSubscriptionForm(){
+ $("subEditId").value="";$("subCustomer").value="";$("subPlan").value="";
+ $("subStatus").value="pending";$("subVolume").value="50";$("subExpires").value="";
+ $("saveSubscription").textContent="ثبت اشتراک";
+ $("cancelSubscriptionEdit").classList.add("hidden");
+}
+async function loadSubscriptionOptions(){
+ if(role!=="admin")return;
+ const customer=$("subCustomer"),plan=$("subPlan");
+ try{
+  const [cr,pr]=await Promise.all([
+   db.from("customers").select("id,customer_code,full_name").order("id",{ascending:false}).limit(500),
+   db.from("plans").select("id,name,duration_days,volume_gb,is_active").eq("is_active",true).order("id")
+  ]);
+  if(cr.error)throw cr.error;if(pr.error)throw pr.error;
+  customer.replaceChildren(new Option("انتخاب مشتری",""));
+  (cr.data||[]).forEach(c=>customer.add(new Option((c.customer_code||("#"+c.id))+" · "+(c.full_name||"بدون نام"),String(c.id))));
+  plan.replaceChildren(new Option("بدون طرح مشخص",""));
+  (pr.data||[]).forEach(p=>plan.add(new Option(p.name+" · "+p.duration_days+" روز",String(p.id))));
+ }catch(e){showMessage("subscriptionMsg","دریافت گزینه‌ها ناموفق بود: "+e.message)}
+}
+function formatSubDate(v){if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleString("fa-IR")}
+async function loadSubscriptions(){
+ if(role!=="admin")return;
+ const box=$("subscriptionList");box.textContent="در حال دریافت اشتراک‌ها...";
+ try{
+  const {data,error,count}=await db.from("subscriptions")
+   .select("id,customer_id,plan_id,status,expires_at,created_at,volume_limit_bytes,used_bytes",{count:"exact"})
+   .order("created_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  $("subscriptionCount").textContent=String(count??data.length);
+  if(!data.length){box.textContent="هنوز اشتراکی ثبت نشده است.";box.className="empty";return}
+  const customerIds=[...new Set(data.map(x=>x.customer_id).filter(Boolean))];
+  const [{data:customers,error:ce},{data:plans,error:pe}]=await Promise.all([
+   db.from("customers").select("id,customer_code,full_name").in("id",customerIds.length?customerIds:[-1]),
+   db.from("plans").select("id,name")
+  ]);
+  if(ce)throw ce;if(pe)throw pe;
+  const cm=new Map((customers||[]).map(x=>[x.id,(x.customer_code||("#"+x.id))+" · "+(x.full_name||"بدون نام")]));
+  const pm=new Map((plans||[]).map(x=>[x.id,x.name]));
+  const table=document.createElement("table"),head=document.createElement("tr");
+  ["شناسه","مشتری","طرح","وضعیت","حجم کل","مصرف‌شده","انقضا","عملیات"].forEach(x=>{const th=document.createElement("th");th.textContent=x;head.appendChild(th)});table.appendChild(head);
+  data.forEach(row=>{
+   const tr=document.createElement("tr");
+   const vals=[row.id,cm.get(row.customer_id)||("#"+row.customer_id),pm.get(row.plan_id)||"—",({pending:"در انتظار",active:"فعال",paused:"متوقف",expired:"منقضی",cancelled:"لغوشده"}[row.status]||row.status),row.volume_limit_bytes===null?"—":(Number(row.volume_limit_bytes)/1073741824).toFixed(2)+" GB",(Number(row.used_bytes||0)/1073741824).toFixed(2)+" GB",formatSubDate(row.expires_at)];
+   vals.forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"—");tr.appendChild(td)});
+   const td=document.createElement("td"),btn=document.createElement("button");btn.type="button";btn.className="small-btn";btn.textContent="ویرایش";
+   btn.addEventListener("click",()=>editSubscription(row));td.appendChild(btn);tr.appendChild(td);table.appendChild(tr);
+  });
+  const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);box.className="";box.replaceChildren(wrap);
+ }catch(e){box.textContent="خطا در دریافت اشتراک‌ها: "+e.message}
+}
+function editSubscription(row){
+ $("subEditId").value=row.id;$("subCustomer").value=String(row.customer_id||"");
+ $("subPlan").value=row.plan_id?String(row.plan_id):"";
+ $("subStatus").value=row.status||"pending";
+ $("subVolume").value=Math.max(1,Math.floor(Number(row.volume_limit_bytes||0)/1073741824))||1;
+ if(row.expires_at){const d=new Date(row.expires_at);$("subExpires").value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}else $("subExpires").value="";
+ $("saveSubscription").textContent="ذخیره تغییرات";
+ $("cancelSubscriptionEdit").classList.remove("hidden");
+ $("subscriptions").scrollIntoView({behavior:"smooth"});
+}
+async function saveSubscription(){
+ if(role!=="admin"){showMessage("subscriptionMsg","فقط مدیر اصلی مجاز است.");return}
+ hideMessage("subscriptionMsg");
+ const customerId=Number($("subCustomer").value),planId=$("subPlan").value?Number($("subPlan").value):null;
+ const volume=Number($("subVolume").value),status=$("subStatus").value,expires=$("subExpires").value;
+ if(!Number.isSafeInteger(customerId)||customerId<=0){showMessage("subscriptionMsg","یک مشتری معتبر انتخاب کنید.");return}
+ if(!Number.isSafeInteger(volume)||volume<1){showMessage("subscriptionMsg","حجم باید حداقل ۱ گیگابایت و عدد صحیح باشد.");return}
+ if(expires&&Number.isNaN(new Date(expires).getTime())){showMessage("subscriptionMsg","تاریخ انقضا معتبر نیست.");return}
+ const payload={customer_id:customerId,plan_id:planId,status,volume_limit_bytes:volume*1073741824,expires_at:expires?new Date(expires).toISOString():null};
+ const btn=$("saveSubscription");btn.disabled=true;
+ try{
+  const id=$("subEditId").value;
+  const result=id
+   ?await db.from("subscriptions").update(payload).eq("id",Number(id)).select("id").single()
+   :await db.from("subscriptions").insert(payload).select("id").single();
+  if(result.error)throw result.error;
+  showMessage("subscriptionMsg",id?"اشتراک با موفقیت بروزرسانی شد.":"اشتراک با موفقیت ثبت شد.");
+  resetSubscriptionForm();await loadSubscriptions();
+ }catch(e){showMessage("subscriptionMsg","ذخیره اشتراک ناموفق بود: "+e.message)}
+ finally{btn.disabled=false}
+}
+$("saveSubscription").addEventListener("click",saveSubscription);
+$("cancelSubscriptionEdit").addEventListener("click",()=>{resetSubscriptionForm();hideMessage("subscriptionMsg")});
+$("refreshSubscriptions").addEventListener("click",async()=>{await loadSubscriptionOptions();await loadSubscriptions()});
+
 /* بروزرسانی داشبورد */
 async function loadData(){
  $("systemStatus").textContent="در حال اتصال به پایگاه داده...";
@@ -1850,7 +1957,8 @@ async function loadData(){
   await loadTable("resellers","resellerList","resellerCount");
   await loadResellerCapacity();
   await loadServers();
-  await loadTable("subscriptions","subscriptionList","subscriptionCount");
+  await loadSubscriptionOptions();
+  await loadSubscriptions();
   $("systemStatus").textContent="اتصال به Supabase برقرار است. سطح دسترسی: مدیر.";
  }else{
   $("resellerCount").textContent="—";
