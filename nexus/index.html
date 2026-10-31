@@ -796,7 +796,57 @@ async function loadServerManager(){
      await loadServerManager();
     }catch(e){fail("serverMsg",e);def.checked=!!server.is_default;def.disabled=false;}
    });
-   actions.append(provision,health,priority,save);card.append(actions);box.append(card);
+   actions.append(provision,health,priority,save);card.append(actions);
+
+   const connectBox=makeServerNode("div","server-note");
+   const connectTitle=makeServerNode("b","","اتصال امن مانیتورینگ");
+   const connectText=makeServerNode("div","muted","پس از نصب واقعی نرم‌افزار سرور، برای همین سرور یک کلید اختصاصی صادر کن. کلید فقط یک‌بار نمایش داده می‌شود.");
+   const issueBtn=makeServerNode("button","secondary","صدور کلید اتصال سرور");
+   issueBtn.disabled=!(server.provisioning_state==="installed"||server.provisioning_state==="ready");
+   issueBtn.style.width="100%";
+   const tokenArea=makeServerNode("div","hidden");
+   tokenArea.style.marginTop="10px";
+   const tokenLabel=makeServerNode("div","muted","کلید محرمانه اتصال — فقط همین بار نمایش داده می‌شود");
+   const tokenInput=makeServerNode("input");
+   tokenInput.type="text";tokenInput.readOnly=true;tokenInput.dir="ltr";
+   tokenInput.autocomplete="off";tokenInput.spellcheck=false;
+   tokenInput.style.fontSize="10px";
+   const copyToken=makeServerNode("button","secondary","کپی کلید");
+   copyToken.style.width="100%";
+   const tokenWarning=makeServerNode("div","muted","این کلید را فقط در تنظیمات امن همان VPS ذخیره کن؛ در چت یا GitHub نفرست.");
+   tokenArea.append(tokenLabel,tokenInput,copyToken,tokenWarning);
+   issueBtn.onclick=async()=>{
+    if(!(server.provisioning_state==="installed"||server.provisioning_state==="ready"))return;
+    if(!confirm("برای این سرور کلید محرمانه جدید صادر شود؟ اگر کلید قبلی داشته باشد، فوراً باطل می‌شود."))return;
+    issueBtn.disabled=true;issueBtn.textContent="در حال صدور کلید...";
+    try{
+     const {data:{session},error:sessionError}=await db.auth.getSession();
+     if(sessionError)throw sessionError;
+     if(!session)throw Error("نشست ورود منقضی شده است.");
+     const response=await fetch(SUPABASE_URL+"/functions/v1/server-health-agent",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_KEY},
+      body:JSON.stringify({action:"issue-agent-token",server_id:server.id})
+     });
+     const result=await response.json().catch(()=>({}));
+     if(!response.ok||!result.ok)throw Error(result.message||result.error||"صدور کلید ناموفق بود.");
+     tokenInput.value=result.agent_token||"";
+     if(!tokenInput.value)throw Error("کلید از سرویس دریافت نشد.");
+     tokenArea.classList.remove("hidden");
+     issueBtn.textContent="کلید صادر شد";
+     msg("serverMsg","کلید اختصاصی برای "+(server.name||"سرور")+" صادر شد. آن را در محل امن VPS ذخیره کن.");
+    }catch(e){
+     fail("serverMsg",e);
+     issueBtn.disabled=false;issueBtn.textContent="تلاش دوباره برای صدور کلید";
+    }
+   };
+   copyToken.onclick=async()=>{
+    try{await navigator.clipboard.writeText(tokenInput.value);msg("serverMsg","کلید کپی شد؛ آن را در محل امن VPS ذخیره کن.");}
+    catch(e){tokenInput.select();msg("serverMsg","کلید انتخاب شد؛ گزینه Copy را بزن.");}
+   };
+   connectBox.append(connectTitle,connectText,issueBtn,tokenArea);
+   card.append(connectBox);
+   box.append(card);
   });
  }catch(e){fail("serverList",e);}
 }
