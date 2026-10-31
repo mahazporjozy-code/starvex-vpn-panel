@@ -699,6 +699,48 @@ body:has(#loginPage:not(.hidden)) #loginPage{
 }
 </style>
 
+
+<style id="starvex-login-final-viewport">
+/* One authoritative login background rule; use the verified image asset only. */
+body:has(#loginPage:not(.hidden)) .dragon-panel{
+  position:fixed!important;inset:0!important;
+  width:100vw!important;height:100vh!important;height:100dvh!important;
+  min-height:100dvh!important;max-height:none!important;
+  display:block!important;overflow:hidden!important;
+  border:0!important;z-index:0!important;background:#06101d!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::before,
+body:has(#loginPage:not(.hidden)) .dragon-panel::after{
+  content:none!important;display:none!important;background:none!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel img{
+  display:block!important;visibility:visible!important;opacity:1!important;
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;
+  max-width:none!important;max-height:none!important;
+  object-fit:cover!important;object-position:center center!important;
+  transform:none!important;filter:none!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-brand{display:none!important}
+body:has(#loginPage:not(.hidden)) #loginPage{
+  position:relative!important;z-index:3!important;
+  width:100%!important;min-height:100vh!important;min-height:100dvh!important;
+  height:100dvh!important;margin:0!important;
+  padding:18px 14px max(16px,env(safe-area-inset-bottom))!important;
+  display:flex!important;align-items:flex-end!important;justify-content:center!important;
+  background:transparent!important;
+}
+body:has(#loginPage:not(.hidden)) .login-box{
+  position:relative!important;z-index:4!important;
+  width:min(100%,350px)!important;max-width:350px!important;
+  margin:0 auto!important;
+}
+@media(max-width:700px){
+ body:has(#loginPage:not(.hidden)) .dragon-panel{position:fixed!important;inset:0!important}
+ body:has(#loginPage:not(.hidden)) #loginPage{width:100%!important;min-height:100dvh!important;height:100dvh!important}
+}
+</style>
+
 </head>
 <body>
 
