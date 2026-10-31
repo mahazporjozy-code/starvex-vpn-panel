@@ -392,8 +392,12 @@ z-index:10;
 <select id="subLinkCustomer" style="width:100%;margin-bottom:12px"><option value="">انتخاب مشتری</option></select>
 <button class="primary" id="createSubLinkBtn">ساخت / نمایش لینک ساب</button>
 <div id="subLinkResult" class="hidden" style="margin-top:14px">
+<label class="muted" for="subLinkValue">لینک اتصال به برنامه (برای واردکردن در کلاینت)</label>
 <input id="subLinkValue" readonly dir="ltr" style="width:100%;font-size:12px">
 <button class="secondary" id="copySubLinkBtn" style="margin-top:10px">کپی لینک اشتراک</button>
+<label class="muted" for="subDashboardValue" style="display:block;margin-top:16px">لینک داشبورد مصرف مشتری (برای مشاهده حجم و درصد مصرف)</label>
+<input id="subDashboardValue" readonly dir="ltr" style="width:100%;font-size:12px">
+<button class="secondary" id="copySubDashboardBtn" style="margin-top:10px">کپی لینک داشبورد</button>
 </div>
 <div id="subLinkMsg" class="msg hidden"></div>
 </div>
@@ -972,8 +976,9 @@ $("createSubLinkBtn")?.addEventListener("click",async()=>{
   if(error)throw error;
   if(!data?.ok||!data.link)throw Error("ساخت لینک اشتراک ناموفق بود.");
   $("subLinkValue").value=data.link;
+  $("subDashboardValue").value=data.dashboard_link||data.link+"&view=1";
   $("subLinkResult").classList.remove("hidden");
-  msg("subLinkMsg","لینک اختصاصی مشتری آماده شد. آن را فقط در اختیار همان مشتری قرار بده.");
+  msg("subLinkMsg","هر دو لینک آماده‌اند: لینک اول برای اتصال برنامه، لینک دوم برای مشاهده داشبورد مصرف. لینک‌ها را فقط به همان مشتری بده.");
  }catch(e){fail("subLinkMsg",e);}
  finally{button.disabled=false;}
 });
@@ -984,6 +989,15 @@ $("copySubLinkBtn")?.addEventListener("click",async()=>{
  }catch(e){
   $("subLinkValue").select();
   msg("subLinkMsg","لینک انتخاب شد؛ گزینه Copy را بزن.");
+ }
+});
+$("copySubDashboardBtn")?.addEventListener("click",async()=>{
+ try{
+  await navigator.clipboard.writeText($("subDashboardValue").value);
+  msg("subLinkMsg","لینک داشبورد مصرف کپی شد.");
+ }catch(e){
+  $("subDashboardValue").select();
+  msg("subLinkMsg","لینک داشبورد انتخاب شد؛ گزینه Copy را بزن.");
  }
 });
 
