@@ -569,6 +569,9 @@ $("sideUser").textContent=`${u.email} | ${role==="admin"?"مدیر":"نماین�
 document.querySelectorAll(".admin-only").forEach(x=>{
 x.classList.toggle("hidden",role!=="admin");
 });
+document.querySelectorAll(".reseller-only").forEach(x=>{
+x.classList.toggle("hidden",role!=="reseller");
+});
 
 await loadAll();
 }
