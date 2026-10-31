@@ -2077,25 +2077,44 @@ async function saveConfig(){
  try{const id=$("configEditId").value;const r=id?await db.from("vpn_configs").update(payload).eq("id",Number(id)).select("id").single():await db.from("vpn_configs").insert(payload).select("id").single();if(r.error)throw r.error;showMessage("configMsg",id?"کانفیگ ویرایش شد.":"کانفیگ در دیتابیس ثبت شد.");resetConfigForm();await loadConfigs()}
  catch(e){showMessage("configMsg","ذخیره ناموفق بود: "+e.message)}finally{$("saveConfig").disabled=false}
 }
+function configHealth(r,now){
+ const expired=!!r.expires_at&&new Date(r.expires_at).getTime()<=now;
+ const days=r.expires_at?Math.ceil((new Date(r.expires_at).getTime()-now)/86400000):null;
+ const limit=r.volume_gb==null?null:Number(r.volume_gb),used=Math.max(0,Number(r.used_gb||0));
+ const remaining=limit==null?null:Math.max(0,limit-used),percent=limit==null?null:(limit>0?Math.min(100,used/limit*100):100);
+ const state=expired?"منقضی":!r.is_active?"غیرفعال":"فعال",tone=state==="فعال"?"status-active":"status-inactive",alerts=[];
+ if(expired)alerts.push("منقضی شده");else if(days!==null&&days<=7)alerts.push(days<=0?"انقضا امروز":"فقط "+days+" روز تا انقضا");
+ if(limit!==null&&percent>=100)alerts.push("حجم تمام شده");else if(limit!==null&&percent>=80)alerts.push("مصرف حجم "+Math.round(percent)+"٪");
+ return {days,limit,used,remaining,percent,state,tone,alerts};
+}
 async function loadConfigs(){
  if(role!=="admin")return;const box=$("configList");box.textContent="در حال دریافت...";
  try{
   const {data,error}=await db.from("vpn_configs").select("id,name,protocol,config_text,is_active,volume_gb,used_gb,expires_at,customer_id,server_id,subscription_id").order("created_at",{ascending:false}).limit(200);if(error)throw error;
-  if(!data.length){box.textContent="هنوز کانفیگی ثبت نشده است.";return}
-  const ids=[...new Set(data.map(x=>x.customer_id).filter(Boolean))],sids=[...new Set(data.map(x=>x.server_id).filter(Boolean))];
-  const subIds=[...new Set(data.map(x=>x.subscription_id).filter(Boolean))];
+  if(!data.length){box.textContent="هنوز کانفیگی ثبت نشده است.";box.className="empty";return}
+  const ids=[...new Set(data.map(x=>x.customer_id).filter(Boolean))],sids=[...new Set(data.map(x=>x.server_id).filter(Boolean))],subIds=[...new Set(data.map(x=>x.subscription_id).filter(Boolean))];
   const [a,b,d]=await Promise.all([db.from("customers").select("id,customer_code,full_name").in("id",ids.length?ids:[-1]),db.from("servers").select("id,name").in("id",sids.length?sids:["00000000-0000-0000-0000-000000000000"]),db.from("subscriptions").select("id,status").in("id",subIds.length?subIds:[-1])]);if(a.error)throw a.error;if(b.error)throw b.error;if(d.error)throw d.error;
   const cm=new Map((a.data||[]).map(x=>[x.id,(x.customer_code||("#"+x.id))+" · "+(x.full_name||"بدون نام")])),sm=new Map((b.data||[]).map(x=>[x.id,x.name])),subm=new Map((d.data||[]).map(x=>[x.id,x.status]));
-  const t=document.createElement("table"),h=document.createElement("tr");["شناسه","نام","مشتری","اشتراک","سرور","پروتکل","حجم/مصرف","انقضا","وضعیت","عملیات"].forEach(x=>{const z=document.createElement("th");z.textContent=x;h.appendChild(z)});t.appendChild(h);
-  data.forEach(r=>{const tr=document.createElement("tr"),vals=[r.id,r.name,cm.get(r.customer_id)||"—",r.subscription_id?("#"+r.subscription_id+" · "+({active:"فعال",pending:"در انتظار",paused:"متوقف",expired:"منقضی",cancelled:"لغوشده"}[subm.get(r.subscription_id)]||"—")):"بدون اشتراک",sm.get(r.server_id)||"—",r.protocol,(r.volume_gb==null?"نامحدود":r.volume_gb+" GB")+" / "+Number(r.used_gb||0)+" GB",r.expires_at?new Date(r.expires_at).toLocaleString("fa-IR"):"—",r.is_active?"فعال":"غیرفعال"];
-   vals.forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"—");tr.appendChild(td)});
-   const td=document.createElement("td"),add=(label,fn,cls="secondary-btn")=>{const b=document.createElement("button");b.type="button";b.className=cls;b.textContent=label;b.style.margin="2px";b.onclick=fn;td.appendChild(b)};
+  const now=Date.now(),counts={healthy:0,near:0,volume:0,expired:0};
+  data.forEach(r=>{const h=configHealth(r,now);if(h.state==="منقضی")counts.expired++;if(h.alerts.some(x=>x.includes("روز تا انقضا")||x==="انقضا امروز"))counts.near++;if(h.alerts.some(x=>x.includes("حجم")))counts.volume++;if(!h.alerts.length&&h.state==="فعال")counts.healthy++});
+  const summary=document.createElement("div");summary.className="card";summary.style.cssText="display:flex;flex-wrap:wrap;gap:9px;padding:13px;margin-bottom:14px";
+  [["سالم",counts.healthy,"#63d89c"],["نزدیک انقضا",counts.near,"#f0ce80"],["هشدار حجم",counts.volume,"#8dc9ff"],["منقضی",counts.expired,"#ed8585"]].forEach(([label,n,color])=>{const x=document.createElement("span");x.textContent=label+": "+n;x.style.cssText="padding:7px 10px;border:1px solid "+color+";border-radius:8px;color:"+color+";font-size:11px";summary.appendChild(x)});
+  const note=document.createElement("div");note.className="muted";note.style.width="100%";note.textContent="مصرف و هشدارها بر اساس اعداد ثبت‌شده در دیتابیس هستند؛ هنوز از ترافیک واقعی سرور VPN خوانده نمی‌شوند.";summary.appendChild(note);
+  const t=document.createElement("table"),head=document.createElement("tr");
+  ["شناسه","نام","مشتری","اشتراک","سرور","پروتکل","حجم/مصرف","باقی‌مانده","درصد مصرف","روز باقی‌مانده","وضعیت","هشدار","عملیات"].forEach(x=>{const th=document.createElement("th");th.textContent=x;head.appendChild(th)});t.appendChild(head);
+  data.forEach(r=>{
+   const h=configHealth(r,now),tr=document.createElement("tr"),labels={active:"فعال",pending:"در انتظار",paused:"متوقف",expired:"منقضی",cancelled:"لغوشده"};
+   const vals=[r.id,r.name,cm.get(r.customer_id)||"—",r.subscription_id?("#"+r.subscription_id+" · "+(labels[subm.get(r.subscription_id)]||"—")):"بدون اشتراک",sm.get(r.server_id)||"—",r.protocol,(h.limit==null?"نامحدود":h.limit+" GB")+" / "+h.used+" GB",h.remaining==null?"نامحدود":h.remaining.toFixed(2)+" GB",h.percent==null?"—":Math.round(h.percent)+"٪",h.days==null?"بدون انقضا":h.days<0?"منقضی":h.days+" روز",h.state];
+   vals.forEach((v,i)=>{const td=document.createElement("td");td.textContent=String(v??"—");if(i===10)td.className=h.tone;if(i===8&&h.percent!==null&&h.percent>=80)td.className="status-inactive";tr.appendChild(td)});
+   const alert=document.createElement("td");alert.textContent=h.alerts.length?h.alerts.join("، "):"—";if(h.alerts.length)alert.className="status-inactive";tr.appendChild(alert);
+   const actions=document.createElement("td"),add=(label,fn,cls="secondary-btn")=>{const btn=document.createElement("button");btn.type="button";btn.className=cls;btn.textContent=label;btn.style.margin="2px";btn.onclick=fn;actions.appendChild(btn)};
    add("ویرایش",()=>editConfig(r),"small-btn");
    add("کپی",async()=>{try{await navigator.clipboard.writeText(r.config_text);showMessage("configMsg","متن کانفیگ کپی شد؛ محرمانه نگهش دارید.")}catch(e){showMessage("configMsg","کپی خودکار در دسترس نیست.")}});
-   add(r.is_active?"غیرفعال‌سازی":"فعال‌سازی",async()=>{if(!confirm("وضعیت رکورد تغییر کند؟"))return;const z=await db.from("vpn_configs").update({is_active:!r.is_active}).eq("id",r.id);if(z.error)showMessage("configMsg",z.error.message);else await loadConfigs()});
+   add(r.is_active?"غیرفعال‌سازی":"فعال‌سازی",async()=>{if(!confirm("وضعیت رکورد دیتابیس تغییر کند؟"))return;const z=await db.from("vpn_configs").update({is_active:!r.is_active}).eq("id",r.id);if(z.error)showMessage("configMsg",z.error.message);else await loadConfigs()});
    add("حذف",async()=>{if(!confirm("رکورد کانفیگ حذف شود؟"))return;const z=await db.from("vpn_configs").delete().eq("id",r.id);if(z.error)showMessage("configMsg",z.error.message);else{showMessage("configMsg","رکورد کانفیگ حذف شد.");await loadConfigs()}},"small-btn danger-btn");
-   tr.appendChild(td);t.appendChild(tr)});
-  const w=document.createElement("div");w.className="table-wrap";w.appendChild(t);box.className="";box.replaceChildren(w);
+   tr.appendChild(actions);t.appendChild(tr);
+  });
+  const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(t);box.className="";box.replaceChildren(summary,wrap);
  }catch(e){box.textContent="خطا در دریافت کانفیگ‌ها: "+e.message}
 }
 $("saveConfig").addEventListener("click",saveConfig);
