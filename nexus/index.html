@@ -321,6 +321,22 @@ z-index:10;
 <div id="systemStatus" class="muted">در حال بررسی...</div>
 </div>
 
+<div class="card admin-only" id="dashboardServersCard">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<h2 class="title" style="margin:0">وضعیت زنده زیرساخت سرورها</h2>
+<button class="secondary" id="refreshDashboardServers" type="button">↻ بروزرسانی</button>
+</div>
+<p class="muted" style="margin:10px 0">این بخش آخرین گزارش ثبت‌شده از هر سرور را نشان می‌دهد؛ تا زمان اتصال VPS واقعی، وضعیت «منتظر اتصال» نمایش داده می‌شود.</p>
+<div class="grid" style="margin-top:12px">
+<div class="stat"><small>کل سرورها</small><div class="num" id="dashServerTotal">—</div></div>
+<div class="stat"><small>سالم و آماده</small><div class="num" id="dashServerHealthy">—</div></div>
+<div class="stat"><small>نیازمند بررسی</small><div class="num" id="dashServerAttention">—</div></div>
+</div>
+<div id="dashboardServerList" class="server-grid" style="margin-top:14px">در حال دریافت وضعیت...</div>
+<div id="dashboardServerUpdated" class="muted" style="margin-top:10px">هنوز بروزرسانی نشده</div>
+<div id="dashboardServerMsg" class="msg hidden"></div>
+</div>
+
 <!-- راه‌اندازی حساب‌های مشتری؛ فقط مدیر اصلی -->
 <div class="card admin-only" id="customerSetupCard">
 <h2 class="title">راه‌اندازی حساب‌های مشتری</h2>
@@ -1152,6 +1168,56 @@ button.disabled=false;
 }
 };
 
+let dashboardServerRefreshTimer=null;
+
+async function loadDashboardServerStatus(){
+ if(role!=="admin")return;
+ const box=$("dashboardServerList");
+ const button=$("refreshDashboardServers");
+ if(!box)return;
+ if(button)button.disabled=true;
+ try{
+  const {data,error}=await db.functions.invoke("server-control",{body:{action:"overview"}});
+  if(error)throw error;
+  if(!data?.ok)throw Error("دریافت وضعیت سرورها ناموفق بود.");
+  const rows=data.servers||[];
+  $("dashServerTotal").textContent=rows.length;
+  const healthy=rows.filter(s=>s.provisioning_state==="ready"&&s.health_status==="healthy"&&s.is_enabled_for_new_users&&s.last_health_check_at&&Date.now()-new Date(s.last_health_check_at).getTime()<=5*60*1000);
+  $("dashServerHealthy").textContent=healthy.length;
+  $("dashServerAttention").textContent=rows.length-healthy.length;
+  box.replaceChildren();
+  if(!rows.length){
+   box.textContent="هنوز سروری در دیتابیس ثبت نشده است.";
+  }else{
+   rows.forEach(s=>{
+    const item=makeServerNode("article","server-card");
+    const head=makeServerNode("div","server-head");
+    head.append(makeServerNode("div","server-name",s.name||"سرور بدون نام"));
+    const live=!!(s.provisioning_state==="ready"&&s.health_status==="healthy"&&s.is_enabled_for_new_users&&s.last_health_check_at&&Date.now()-new Date(s.last_health_check_at).getTime()<=5*60*1000);
+    head.append(makeServerNode("span","server-badge",live?"سالم و فعال":(s.provisioning_state==="not_provisioned"?"منتظر اتصال VPS":"نیازمند بررسی")));
+    item.append(head);
+    const last=s.last_health_check_at?new Date(s.last_health_check_at).toLocaleString("fa-IR"):"گزارشی دریافت نشده";
+    const info=makeServerNode("div","server-meta",[
+     "موقعیت: "+(serverCountries[s.country_code]||s.country_code||"—"),
+     "نصب: "+(provisionLabels[s.provisioning_state]||s.provisioning_state||"نامشخص"),
+     "سلامت ثبت‌شده: "+(healthLabels[s.health_status]||s.health_status||"نامشخص"),
+     "آخرین گزارش: "+last,
+     "فعال برای تخصیص جدید: "+(s.is_enabled_for_new_users?"بله":"خیر")
+    ].join("\n"));
+    item.append(info);box.append(item);
+   });
+  }
+  $("dashboardServerUpdated").textContent="آخرین دریافت از دیتابیس: "+new Date().toLocaleString("fa-IR")+" — بروزرسانی خودکار هر ۶۰ ثانیه";
+  $("dashboardServerMsg").classList.add("hidden");
+ }catch(e){
+  $("dashboardServerMsg").textContent="خطا در دریافت وضعیت: "+(e.message||e);
+  $("dashboardServerMsg").classList.remove("hidden");
+ }finally{
+  if(button)button.disabled=false;
+ }
+}
+$("refreshDashboardServers")?.addEventListener("click",loadDashboardServerStatus);
+
 async function loadAll(){
 
 try{
@@ -1167,6 +1233,9 @@ await loadCapacity();
 await loadTable("resellers","resellerList","resellerCount");
 await loadServerManager();
 $("serverCount").textContent=$("serverTotal").textContent;
+await loadDashboardServerStatus();
+if(dashboardServerRefreshTimer)clearInterval(dashboardServerRefreshTimer);
+dashboardServerRefreshTimer=setInterval(()=>{if(role==="admin")loadDashboardServerStatus();},60000);
 await loadTable("subscriptions","subscriptionList","subscriptionCount");
 await loadVpnConfigs();
 
