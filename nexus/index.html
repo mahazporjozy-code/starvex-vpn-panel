@@ -360,8 +360,9 @@ z-index:10;
 <input id="rName" value="Bni" maxlength="100" placeholder="نام نمایندگی">
 <input id="rEmail" type="email" value="danisoha410@gmail.com" maxlength="254" placeholder="ایمیل">
 </div>
-<button class="primary" id="createReseller">ارسال دعوت‌نامه ایمیلی</button>
-<p class="muted">دعوت‌نامه برای نماینده ارسال می‌شود و او رمز عبور خودش را تعیین می‌کند. ظرفیت پیش‌فرض: ۲۰۰ مشتری</p>
+<input id="rPassword" type="password" minlength="12" maxlength="128" autocomplete="new-password" placeholder="رمز عبور نماینده (حداقل ۱۲ کاراکتر)">
+<button class="primary" id="createReseller">ایجاد نمایندگی</button>
+<p class="muted">رمز را مدیر تعیین می‌کند. آن را محرمانه و امن به نماینده تحویل بده. ظرفیت پیش‌فرض: ۲۰۰ مشتری</p>
 <div id="rMsg" class="msg hidden"></div>
 </div>
 
@@ -1109,12 +1110,15 @@ b.disabled=true;
 
 try{
 
+const password=$("rPassword").value;
+if(password.length<12)throw Error("رمز عبور باید حداقل ۱۲ کاراکتر باشد.");
 const out=await callFunction("create-reseller",{
 display_name:$("rName").value.trim(),
-email:$("rEmail").value.trim()
+email:$("rEmail").value.trim(),
+password
 });
-
-msg("rMsg","دعوت‌نامه برای "+(out.invited_email||$("rEmail").value.trim())+" ارسال شد. ظرفیت نمایندگی: "+(out.reseller?.max_customers||200));
+$("rPassword").value="";
+msg("rMsg","نمایندگی با موفقیت ایجاد شد. ظرفیت: "+(out.reseller?.max_customers||200)+" مشتری. رمز را جداگانه و امن تحویل بده.");
 
 await loadCapacity();
 await loadTable("resellers","resellerList","resellerCount");
