@@ -1080,7 +1080,7 @@ body:has(#app:not(.hidden)){background:#070b16!important}
  #main .quick-grid{grid-template-columns:1fr!important}
 }
 
-/* Dashboard: remove the framed banner; keep a small STARVEX wordmark over the dragon backdrop. */
+/* Dashboard: show the blue dragon artwork across the whole page, without a banner frame. */
 #main .dragon-hero{
  min-height:42px!important;height:42px!important;margin:0 0 14px!important;
  padding:5px 8px!important;border:0!important;border-radius:0!important;
@@ -1094,11 +1094,12 @@ body:has(#app:not(.hidden)){background:#070b16!important}
  text-shadow:0 1px 12px rgba(26,199,240,.38)!important;
 }
 #main .dragon-hero-subtitle{display:none!important}
-/* Let the blue dragon artwork read clearly behind the dashboard for every signed-in user. */
+/* Use the original blue-dragon artwork as the full dashboard background, not inside a rectangle. */
 #main:before{
  background:
-  linear-gradient(110deg,rgba(4,8,19,.66),rgba(5,11,25,.56) 48%,rgba(5,10,22,.68)),
-  url("./nexus/assets/8dbc49ea852389ebae0449fd57b669b3.jpg") center center/cover no-repeat!important;
+  linear-gradient(110deg,rgba(4,8,19,.34),rgba(5,11,25,.25) 48%,rgba(5,10,22,.38)),
+  url("nexus/assets/file_00000000b1f4820c901f9e6629678079.png") center 42%/cover no-repeat!important;
+ opacity:1!important;
 }
 @media(max-width:700px){
  #main .dragon-hero{min-height:34px!important;height:34px!important;margin-bottom:10px!important}
