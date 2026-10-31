@@ -21,7 +21,7 @@ body::before{content:none}
 .dragon-brand strong{display:block;color:#f0ce80;font-size:clamp(22px,2.4vw,34px);letter-spacing:5px}
 .dragon-brand span{display:block;color:#b9a27a;font-size:9px;letter-spacing:4px;margin-top:7px}
 body>*:not(.dragon-panel){position:relative;z-index:1}
-button,input{font-family:inherit}
+button,input,select{font-family:inherit}\nselect{width:100%;padding:12px;margin:7px 0;border-radius:8px;border:1px solid #353844;background:#090b10;color:white;font-size:13px;min-height:42px}
 button{cursor:pointer}
 .hidden{display:none!important}
 .muted{color:var(--muted);font-size:12px;line-height:2}
@@ -1347,6 +1347,18 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
 
   <section class="tab" id="customers">
    <div class="section-intro"><div><span class="eyebrow">CUSTOMER MANAGEMENT</span><h2 class="section-title">مدیریت مشتریان</h2><p class="muted">فهرست مشتریان در این بخش مستقل از نمایندگی‌ها نمایش داده می‌شود.</p></div><span class="section-chip">مشتریان</span></div>
+   <div class="card" id="createCustomerCard">
+    <h2 class="section-title">ثبت مشتری جدید</h2>
+    <p class="muted">نام، شناسه تلگرام و توضیحات اختیاری هستند. شماره تلفن دریافت نمی‌شود.</p>
+    <div class="form-grid">
+     <input id="cName" maxlength="150" placeholder="نام مشتری (اختیاری)">
+     <input id="cTelegramId" inputmode="numeric" placeholder="شناسه عددی تلگرام (اختیاری)">
+     <input id="cNotes" placeholder="توضیحات (اختیاری)">
+     <select id="cReseller" class="small-input admin-only hidden" aria-label="نمایندگی مقصد"><option value="">انتخاب نمایندگی مقصد</option></select>
+    </div>
+    <button class="primary" id="createCustomerButton" type="button">ثبت مشتری</button>
+    <div id="customerCreateMsg" class="message hidden" role="status"></div>
+   </div>
    <div class="card customer-table-card"><h2 class="section-title">فهرست مشتریان</h2><div id="customerList" class="empty">در حال دریافت...</div></div>
   </section>
   <section class="tab" id="servers">
@@ -1361,7 +1373,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
 <script>
 const SUPABASE_URL="https://hbjonoxlasbhbusctmom.supabase.co";
 const SUPABASE_KEY="sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
-const FUNCTION_URL=SUPABASE_URL+"/functions/v1/create-reseller";
+const FUNCTION_URL=SUPABASE_URL+"/functions/v1/create-reseller";\nconst CREATE_CUSTOMER_URL=SUPABASE_URL+"/functions/v1/create-customer";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let role=null;
@@ -1450,7 +1462,7 @@ function openTab(tabId){
  };
  $("pageTitle").textContent=titles[tabId];
  closeMobileMenu();
- if(tabId==="resellers"&&role==="admin")loadResellerCapacity();
+ if(tabId==="resellers"&&role==="admin")loadResellerCapacity();\n if(tabId==="customers")loadCustomerResellerOptions();
 }
 document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.go)));
@@ -1678,6 +1690,59 @@ async function createReseller(){
  }
 }
 
+/* ثبت مشتری از طریق Edge Function با بررسی نقش سمت سرور */
+$("createCustomerButton").addEventListener("click",createCustomer);
+async function loadCustomerResellerOptions(){
+ const select=$("cReseller");
+ if(role!=="admin"){select.classList.add("hidden");return}
+ select.classList.remove("hidden");
+ if(select.dataset.loaded==="1")return;
+ select.disabled=true;
+ try{
+  const {data,error}=await db.from("resellers")
+   .select("id,display_name,is_active").eq("is_active",true).order("id");
+  if(error)throw error;
+  select.replaceChildren(new Option("انتخاب نمایندگی مقصد",""));
+  (data||[]).forEach(r=>select.add(new Option((r.display_name||"نمایندگی")+" · #"+r.id,String(r.id))));
+  select.dataset.loaded="1";
+ }catch(error){
+  showMessage("customerCreateMsg","دریافت فهرست نمایندگی‌ها ناموفق بود: "+error.message);
+ }finally{select.disabled=false}
+}
+async function createCustomer(){
+ const button=$("createCustomerButton");
+ hideMessage("customerCreateMsg");
+ const fullName=$("cName").value.trim();
+ const telegramId=$("cTelegramId").value.trim();
+ const notes=$("cNotes").value.trim();
+ if(fullName.length>150){showMessage("customerCreateMsg","نام نباید بیشتر از ۱۵۰ نویسه باشد.");return}
+ if(telegramId&&!/^\\d+$/.test(telegramId)){showMessage("customerCreateMsg","شناسه تلگرام باید فقط شامل عدد باشد.");return}
+ const body={full_name:fullName||null,telegram_user_id:telegramId||null,notes:notes||null};
+ if(role==="admin"){
+  const resellerId=$("cReseller").value;
+  if(!resellerId){showMessage("customerCreateMsg","ابتدا نمایندگی مقصد را انتخاب کنید.");return}
+  body.reseller_id=Number(resellerId);
+ }
+ setLoading(button,true,"در حال ثبت مشتری...");
+ try{
+  const {data:{session},error:sessionError}=await db.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(!session)throw new Error("نشست ورود منقضی شده است.");
+  const response=await fetch(CREATE_CUSTOMER_URL,{
+   method:"POST",
+   headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token,"apikey":SUPABASE_KEY},
+   body:JSON.stringify(body)
+  });
+  const result=await response.json();
+  if(!response.ok||!result.success)throw new Error(result.error||"ثبت مشتری ناموفق بود.");
+  $("cName").value="";$("cTelegramId").value="";$("cNotes").value="";
+  showMessage("customerCreateMsg","مشتری با موفقیت ثبت شد. شناسه: "+(result.customer?.customer_code||"ثبت شد"));
+  await loadTable("customers","customerList","customerCount");
+ }catch(error){
+  showMessage("customerCreateMsg","خطا در ثبت مشتری: "+error.message);
+ }finally{button.disabled=false;button.textContent="ثبت مشتری"}
+}
+ 
 /* بروزرسانی داشبورد */
 async function loadData(){
  $("systemStatus").textContent="در حال اتصال به پایگاه داده...";
