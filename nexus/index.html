@@ -424,6 +424,13 @@ z-index:10;
 <h2 class="title">مدیریت اشتراک‌ها</h2>
 <div id="subscriptionList" class="muted"></div>
 </div>
+<div class="card">
+<h2 class="title">مدیریت کانفیگ‌های VPN</h2>
+<div class="server-note">اطلاعات محرمانه کانفیگ در این فهرست نمایش داده نمی‌شود. تخصیص خودکار فقط به سروری انجام می‌شود که نصب، سلامت و بررسی اخیر آن تأیید شده باشد.</div>
+<button class="secondary" id="refreshVpnConfigs">↻ بروزرسانی کانفیگ‌ها</button>
+<div id="vpnConfigList" class="server-grid" style="margin-top:14px"></div>
+<div id="vpnConfigMsg" class="msg hidden"></div>
+</div>
 </section>
 
 </main>
@@ -641,6 +648,62 @@ const serverCountries={DE:"آلمان",FI:"فنلاند",NL:"هلند",SE:"سو�
 const provisionLabels={not_provisioned:"آماده نصب",provisioning:"در حال نصب",installed:"نصب شده",ready:"آماده بهره‌برداری",failed:"خطای نصب"};
 const healthLabels={unknown:"بررسی نشده",healthy:"سالم",unhealthy:"ناسالم",maintenance:"تعمیرات"};
 function makeServerNode(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
+
+const configAssignmentLabels={pending:"در انتظار تخصیص",assigned:"به سرور متصل شده",provisioning:"در حال آماده‌سازی",active:"فعال",failed:"ناموفق",revoked:"لغوشده"};
+async function loadVpnConfigs(){
+ if(role!=="admin")return;
+ const box=$("vpnConfigList");
+ box.textContent="در حال دریافت کانفیگ‌ها...";
+ try{
+  const {data,error}=await db.functions.invoke("server-control",{body:{action:"configs-overview"}});
+  if(error)throw error;
+  if(!data?.ok)throw Error("دریافت فهرست کانفیگ‌ها ناموفق بود.");
+  const rows=data.configs||[];
+  box.replaceChildren();
+  if(!rows.length){box.textContent="هنوز کانفیگی ثبت نشده است.";return;}
+  rows.forEach(cfg=>{
+   const card=makeServerNode("article","server-card");
+   const head=makeServerNode("div","server-head");
+   head.append(makeServerNode("div","server-name",cfg.name||("کانفیگ #"+cfg.id)));
+   head.append(makeServerNode("span","server-badge",configAssignmentLabels[cfg.assignment_status]||cfg.assignment_status||"نامشخص"));
+   card.append(head);
+   const server=cfg.servers;
+   const meta=makeServerNode("div","server-meta");
+   meta.textContent=[
+    "شناسه: "+cfg.id,
+    "پروتکل: "+(cfg.protocol||"—"),
+    "مشتری: "+(cfg.customer_id??"تخصیص‌نیافته"),
+    "سرور: "+(server?.name||"هنوز تخصیص نیافته"),
+    "موقعیت: "+(serverCountries[server?.country_code]||server?.country_code||"—"),
+    "وضعیت سرور: "+(provisionLabels[server?.provisioning_state]||server?.provisioning_state||"—"),
+    "حجم: "+(cfg.volume_gb==null?"—":cfg.volume_gb+" GB"),
+    "مصرف: "+(cfg.used_gb==null?"—":cfg.used_gb+" GB"),
+    "انقضا: "+(cfg.expires_at?new Date(cfg.expires_at).toLocaleString("fa-IR"):"—"),
+    "وضعیت کانفیگ: "+(cfg.is_active?"فعال در دیتابیس":"غیرفعال")
+   ].join("\n");
+   card.append(meta);
+   if(!cfg.server_id&&cfg.assignment_status==="pending"&&cfg.is_active){
+    const btn=makeServerNode("button","primary","تخصیص خودکار به سرور سالم");
+    btn.onclick=async()=>{
+     btn.disabled=true;btn.textContent="در حال تخصیص...";
+     try{
+      const {data:out,error:callError}=await db.functions.invoke("server-control",{body:{action:"assign-config",config_id:cfg.id}});
+      if(callError)throw callError;
+      if(!out?.ok)throw Error(out?.error==="no_healthy_server_available"?"هیچ سرور سالم و آماده‌ای برای تخصیص وجود ندارد.":"تخصیص کانفیگ انجام نشد.");
+      msg("vpnConfigMsg","کانفیگ به "+(out.assignment?.assigned_server_name||"سرور منتخب")+" متصل شد.");
+      await loadVpnConfigs();
+     }catch(e){fail("vpnConfigMsg",e);}
+     finally{btn.disabled=false;btn.textContent="تخصیص خودکار به سرور سالم";}
+    };
+    card.append(btn);
+   }else if(cfg.server_id){
+    card.append(makeServerNode("div","server-note","این کانفیگ از قبل به یک سرور متصل است؛ اتصال آن خودکار جابه‌جا نمی‌شود."));
+   }
+   box.append(card);
+  });
+ }catch(e){box.textContent="خطا در دریافت کانفیگ‌ها: "+(e.message||e);}
+}
+$("refreshVpnConfigs")?.addEventListener("click",loadVpnConfigs);
 
 async function loadServerManager(){
  if(role!=="admin")return;
@@ -1004,7 +1067,7 @@ await loadCapacity();
 await loadTable("resellers","resellerList","resellerCount");
 await loadServerManager();
 $("serverCount").textContent=$("serverTotal").textContent;
-await loadTable("subscriptions","subscriptionList","subscriptionCount");
+await loadTable("subscriptions","subscriptionList","subscriptionCount");\nawait loadVpnConfigs();
 
 $("systemStatus").textContent="اتصال برقرار است؛ نقش مدیر.";
 
