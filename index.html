@@ -182,12 +182,82 @@ td{color:#ddd7e6}
 .dragon-hero-content{position:relative;z-index:1;margin-left:22%;text-align:center}
 @media(max-width:700px){.dragon-hero-art{right:2%;height:78%;width:32%;opacity:.78}.dragon-hero-content{margin-left:23%}}
 
+
+/* Login: exact dragon artwork cropped from the user's supplied monitor photo.
+   The display bezel, stand and desk are excluded from the asset. */
+body:has(#loginPage:not(.hidden)){
+  min-height:100vh;
+  background:#10263a;
+  isolation:isolate;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel{
+  position:fixed;inset:0;width:100%;height:100vh;min-height:100vh;
+  display:block;overflow:hidden;border:0;z-index:0;
+  background:linear-gradient(135deg,#193d59,#1b3150 55%,#283a5a);
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel:after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(35,77,112,.24),rgba(38,68,102,.42)),
+    linear-gradient(0deg,rgba(15,36,58,.34),rgba(65,105,143,.12));
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel img{
+  display:block;width:100%;height:100%;object-fit:cover;object-position:center;
+  opacity:.96;filter:saturate(1.12) brightness(1.08) blur(.45px);
+  transform:scale(1.015);
+}
+body:has(#loginPage:not(.hidden)) .dragon-brand{display:none}
+body:has(#loginPage:not(.hidden)) #loginPage{
+  position:relative;z-index:2;width:100%;min-height:100vh;margin:0;
+  padding:24px;display:flex;align-items:center;justify-content:center;
+  background:transparent;
+}
+body:has(#loginPage:not(.hidden)) .login-box{
+  width:min(100%,440px);padding:clamp(25px,5vw,42px);
+  border:1px solid rgba(151,199,232,.72);border-radius:20px;
+  background:linear-gradient(145deg,rgba(15,35,57,.90),rgba(22,39,62,.86));
+  box-shadow:0 24px 75px rgba(3,13,25,.48),0 0 42px rgba(87,151,204,.22),
+    inset 0 1px 0 rgba(235,248,255,.13);
+  backdrop-filter:blur(13px);
+}
+body:has(#loginPage:not(.hidden)) .brand{
+  color:#e5c77f;font-size:clamp(25px,5vw,34px);letter-spacing:3px;
+  text-shadow:0 0 22px rgba(224,174,94,.24);
+}
+body:has(#loginPage:not(.hidden)) .tagline{
+  color:#c1d9ed;letter-spacing:3px;margin:10px 0 34px;
+}
+body:has(#loginPage:not(.hidden)) .login-box h2{font-size:19px;color:#e8d39e}
+body:has(#loginPage:not(.hidden)) .login-box .muted{color:#c1d0df}
+body:has(#loginPage:not(.hidden)) .login-box input{
+  background:rgba(9,24,40,.82);border:1px solid #58748f;
+  border-radius:10px;padding:15px;color:#fff;
+}
+body:has(#loginPage:not(.hidden)) .login-box input:focus{
+  border-color:#9bc9eb;box-shadow:0 0 0 3px rgba(137,190,228,.16);
+}
+body:has(#loginPage:not(.hidden)) .login-box .primary{
+  border:1px solid #f0d28e;border-radius:10px;
+  background:linear-gradient(100deg,#a98248,#ecd18e);
+  color:#171b24;box-shadow:0 8px 25px rgba(66,119,159,.24);
+}
+@media(max-width:700px){
+  body:has(#loginPage:not(.hidden)) .dragon-panel{
+    position:fixed;inset:0;width:100%;height:100vh;min-height:100vh;
+    max-height:none;border:0;
+  }
+  body:has(#loginPage:not(.hidden)) .dragon-panel img{object-fit:cover;opacity:.90}
+  body:has(#loginPage:not(.hidden)) #loginPage{
+    width:100%;min-height:100vh;margin:0;padding:18px;background:transparent;
+  }
+  body:has(#loginPage:not(.hidden)) .login-box{max-width:420px}
+}
 </style>
 </head>
 <body>
 
 <aside class="dragon-panel" aria-label="STARVEX dragon artwork">
- <img src="nexus/assets/starvex-dragon-login.webp" alt="STARVEX NEXUS blue and purple dragon login artwork">
+ <img src="nexus/assets/starvex-login-dragon.jpg" alt="STARVEX NEXUS blue and purple dragon login artwork">
  <div class="dragon-brand"><strong>STARVEX</strong><span>NEXUS MANAGEMENT</span></div>
 </aside>
 
@@ -676,61 +746,3 @@ checkSession();
 </script>
 </body>
 </html>
-
-/* STARVEX NEXUS immersive dragon login */
-body:has(#loginPage:not(.hidden)){
-  min-height:100vh;
-  background:
-    radial-gradient(ellipse at 50% 42%,rgba(49,24,75,.22),transparent 58%),
-    linear-gradient(110deg,rgba(4,6,13,.78),rgba(7,7,16,.58) 48%,rgba(4,6,13,.82)),
-    #070810;
-}
-body:has(#loginPage:not(.hidden)) .dragon-panel{
-  position:fixed;inset:0;width:100%;height:100vh;min-height:100vh;
-  display:block;overflow:hidden;border:0;background:#070810;z-index:0;
-}
-body:has(#loginPage:not(.hidden)) .dragon-panel img{
-  width:100%;height:100%;object-fit:contain;object-position:center;
-  opacity:.38;filter:drop-shadow(0 0 42px rgba(93,54,151,.55));
-}
-body:has(#loginPage:not(.hidden)) .dragon-brand{display:none}
-body:has(#loginPage:not(.hidden)) #loginPage{
-  position:relative;z-index:2;width:100%;min-height:100vh;margin:0;
-  padding:24px;display:flex;align-items:center;justify-content:center;
-  background:transparent;
-}
-body:has(#loginPage:not(.hidden)) .login-box{
-  width:min(100%,440px);padding:clamp(25px,5vw,42px);
-  border:1px solid rgba(166,117,220,.72);border-radius:20px;
-  background:linear-gradient(145deg,rgba(17,19,33,.92),rgba(10,11,20,.88));
-  box-shadow:0 25px 90px rgba(0,0,0,.72),0 0 42px rgba(118,61,177,.18),
-    inset 0 1px 0 rgba(255,255,255,.08);
-  backdrop-filter:blur(15px);
-}
-body:has(#loginPage:not(.hidden)) .brand{
-  color:#e8c77e;font-size:clamp(25px,5vw,34px);letter-spacing:3px;
-  text-shadow:0 0 22px rgba(224,174,94,.24);
-}
-body:has(#loginPage:not(.hidden)) .tagline{
-  color:#bda6d9;letter-spacing:3px;margin:10px 0 34px;
-}
-body:has(#loginPage:not(.hidden)) .login-box h2{font-size:19px;color:#ead09a}
-body:has(#loginPage:not(.hidden)) .login-box .muted{color:#aaa8b8}
-body:has(#loginPage:not(.hidden)) .login-box input{
-  background:rgba(7,9,17,.86);border:1px solid #40364e;
-  border-radius:10px;padding:15px;color:#fff;
-}
-body:has(#loginPage:not(.hidden)) .login-box input:focus{
-  border-color:#a875df;box-shadow:0 0 0 3px rgba(168,117,223,.13);
-}
-body:has(#loginPage:not(.hidden)) .login-box .primary{
-  border:1px solid #e9cb87;border-radius:10px;
-  background:linear-gradient(100deg,#9b713b,#e8c77e);
-  color:#17111c;box-shadow:0 8px 25px rgba(147,93,184,.18);
-}
-@media(max-width:700px){
-  body:has(#loginPage:not(.hidden)) .dragon-panel{height:100vh;min-height:100vh;max-height:none}
-  body:has(#loginPage:not(.hidden)) .dragon-panel img{object-fit:cover;opacity:.32}
-  body:has(#loginPage:not(.hidden)) #loginPage{min-height:100vh;padding:18px}
-  body:has(#loginPage:not(.hidden)) .login-box{max-width:420px}
-}
