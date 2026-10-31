@@ -2065,6 +2065,19 @@ $("configSubscription").addEventListener("change",async()=>{
   }
  }catch(e){showMessage("configMsg","خواندن جزئیات اشتراک ناموفق بود: "+e.message)}
 });
+async function createCustomerSubscriptionLink(customerId){
+ const {data:{session},error:sessionError}=await db.auth.getSession();
+ if(sessionError||!session?.access_token)throw new Error("نشست ورود معتبر نیست؛ دوباره وارد پنل شوید.");
+ const response=await fetch(SUPABASE_URL+"/functions/v1/server-control",{
+  method:"POST",
+  headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorization":"Bearer "+session.access_token},
+  body:JSON.stringify({action:"create-subscription-link",customer_id:Number(customerId)})
+ });
+ let result={};try{result=await response.json()}catch{}
+ if(!response.ok||!result.ok)throw new Error(result.error||("خطای سرور: "+response.status));
+ return result.link;
+}
+
 async function saveConfig(){
  if(role!=="admin")return;
  const customer=Number($("configCustomer").value),server=$("configServer").value,subscription=$("configSubscription").value?Number($("configSubscription").value):null,name=$("configName").value.trim(),protocol=$("configProtocol").value,v=$("configVolume").value.trim(),ex=$("configExpires").value;
@@ -2073,7 +2086,7 @@ async function saveConfig(){
  if(ex&&Number.isNaN(new Date(ex).getTime())){showMessage("configMsg","تاریخ انقضا معتبر نیست.");return}
  const payload={customer_id:customer,server_id:server,subscription_id:subscription,name,protocol,volume_gb,expires_at:ex?new Date(ex).toISOString():null};
  $("saveConfig").disabled=true;
- try{const id=$("configEditId").value;const r=id?await db.from("vpn_configs").update(payload).eq("id",Number(id)).select("id").single():await db.from("vpn_configs").insert(payload).select("id").single();if(r.error)throw r.error;showMessage("configMsg",id?"کانفیگ ویرایش شد.":"کانفیگ در دیتابیس ثبت شد.");resetConfigForm();await loadConfigs()}
+ try{const id=$("configEditId").value;const r=id?await db.from("vpn_configs").update(payload).eq("id",Number(id)).select("id").single():await db.from("vpn_configs").insert(payload).select("id").single();if(r.error)throw r.error;resetConfigForm();await loadConfigs();if(!id){try{const link=await createCustomerSubscriptionLink(customer);showMessage("configMsg","کانفیگ ثبت شد. لینک اشتراک مشتری:\n"+link)}catch(linkError){showMessage("configMsg","کانفیگ ثبت شد، اما ساخت لینک انجام نشد: "+linkError.message)}}else{showMessage("configMsg","کانفیگ ویرایش شد.")}}
  catch(e){showMessage("configMsg","ذخیره ناموفق بود: "+e.message)}finally{$("saveConfig").disabled=false}
 }
 function configHealth(r,now){
@@ -2107,6 +2120,7 @@ async function loadConfigs(){
    vals.forEach((v,i)=>{const td=document.createElement("td");td.textContent=String(v??"—");if(i===10)td.className=h.tone;if(i===8&&h.percent!==null&&h.percent>=80)td.className="status-inactive";tr.appendChild(td)});
    const alert=document.createElement("td");alert.textContent=h.alerts.length?h.alerts.join("، "):"—";if(h.alerts.length)alert.className="status-inactive";tr.appendChild(alert);
    const actions=document.createElement("td"),add=(label,fn,cls="secondary-btn")=>{const btn=document.createElement("button");btn.type="button";btn.className=cls;btn.textContent=label;btn.style.margin="2px";btn.onclick=fn;actions.appendChild(btn)};
+   add("ساخت لینک ساب",async function(){const btn=this;btn.disabled=true;const old=btn.textContent;btn.textContent="در حال ساخت...";try{const link=await createCustomerSubscriptionLink(r.customer_id);showMessage("configMsg","لینک اشتراک مشتری:\n"+link);if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(link);showMessage("configMsg","لینک اشتراک ساخته و کپی شد:\n"+link)}}catch(e){showMessage("configMsg","ساخت لینک ناموفق بود: "+e.message)}finally{btn.disabled=false;btn.textContent=old}},"secondary-btn");
    add("ویرایش",()=>editConfig(r),"small-btn");
    add(r.is_active?"غیرفعال‌سازی":"فعال‌سازی",async()=>{if(!confirm("وضعیت رکورد دیتابیس تغییر کند؟"))return;const z=await db.from("vpn_configs").update({is_active:!r.is_active}).eq("id",r.id);if(z.error)showMessage("configMsg",z.error.message);else await loadConfigs()});
    add("حذف",async()=>{if(!confirm("رکورد کانفیگ حذف شود؟"))return;const z=await db.from("vpn_configs").delete().eq("id",r.id);if(z.error)showMessage("configMsg",z.error.message);else{showMessage("configMsg","رکورد کانفیگ حذف شد.");await loadConfigs()}},"small-btn danger-btn");
