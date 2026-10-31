@@ -277,6 +277,7 @@ z-index:10;
 <button class="nav active" data-tab="overview">داشبورد اصلی</button>
 <button class="nav admin-only" data-tab="resellers">نمایندگی‌ها</button>
 <button class="nav" data-tab="customers">مشتریان</button>
+<button class="nav" data-tab="configs">ساخت کانفیگ</button>
 <button class="nav admin-only" data-tab="servers">سرورها</button>
 <button class="nav admin-only" data-tab="subscriptions">اشتراک‌ها</button>
 
@@ -415,6 +416,21 @@ z-index:10;
 <div id="subLinkMsg" class="msg hidden"></div>
 </div>
 
+</section>
+
+<section class="tab" id="configs">
+<div class="card">
+<h2 class="title">ساخت کانفیگ مشتری</h2>
+<p class="muted">اطلاعات کانفیگ را ثبت کن. تا زمان اتصال سرور واقعی، کانفیگ در وضعیت «در انتظار تخصیص» باقی می‌ماند.</p>
+<select id="configCustomer"><option value="">انتخاب مشتری</option></select>
+<input id="configName" maxlength="100" placeholder="نام کانفیگ">
+<select id="configProtocol"><option value="VLESS">VLESS</option><option value="VMess">VMess</option><option value="Trojan">Trojan</option><option value="Shadowsocks">Shadowsocks</option></select>
+<textarea id="configText" rows="5" placeholder="متن کانفیگ (در صورت آماده بودن)" style="width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #39364e;background:#090b10;color:white"></textarea>
+<div class="formgrid"><input id="configDuration" type="number" min="1" max="3650" placeholder="مدت اعتبار (روز)"><input id="configVolume" type="number" min="1" max="100000" placeholder="حجم (GB)"></div>
+<button class="primary" id="saveVpnConfig">ثبت کانفیگ</button>
+<div id="createConfigMsg" class="msg hidden"></div>
+</div>
+<div class="card"><h2 class="title">کانفیگ‌های ثبت‌شده</h2><div id="myConfigList" class="muted">در حال دریافت...</div></div>
 </section>
 
 <section class="tab" id="servers">
@@ -565,7 +581,7 @@ $("mobileBackdrop").classList.remove("show");
 
 function openTab(id){
 
-if(role!=="admin"&&!["overview","customers"].includes(id))return;
+if(role!=="admin"&&!["overview","customers","configs"].includes(id))return;
 
 document.querySelectorAll(".tab").forEach(x=>{
 x.classList.remove("active");
@@ -581,6 +597,7 @@ $("pageTitle").textContent=({
 overview:"داشبورد اصلی",
 resellers:"نمایندگی‌ها",
 customers:"مشتریان",
+configs:"ساخت کانفیگ",
 servers:"سرورها",
 subscriptions:"اشتراک‌ها"
 })[id];
@@ -589,6 +606,7 @@ closeMobileMenu();
 
 if(id==="resellers"&&role==="admin")loadCapacity();
 if(id==="servers"&&role==="admin")loadServerManager();
+if(id==="configs"){refreshConfigCustomerOptions();loadMyConfigs();}
 }
 
 document.querySelectorAll(".nav[data-tab]").forEach(b=>{
@@ -995,6 +1013,52 @@ fail("capacityList",e);
 }
 }
 
+
+function refreshConfigCustomerOptions(){
+ const sel=$("configCustomer"); if(!sel)return;
+ const prev=sel.value;
+ sel.replaceChildren(new Option("انتخاب مشتری",""));
+ customersCache.forEach(c=>{
+  const label=(c.customer_code||("مشتری #"+c.id))+(c.full_name?" - "+c.full_name:"");
+  sel.add(new Option(label,String(c.id)));
+ });
+ if(prev&&customersCache.some(c=>String(c.id)===prev))sel.value=prev;
+}
+async function loadMyConfigs(){
+ const box=$("myConfigList"); if(!box)return;
+ box.textContent="در حال دریافت...";
+ try{
+  const {data,error}=await db.functions.invoke("create-vpn-config",{body:{action:"list"}});
+  if(error)throw error;
+  const rows=data?.configs||[];
+  if(!rows.length){box.textContent="هنوز کانفیگی ثبت نشده است.";return;}
+  const t=document.createElement("div");
+  rows.forEach(c=>{
+   const item=document.createElement("div");item.className="server-card";
+   item.textContent=(c.name||"کانفیگ")+" | "+c.protocol+" | "+(c.assignment_status||"pending")+" | "+(c.customer_code||("مشتری #"+c.customer_id));
+   t.append(item);
+  });
+  box.replaceChildren(t);
+ }catch(e){box.textContent="خطا: "+(e.message||e);}
+}
+$("saveVpnConfig")?.addEventListener("click",async()=>{
+ const b=$("saveVpnConfig");b.disabled=true;
+ try{
+  const customer_id=Number($("configCustomer").value);
+  if(!Number.isSafeInteger(customer_id)||customer_id<1)throw Error("ابتدا مشتری را انتخاب کن.");
+  const name=$("configName").value.trim();
+  if(!name)throw Error("نام کانفیگ را وارد کن.");
+  const payload={action:"create",customer_id,name,protocol:$("configProtocol").value,config_text:$("configText").value.trim()||null,duration_days:$("configDuration").value?Number($("configDuration").value):null,volume_gb:$("configVolume").value?Number($("configVolume").value):null};
+  const {data,error}=await db.functions.invoke("create-vpn-config",{body:payload});
+  if(error)throw error;
+  if(!data?.ok)throw Error(data?.error||"ثبت کانفیگ ناموفق بود.");
+  msg("createConfigMsg","کانفیگ با موفقیت ثبت شد؛ وضعیت تخصیص: در انتظار تخصیص.");
+  $("configName").value="";$("configText").value="";$("configDuration").value="";$("configVolume").value="";
+  await loadMyConfigs();
+ }catch(e){fail("createConfigMsg",e);}
+ finally{b.disabled=false;}
+});
+
 async function loadCustomers(){
 
 try{
@@ -1009,6 +1073,7 @@ if(error)throw error;
 
 customersCache=data||[];
 refreshSubscriptionCustomerOptions();
+refreshConfigCustomerOptions();
 $("customerCount").textContent=customersCache.length;
 
 renderCustomers();
