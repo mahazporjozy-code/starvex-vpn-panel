@@ -1403,7 +1403,6 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
      <label>حجم (GB) — خالی = نامحدود<input id="configVolume" type="number" min="1" step="1"></label>
      <label>تاریخ انقضا<input id="configExpires" type="datetime-local"></label>
     </div>
-    <input id="configText" type="hidden" value="">
     <p class="muted">این بخش فعلاً رکورد دیتابیس را مدیریت می‌کند؛ تغییر حجم، انقضا و وضعیت هنوز روی سرور VPN اعمال نمی‌شود.</p>
     <button class="primary" id="saveConfig" type="button">ثبت کانفیگ</button><button class="secondary-btn hidden" id="cancelConfigEdit" type="button">لغو ویرایش</button><div id="configMsg" class="message hidden"></div>
    </div>
@@ -2025,13 +2024,13 @@ async function loadConfigOptions(){
  }catch(e){showMessage("configMsg","دریافت گزینه‌ها ناموفق بود: "+e.message)}
 }
 function resetConfigForm(){
- ["configEditId","configCustomer","configServer","configSubscription","configName","configVolume","configExpires","configText"].forEach(id=>$(id).value="");
+ ["configEditId","configCustomer","configServer","configSubscription","configName","configVolume","configExpires"].forEach(id=>$(id).value="");
  $("configProtocol").value="VLESS";$("configFormTitle").textContent="ایجاد کانفیگ جدید";$("saveConfig").textContent="ثبت کانفیگ";$("cancelConfigEdit").classList.add("hidden");
 }
 async function editConfig(r){
  $("configEditId").value=r.id;$("configCustomer").value=String(r.customer_id||"");$("configServer").value=r.server_id||"";
  await loadConfigSubscriptions(r.customer_id,r.subscription_id);
- $("configName").value=r.name||"";$("configProtocol").value=r.protocol||"VLESS";$("configVolume").value=r.volume_gb??"";$("configText").value=r.config_text||"";
+ $("configName").value=r.name||"";$("configProtocol").value=r.protocol||"VLESS";$("configVolume").value=r.volume_gb??"";
  if(r.expires_at){const d=new Date(r.expires_at);$("configExpires").value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}else $("configExpires").value="";
  $("configFormTitle").textContent="ویرایش کانفیگ #"+r.id;$("saveConfig").textContent="ذخیره تغییرات";$("cancelConfigEdit").classList.remove("hidden");$("configs").scrollIntoView({behavior:"smooth"});
 }
@@ -2068,11 +2067,11 @@ $("configSubscription").addEventListener("change",async()=>{
 });
 async function saveConfig(){
  if(role!=="admin")return;
- const customer=Number($("configCustomer").value),server=$("configServer").value,subscription=$("configSubscription").value?Number($("configSubscription").value):null,name=$("configName").value.trim(),protocol=$("configProtocol").value,config_text=$("configText").value.trim(),v=$("configVolume").value.trim(),ex=$("configExpires").value;
- if(!Number.isSafeInteger(customer)||customer<1||!server||!name||!config_text){showMessage("configMsg","مشتری، سرور، نام و متن کانفیگ الزامی هستند.");return}
+ const customer=Number($("configCustomer").value),server=$("configServer").value,subscription=$("configSubscription").value?Number($("configSubscription").value):null,name=$("configName").value.trim(),protocol=$("configProtocol").value,v=$("configVolume").value.trim(),ex=$("configExpires").value;
+ if(!Number.isSafeInteger(customer)||customer<1||!server||!name||!config_text){showMessage("configMsg","مشتری، سرور و نام کانفیگ را تکمیل کنید.");return}
  let volume_gb=null;if(v){volume_gb=Number(v);if(!Number.isFinite(volume_gb)||volume_gb<1){showMessage("configMsg","حجم باید حداقل ۱ گیگابایت یا خالی باشد.");return}}
  if(ex&&Number.isNaN(new Date(ex).getTime())){showMessage("configMsg","تاریخ انقضا معتبر نیست.");return}
- const payload={customer_id:customer,server_id:server,subscription_id:subscription,name,protocol,config_text,volume_gb,expires_at:ex?new Date(ex).toISOString():null};
+ const payload={customer_id:customer,server_id:server,subscription_id:subscription,name,protocol,volume_gb,expires_at:ex?new Date(ex).toISOString():null};
  $("saveConfig").disabled=true;
  try{const id=$("configEditId").value;const r=id?await db.from("vpn_configs").update(payload).eq("id",Number(id)).select("id").single():await db.from("vpn_configs").insert(payload).select("id").single();if(r.error)throw r.error;showMessage("configMsg",id?"کانفیگ ویرایش شد.":"کانفیگ در دیتابیس ثبت شد.");resetConfigForm();await loadConfigs()}
  catch(e){showMessage("configMsg","ذخیره ناموفق بود: "+e.message)}finally{$("saveConfig").disabled=false}
@@ -2090,7 +2089,7 @@ function configHealth(r,now){
 async function loadConfigs(){
  if(role!=="admin")return;const box=$("configList");box.textContent="در حال دریافت...";
  try{
-  const {data,error}=await db.from("vpn_configs").select("id,name,protocol,config_text,is_active,volume_gb,used_gb,expires_at,customer_id,server_id,subscription_id").order("created_at",{ascending:false}).limit(200);if(error)throw error;
+  const {data,error}=await db.from("vpn_configs").select("id,name,protocol,is_active,volume_gb,used_gb,expires_at,customer_id,server_id,subscription_id").order("created_at",{ascending:false}).limit(200);if(error)throw error;
   if(!data.length){box.textContent="هنوز کانفیگی ثبت نشده است.";box.className="empty";return}
   const ids=[...new Set(data.map(x=>x.customer_id).filter(Boolean))],sids=[...new Set(data.map(x=>x.server_id).filter(Boolean))],subIds=[...new Set(data.map(x=>x.subscription_id).filter(Boolean))];
   const [a,b,d]=await Promise.all([db.from("customers").select("id,customer_code,full_name").in("id",ids.length?ids:[-1]),db.from("servers").select("id,name").in("id",sids.length?sids:["00000000-0000-0000-0000-000000000000"]),db.from("subscriptions").select("id,status").in("id",subIds.length?subIds:[-1])]);if(a.error)throw a.error;if(b.error)throw b.error;if(d.error)throw d.error;
