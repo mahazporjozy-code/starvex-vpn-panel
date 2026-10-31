@@ -21,7 +21,8 @@ body::before{content:none}
 .dragon-brand strong{display:block;color:#f0ce80;font-size:clamp(22px,2.4vw,34px);letter-spacing:5px}
 .dragon-brand span{display:block;color:#b9a27a;font-size:9px;letter-spacing:4px;margin-top:7px}
 body>*:not(.dragon-panel){position:relative;z-index:1}
-button,input,select{font-family:inherit}\nselect{width:100%;padding:12px;margin:7px 0;border-radius:8px;border:1px solid #353844;background:#090b10;color:white;font-size:13px;min-height:42px}
+button,input,select{font-family:inherit}
+select{width:100%;padding:12px;margin:7px 0;border-radius:8px;border:1px solid #353844;background:#090b10;color:white;font-size:13px;min-height:42px}
 button{cursor:pointer}
 .hidden{display:none!important}
 .muted{color:var(--muted);font-size:12px;line-height:2}
@@ -1373,7 +1374,8 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
 <script>
 const SUPABASE_URL="https://hbjonoxlasbhbusctmom.supabase.co";
 const SUPABASE_KEY="sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
-const FUNCTION_URL=SUPABASE_URL+"/functions/v1/create-reseller";\nconst CREATE_CUSTOMER_URL=SUPABASE_URL+"/functions/v1/create-customer";
+const FUNCTION_URL=SUPABASE_URL+"/functions/v1/create-reseller";
+const CREATE_CUSTOMER_URL=SUPABASE_URL+"/functions/v1/create-customer";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let role=null;
@@ -1462,7 +1464,8 @@ function openTab(tabId){
  };
  $("pageTitle").textContent=titles[tabId];
  closeMobileMenu();
- if(tabId==="resellers"&&role==="admin")loadResellerCapacity();\n if(tabId==="customers")loadCustomerResellerOptions();
+ if(tabId==="resellers"&&role==="admin")loadResellerCapacity();
+ if(tabId==="customers")loadCustomerResellerOptions();
 }
 document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.go)));
@@ -1716,7 +1719,7 @@ async function createCustomer(){
  const telegramId=$("cTelegramId").value.trim();
  const notes=$("cNotes").value.trim();
  if(fullName.length>150){showMessage("customerCreateMsg","نام نباید بیشتر از ۱۵۰ نویسه باشد.");return}
- if(telegramId&&!/^\\d+$/.test(telegramId)){showMessage("customerCreateMsg","شناسه تلگرام باید فقط شامل عدد باشد.");return}
+ if(telegramId&&!/^\d+$/.test(telegramId)){showMessage("customerCreateMsg","شناسه تلگرام باید فقط شامل عدد باشد.");return}
  const body={full_name:fullName||null,telegram_user_id:telegramId||null,notes:notes||null};
  if(role==="admin"){
   const resellerId=$("cReseller").value;
