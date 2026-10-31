@@ -517,6 +517,71 @@ body:has(#loginPage:not(.hidden)) .login-box{
 }
 </style>
 
+
+<style id="starvex-dragon-clarity-v2">
+/* Show the complete portrait artwork, with stronger detail and color */
+body:has(#loginPage:not(.hidden)) .dragon-panel{
+ background-color:#02060c!important;
+ background-image:none!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+ content:"";position:absolute!important;inset:0!important;z-index:1!important;
+ background-image:url('nexus/assets/dragon-bg.jpg')!important;
+ background-repeat:no-repeat!important;
+ background-position:center center!important;
+ background-size:auto 100%!important;
+ filter:brightness(1.30) contrast(1.20) saturate(1.22)!important;
+ transform:scale(.985)!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::after{
+ content:"";position:absolute!important;inset:0!important;z-index:2!important;
+ pointer-events:none!important;
+ background:linear-gradient(180deg,rgba(1,5,12,.02) 0%,rgba(2,7,15,.04) 48%,rgba(2,7,16,.26) 100%)!important;
+}
+body:has(#loginPage:not(.hidden)) #loginPage{
+ align-items:flex-end!important;
+ padding:12px 12px max(12px,env(safe-area-inset-bottom))!important;
+}
+body:has(#loginPage:not(.hidden)) .login-box{
+ width:min(100%,310px)!important;max-width:310px!important;
+ padding:13px 17px 12px!important;margin:0 auto!important;
+ border-radius:17px!important;
+ background:linear-gradient(145deg,rgba(4,13,25,.48),rgba(10,14,30,.58))!important;
+ border:1px solid rgba(170,205,239,.34)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.07)!important;
+ backdrop-filter:blur(7px) saturate(1.08)!important;
+}
+body:has(#loginPage:not(.hidden)) .login-box input{
+ min-height:37px!important;padding:8px 11px!important;
+ background:rgba(4,11,21,.43)!important;
+ border:1px solid rgba(174,203,233,.25)!important;
+ border-radius:10px!important;
+}
+body:has(#loginPage:not(.hidden)) .login-box .primary{
+ min-height:38px!important;padding:8px 12px!important;
+ opacity:.78!important;
+ box-shadow:0 4px 14px rgba(50,103,175,.16)!important;
+}
+body:has(#loginPage:not(.hidden)) .login-box .brand{font-size:17px!important}
+body:has(#loginPage:not(.hidden)) .login-box .tagline{margin:3px 0 8px!important}
+body:has(#loginPage:not(.hidden)) .login-box h2{font-size:16px!important;margin:5px 0!important}
+body:has(#loginPage:not(.hidden)) .login-box .muted{font-size:10px!important;margin:3px 0 8px!important}
+@media(max-width:700px){
+ body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+  background-size:100% 100%!important;
+  background-position:center center!important;
+  transform:none!important;
+ }
+ body:has(#loginPage:not(.hidden)) #loginPage{
+  padding:10px 12px max(10px,env(safe-area-inset-bottom))!important;
+ }
+ body:has(#loginPage:not(.hidden)) .login-box{
+  width:min(100%,300px)!important;max-width:300px!important;
+  padding:12px 15px 11px!important;
+ }
+}
+</style>
+
 </head>
 <body>
 
