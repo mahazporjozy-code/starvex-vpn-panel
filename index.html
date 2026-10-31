@@ -625,6 +625,30 @@ body:has(#loginPage:not(.hidden)) .login-box .muted{font-size:9px!important;marg
 }
 </style>
 
+
+<style id="starvex-dragon-image-fix">
+/* Restore the original portrait proportions: no stretching, no aggressive crop */
+body:has(#loginPage:not(.hidden)) .dragon-panel{
+ background:#03070e!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+ background-image:url('nexus/assets/dragon-bg.jpg')!important;
+ background-repeat:no-repeat!important;
+ background-position:center center!important;
+ background-size:contain!important;
+ filter:brightness(1.18) contrast(1.10) saturate(1.12)!important;
+ transform:none!important;
+}
+@media(max-width:700px){
+ body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+  background-size:contain!important;
+  background-position:center center!important;
+  filter:brightness(1.18) contrast(1.10) saturate(1.12)!important;
+  transform:none!important;
+ }
+}
+</style>
+
 </head>
 <body>
 
