@@ -1079,6 +1079,31 @@ body:has(#app:not(.hidden)){background:#070b16!important}
  #sidebar .nav-btn{min-width:100%!important;flex-basis:100%!important}
  #main .quick-grid{grid-template-columns:1fr!important}
 }
+
+/* Dashboard: remove the framed banner; keep a small STARVEX wordmark over the dragon backdrop. */
+#main .dragon-hero{
+ min-height:42px!important;height:42px!important;margin:0 0 14px!important;
+ padding:5px 8px!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;overflow:visible!important;
+}
+#main .dragon-hero:before,#main .dragon-hero:after{display:none!important;content:none!important}
+#main .dragon-hero-content{margin:0!important;text-align:center!important}
+#main .dragon-hero-title{
+ font-size:13px!important;line-height:1.5!important;letter-spacing:3px!important;
+ font-weight:700!important;color:#a9f3ff!important;
+ text-shadow:0 1px 12px rgba(26,199,240,.38)!important;
+}
+#main .dragon-hero-subtitle{display:none!important}
+/* Let the blue dragon artwork read clearly behind the dashboard for every signed-in user. */
+#main:before{
+ background:
+  linear-gradient(110deg,rgba(4,8,19,.66),rgba(5,11,25,.56) 48%,rgba(5,10,22,.68)),
+  url("./nexus/assets/8dbc49ea852389ebae0449fd57b669b3.jpg") center center/cover no-repeat!important;
+}
+@media(max-width:700px){
+ #main .dragon-hero{min-height:34px!important;height:34px!important;margin-bottom:10px!important}
+ #main .dragon-hero-title{font-size:11px!important;letter-spacing:2.5px!important}
+}
 </style>
 
 </head>
@@ -1133,11 +1158,9 @@ body:has(#app:not(.hidden)){background:#070b16!important}
    <div class="user-info" id="userInfo"></div>
   </div>
 
-  <section class="dragon-hero" aria-label="STARVEX dragon banner">
-   
+  <section class="dragon-hero" aria-label="STARVEX">
    <div class="dragon-hero-content">
-    <div class="dragon-hero-title">STARVEX NEXUS</div>
-    <div class="dragon-hero-subtitle">ONE COMMAND. TOTAL CONTROL.</div>
+    <div class="dragon-hero-title">STARVEX</div>
    </div>
   </section>
 
