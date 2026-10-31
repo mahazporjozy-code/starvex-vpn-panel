@@ -177,6 +177,11 @@ td{color:#ddd7e6}
 }
 @media(max-width:390px){.nav-btn{font-size:9px;padding:9px 8px}.dragon-hero-title{font-size:22px}}
 
+
+.dragon-hero-art{position:absolute;z-index:0;right:5%;top:50%;transform:translateY(-50%);height:92%;width:min(34%,280px);object-fit:contain;opacity:.94;filter:drop-shadow(0 0 22px rgba(177,112,240,.42))}
+.dragon-hero-content{position:relative;z-index:1;margin-left:22%;text-align:center}
+@media(max-width:700px){.dragon-hero-art{right:2%;height:78%;width:32%;opacity:.78}.dragon-hero-content{margin-left:23%}}
+
 </style>
 </head>
 <body>
@@ -231,6 +236,7 @@ td{color:#ddd7e6}
   </div>
 
   <section class="dragon-hero" aria-label="STARVEX dragon banner">
+   <img class="dragon-hero-art" src="nexus/assets/file_00000000b1f4820c901f9e6629678079.png" alt="نشان اژدهای STARVEX">
    <div class="dragon-hero-content">
     <div class="dragon-hero-title">STARVEX NEXUS</div>
     <div class="dragon-hero-subtitle">ONE COMMAND. TOTAL CONTROL.</div>
