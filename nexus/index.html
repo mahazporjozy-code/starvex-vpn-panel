@@ -386,6 +386,17 @@ z-index:10;
 <input id="customerSearch" placeholder="جست‌وجو در مشتریان">
 <div id="customerList" class="muted">در حال دریافت...</div>
 </div>
+<div class="card admin-only">
+<h2 class="title">لینک اشتراک کانفیگ مشتری</h2>
+<p class="muted">برای هر مشتری یک لینک اختصاصی ساخته می‌شود. مشتری با افزودن این لینک به برنامه سازگار، همه کانفیگ‌های فعال خودش را یکجا دریافت می‌کند.</p>
+<select id="subLinkCustomer" style="width:100%;margin-bottom:12px"><option value="">انتخاب مشتری</option></select>
+<button class="primary" id="createSubLinkBtn">ساخت / نمایش لینک ساب</button>
+<div id="subLinkResult" class="hidden" style="margin-top:14px">
+<input id="subLinkValue" readonly dir="ltr" style="width:100%;font-size:12px">
+<button class="secondary" id="copySubLinkBtn" style="margin-top:10px">کپی لینک اشتراک</button>
+</div>
+<div id="subLinkMsg" class="msg hidden"></div>
+</div>
 
 </section>
 
@@ -930,6 +941,7 @@ const {data,error}=await db
 if(error)throw error;
 
 customersCache=data||[];
+refreshSubscriptionCustomerOptions();
 $("customerCount").textContent=customersCache.length;
 
 renderCustomers();
@@ -938,6 +950,42 @@ renderCustomers();
 fail("customerList",e);
 }
 }
+
+function refreshSubscriptionCustomerOptions(){
+ const select=$("subLinkCustomer");
+ if(!select)return;
+ const previous=select.value;
+ select.replaceChildren(new Option("انتخاب مشتری",""));
+ customersCache.forEach(c=>{
+  const label=(c.customer_code||("مشتری #"+c.id))+(c.full_name?" - "+c.full_name:"");
+  select.add(new Option(label,String(c.id)));
+ });
+ if(previous&&customersCache.some(c=>String(c.id)===previous))select.value=previous;
+}
+$("createSubLinkBtn")?.addEventListener("click",async()=>{
+ const button=$("createSubLinkBtn");
+ const customerId=Number($("subLinkCustomer").value);
+ if(!Number.isSafeInteger(customerId)||customerId<1){msg("subLinkMsg","ابتدا مشتری را انتخاب کن.");return;}
+ button.disabled=true;
+ try{
+  const {data,error}=await db.functions.invoke("server-control",{body:{action:"create-subscription-link",customer_id:customerId}});
+  if(error)throw error;
+  if(!data?.ok||!data.link)throw Error("ساخت لینک اشتراک ناموفق بود.");
+  $("subLinkValue").value=data.link;
+  $("subLinkResult").classList.remove("hidden");
+  msg("subLinkMsg","لینک اختصاصی مشتری آماده شد. آن را فقط در اختیار همان مشتری قرار بده.");
+ }catch(e){fail("subLinkMsg",e);}
+ finally{button.disabled=false;}
+});
+$("copySubLinkBtn")?.addEventListener("click",async()=>{
+ try{
+  await navigator.clipboard.writeText($("subLinkValue").value);
+  msg("subLinkMsg","لینک اشتراک کپی شد.");
+ }catch(e){
+  $("subLinkValue").select();
+  msg("subLinkMsg","لینک انتخاب شد؛ گزینه Copy را بزن.");
+ }
+});
 
 function renderCustomers(){
 
