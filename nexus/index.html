@@ -1067,7 +1067,8 @@ await loadCapacity();
 await loadTable("resellers","resellerList","resellerCount");
 await loadServerManager();
 $("serverCount").textContent=$("serverTotal").textContent;
-await loadTable("subscriptions","subscriptionList","subscriptionCount");\nawait loadVpnConfigs();
+await loadTable("subscriptions","subscriptionList","subscriptionCount");
+await loadVpnConfigs();
 
 $("systemStatus").textContent="اتصال برقرار است؛ نقش مدیر.";
 
