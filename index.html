@@ -1511,7 +1511,8 @@ const TABLE_VIEWS={
  customers:{
   select:"id,customer_code,full_name,telegram_user_id,status,created_at,reseller_id",
   columns:[
-   {key:"customer_code",label:"شناسه مشتری"},
+   {key:"customer_no",label:"شماره مشتری"},
+   {key:"customer_code",label:"کد اختصاصی"},
    {key:"full_name",label:"نام"},
    {key:"telegram_user_id",label:"شناسه تلگرام"},
    {key:"status",label:"وضعیت"},
@@ -1575,6 +1576,9 @@ async function loadTable(tableName,boxId,countId){
   }
   const {data,error,count}=await query.limit(50);
   if(error)throw error;
+  if(tableName==="customers"){
+   data.forEach((row,index)=>{row.customer_no="مشتری "+((count??data.length)-index).toLocaleString("fa-IR")});
+  }
   if(countId)$(countId).textContent=count??data.length;
   if(!data.length){
    box.textContent="اطلاعاتی برای نمایش وجود ندارد.";
