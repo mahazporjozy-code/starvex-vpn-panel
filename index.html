@@ -97,6 +97,86 @@ input:focus{border-color:var(--gold)}
  .quick-grid{grid-template-columns:1fr}
 }
 
+
+/* Screenshot-inspired dashboard layout: live UI, never a screenshot background */
+body:has(#app:not(.hidden)) .dragon-panel{display:none}
+#app{display:grid;grid-template-columns:minmax(0,1fr) 292px;width:100%;min-height:100vh;margin:0;background:#080910;direction:ltr}
+#app.hidden{display:none!important}
+#sidebar{grid-column:2;grid-row:1;position:sticky;top:0;right:auto;left:auto;width:292px;height:100vh;min-height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:25px 17px 18px;background:linear-gradient(180deg,#171321 0%,#101019 52%,#0b0d14 100%);border:0;border-left:1px solid rgba(216,173,82,.52);box-shadow:-12px 0 35px #0008;white-space:normal;direction:rtl}
+#main{grid-column:1;grid-row:1;min-width:0;width:100%;margin:0;padding:24px clamp(18px,2.2vw,36px) 40px;max-width:none;direction:rtl;background:radial-gradient(ellipse at 52% 5%,rgba(91,36,133,.22),transparent 42%),#090a11}
+.logo{font-size:27px;text-align:center;letter-spacing:4px;padding:5px;color:#f2cc78;text-shadow:0 0 20px #b77b2b66}
+.logo-sub{text-align:center;font-size:9px;letter-spacing:2.5px;padding:0 0 15px;color:#c5b7d8}
+.profile-box{display:flex;align-items:center;gap:10px;padding:13px 10px;margin:2px 0 15px;background:linear-gradient(130deg,#292035,#171521);border:1px solid #72542d;border-radius:11px;box-shadow:0 0 18px #8a5bb022}
+.profile-box strong{display:block;font-size:12px;color:#f1d28e}
+.profile-box small{display:block;max-width:132px;margin-top:6px;font-size:9px;line-height:1.6;color:#aaa4b7;direction:ltr;overflow-wrap:anywhere}
+.profile-avatar{width:37px;height:37px;display:grid;place-items:center;flex:0 0 37px;border-radius:50%;background:linear-gradient(145deg,#e6c16f,#82552b);color:#21170b;font-weight:bold;font-size:18px}
+.online-pill{margin-right:auto;align-self:flex-start;color:#63d89c;font-size:9px;white-space:nowrap}
+.menu-title{display:block;color:#8e819e;font-size:10px;padding:7px 8px 2px}
+.nav-btn{width:100%;flex:0 0 auto;justify-content:flex-start;text-align:right;padding:13px 14px;margin:0;border:1px solid #342a42;border-radius:9px;background:linear-gradient(120deg,#211b2c,#15151f);color:#d8d0e3;font-size:12px;box-shadow:inset 0 1px 0 #ffffff0b,0 4px 12px #0005}
+.nav-btn:hover,.nav-btn.active{background:linear-gradient(110deg,#80602d,#49351f);color:#fff0c7;border-color:#edc875;box-shadow:0 0 17px #d5a84c25,inset 0 1px 0 #fff3}
+.sidebar-bottom{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:auto 0 0;padding:18px 0 0;border:0;border-top:1px solid #3b3044}
+.sidebar-footer-label{text-align:center;color:#81768e;font-size:9px;letter-spacing:1.5px;padding:8px}
+#logoutButton{justify-content:center}
+.topbar{margin:0 0 18px;padding:10px 4px 16px;border-bottom:1px solid #34263e}
+.page-title{font-size:21px;color:#f1d28e}
+.user-info{padding:8px 12px;border:1px solid #3e3448;border-radius:20px;background:#171420;color:#bcb2c9}
+.dragon-hero{position:relative;isolation:isolate;min-height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 0 24px;padding:30px;border:1px solid #67438b;border-radius:15px;background:radial-gradient(ellipse at 50% 100%,rgba(128,48,183,.45),transparent 55%),radial-gradient(ellipse at 78% 20%,rgba(72,37,112,.5),transparent 42%),linear-gradient(115deg,#100e1a,#21132d 48%,#0e1019);box-shadow:0 14px 35px #0008,inset 0 0 35px #9e4bdf18}
+.dragon-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(135deg,transparent 0 38px,#ffffff04 39px 40px),radial-gradient(ellipse at 50% 20%,#a36ad01a,transparent 60%)}
+.dragon-hero:after{content:"";position:absolute;z-index:-1;left:10%;right:10%;bottom:-95px;height:170px;border-radius:50%;background:#7b3ca8;filter:blur(65px);opacity:.35}
+.dragon-hero-content{text-align:center;text-shadow:0 4px 20px #000}
+.dragon-hero-title{font-size:clamp(25px,4vw,43px);font-weight:900;letter-spacing:5px;color:#f0ce80}
+.dragon-hero-subtitle{margin-top:12px;color:#c8b2e3;font-size:10px;letter-spacing:4px}
+.dashboard-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 15px}
+.section-title{font-size:15px;color:#edce8c;margin:0 0 12px}
+.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.stat{position:relative;min-height:112px;padding:17px;border-radius:12px;border-color:#554064;background:linear-gradient(145deg,#21182c,#15141f)}
+.stat:nth-child(2){border-color:#92713a;background:linear-gradient(145deg,#30251a,#191720)}
+.stat:nth-child(3){border-color:#345b82;background:linear-gradient(145deg,#17283a,#151722)}
+.stat:nth-child(4){border-color:#65417f}
+.stat-label{font-size:11px;color:#c6bfd0}
+.stat-value{font-size:30px;margin-top:13px;color:#d7a9ff}
+.stat:nth-child(2) .stat-value{color:#f0ce80}
+.stat:nth-child(3) .stat-value{color:#8dc9ff}
+.stat:nth-child(4) .stat-value{color:#d7a9ff}
+.card{padding:19px;margin-bottom:16px;border-radius:12px;border:1px solid #44364f;background:linear-gradient(145deg,#1a1722,#11131c);box-shadow:0 8px 23px #0006}
+#overview .card:nth-of-type(2){border-color:#3e6a52}
+.status-line{display:flex;align-items:center;gap:10px}
+.status-dot{width:9px;height:9px;border-radius:50%;background:#53d994;box-shadow:0 0 12px #53d994}
+.quick-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.quick-btn{min-height:54px;text-align:center;border-color:#7550a0;background:linear-gradient(140deg,#49305f,#251b36);color:#eadbff}
+.quick-btn:nth-child(2){border-color:#a17b3c;background:linear-gradient(140deg,#725326,#382817);color:#ffedc5}
+.quick-btn:nth-child(3){border-color:#426b9b;background:linear-gradient(140deg,#294f78,#192d47);color:#d8edff}
+.tab{display:none}.tab.active{display:block}
+.empty{padding:18px;color:#aaa2b6;font-size:12px}
+.table-wrap{width:100%;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:620px;font-size:11px}
+th,td{padding:12px 10px;text-align:right;border-bottom:1px solid #342b3e;white-space:nowrap}
+th{color:#f0ce80;background:#211b2a}
+td{color:#ddd7e6}
+.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.small-input{min-width:85px;padding:8px;margin:0}
+.status-active{color:#63d89c}.status-inactive{color:#ed8585}
+.message{background:#211b2b;border:1px solid #493b56;color:#e5dced}
+@media(max-width:1050px){#app{grid-template-columns:minmax(0,1fr) 255px}#sidebar{width:255px;padding:20px 12px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+ #app{display:flex;flex-direction:column}
+ #sidebar{position:sticky;top:0;z-index:20;width:100%;height:auto;min-height:0;max-height:none;display:flex;flex-direction:row;align-items:center;gap:6px;padding:8px;overflow-x:auto;border-left:0;border-bottom:1px solid #80613b;white-space:nowrap}
+ .logo{font-size:17px;letter-spacing:2px;padding:4px}
+ .logo-sub,.profile-box,.menu-title,.sidebar-footer-label{display:none}
+ .nav-btn{width:auto;flex:0 0 auto;padding:10px 11px;font-size:10px}
+ .sidebar-bottom{display:flex;flex-direction:row;align-items:center;margin:0 0 0 auto;padding:0;border:0}
+ #logoutButton{width:auto}
+ #main{padding:15px 12px 28px}
+ .dragon-hero{min-height:155px;padding:20px}
+ .dashboard-head{align-items:flex-start;flex-wrap:wrap}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .stat{min-height:94px;padding:13px}
+ .stat-value{font-size:24px}
+ .quick-grid{grid-template-columns:1fr}
+ .form-grid{grid-template-columns:1fr}
+}
+@media(max-width:390px){.nav-btn{font-size:9px;padding:9px 8px}.dragon-hero-title{font-size:22px}}
+
 </style>
 </head>
 <body>
@@ -125,7 +205,8 @@ input:focus{border-color:var(--gold)}
  <div id="overlay"></div>
  <aside class="sidebar" id="sidebar">
   <div class="logo">STARVEX</div>
-  <div class="logo-sub">NEXUS MANAGEMENT</div>
+  <div class="logo-sub">ONE COMMAND. TOTAL CONTROL.</div>
+  <div class="profile-box"><div class="profile-avatar">S</div><div><strong>مدیریت STARVEX</strong><small id="sidebarUser">حساب در حال بررسی...</small></div><span class="online-pill">● آنلاین</span></div>
   <div class="menu-title">مرکز کنترل</div>
   <button class="nav-btn active" data-tab="overview">▦ داشبورد اصلی</button>
   <div class="menu-title">مدیریت مجموعه</div>
@@ -134,7 +215,7 @@ input:focus{border-color:var(--gold)}
   <button class="nav-btn admin-only" data-tab="servers">▤ سرورها</button>
   <button class="nav-btn admin-only" data-tab="subscriptions">◷ اشتراک‌ها</button>
   <div class="sidebar-bottom">
-   <div id="sidebarUser" class="muted"></div>
+   <div class="sidebar-footer-label">STARVEX NEXUS · v1.0</div>
    <button class="nav-btn" id="logoutButton">↪ خروج از حساب</button>
   </div>
  </aside>
@@ -289,7 +370,7 @@ async function checkSession(){
   $("loginPage").classList.add("hidden");
   $("app").classList.remove("hidden");
   $("userInfo").textContent=user.email;
-  $("sidebarUser").textContent="حساب: "+user.email+" | سطح دسترسی: "+(role==="admin"?"مدیر":"نماینده");
+  $("sidebarUser").textContent=user.email+" · "+(role==="admin"?"مدیر سیستم":"نماینده");
   document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden",role!=="admin"));
   await loadData();
  }catch(error){
