@@ -13,16 +13,21 @@
  --muted:#92939c;--border:#292c36;--green:#53c995;--red:#ed7373;
 }
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;position:relative;isolation:isolate;background:transparent;color:var(--text);font-family:Tahoma,Arial,sans-serif}
-body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(rgba(5,6,10,.18),rgba(5,6,10,.30)),url("nexus/assets/file_00000000b1f4820c901f9e6629678079.png") center center/contain no-repeat;background-color:#08090d}
-body>*{position:relative;z-index:1}
+body{margin:0;min-height:100vh;background:#08090d;color:var(--text);font-family:Tahoma,Arial,sans-serif;overflow-x:hidden}
+body::before{content:none}
+.dragon-panel{position:fixed;left:0;top:0;width:42vw;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at center,rgba(105,75,28,.20),transparent 65%),#08090d;border-right:1px solid rgba(217,173,82,.28);z-index:2}
+.dragon-panel img{display:block;width:100%;height:100%;object-fit:contain;object-position:center;filter:drop-shadow(0 18px 38px rgba(0,0,0,.65))}
+.dragon-brand{position:absolute;top:28px;left:0;right:0;text-align:center;pointer-events:none;text-shadow:0 3px 18px #000}
+.dragon-brand strong{display:block;color:#f0ce80;font-size:clamp(22px,2.4vw,34px);letter-spacing:5px}
+.dragon-brand span{display:block;color:#b9a27a;font-size:9px;letter-spacing:4px;margin-top:7px}
+body>*:not(.dragon-panel){position:relative;z-index:1}
 button,input{font-family:inherit}
 button{cursor:pointer}
 .hidden{display:none!important}
 .muted{color:var(--muted);font-size:12px;line-height:2}
 .gold{color:var(--gold)}
-#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:transparent}
-.login-box{width:100%;max-width:420px;background:rgba(18,20,27,.86);backdrop-filter:blur(5px);border:1px solid #514329;border-radius:18px;padding:32px;box-shadow:0 20px 70px #0008}
+#loginPage{width:58vw;min-height:100vh;margin-left:42vw;display:flex;align-items:center;justify-content:center;padding:clamp(20px,4vw,56px);background:#0b0d13}
+.login-box{width:100%;max-width:470px;background:linear-gradient(145deg,#191c25,#101219);border:1px solid #9b793c;border-radius:20px;padding:clamp(24px,3vw,40px);box-shadow:0 24px 80px #000b, inset 0 1px 0 rgba(255,255,255,.06)}
 .brand{text-align:center;color:var(--gold);font-size:29px;font-weight:bold;letter-spacing:2px}
 .tagline{text-align:center;color:#999;font-size:10px;letter-spacing:2px;margin:10px 0 30px}
 h2{font-size:17px;color:var(--gold);margin:0 0 18px}
@@ -31,46 +36,75 @@ input:focus{border-color:var(--gold)}
 .primary{width:100%;padding:13px;border:0;border-radius:8px;background:linear-gradient(110deg,#b98a35,#f0ce80);color:#17130b;font-weight:bold;font-size:14px;margin-top:12px}
 .primary:disabled{opacity:.6;cursor:wait}
 .message{padding:12px;border-radius:8px;background:#20232d;margin-top:12px;font-size:12px;line-height:2;overflow-wrap:anywhere}
-.sidebar{position:sticky;top:0;right:auto;bottom:auto;width:100%;min-height:76px;display:flex;align-items:center;gap:12px;background:rgba(10,11,16,.82);backdrop-filter:blur(12px);border:0;border-bottom:1px solid var(--border);padding:10px 22px;z-index:10;overflow-x:auto;white-space:nowrap}
-.logo{font-size:22px;color:var(--gold);font-weight:bold;letter-spacing:1px;padding:5px 8px;flex:0 0 auto}
-.logo-sub{font-size:9px;color:#888;letter-spacing:1px;padding:0 8px;flex:0 0 auto}
+.sidebar{position:sticky;top:0;right:auto;bottom:auto;width:100%;min-height:78px;display:flex;align-items:center;gap:10px;background:#11141c;border:0;border-bottom:1px solid rgba(217,173,82,.35);padding:12px 18px;z-index:10;overflow-x:auto;white-space:nowrap;box-shadow:0 8px 25px #0007}
+.logo{font-size:23px;color:#f0ce80;font-weight:bold;letter-spacing:2px;padding:5px 8px;flex:0 0 auto}
+.logo-sub{font-size:9px;color:#b9a27a;letter-spacing:1.5px;padding:0 8px;flex:0 0 auto}
 .menu-title{display:none}
-.nav-btn{display:inline-flex;align-items:center;justify-content:center;width:auto;flex:0 0 auto;text-align:center;padding:11px 15px;margin:0 2px;border:1px solid transparent;border-radius:9px;background:transparent;color:#d0d0d5;font-size:13px;white-space:nowrap}
-.nav-btn:hover,.nav-btn.active{background:rgba(40,35,24,.88);color:var(--gold2);border-color:#80663a}
-.sidebar-bottom{display:flex;align-items:center;gap:8px;margin:0 0 0 auto;border:0;border-right:1px solid var(--border);padding:0 12px 0 0;flex:0 0 auto}
-#main{width:100%;margin:0;padding:28px clamp(16px,3vw,48px);max-width:none}
+.nav-btn{display:inline-flex;align-items:center;justify-content:center;width:auto;flex:0 0 auto;text-align:center;padding:12px 16px;margin:0 2px;border:1px solid #796033;border-radius:9px;background:linear-gradient(145deg,#34303a,#20232d);color:#f3e5c4;font-size:13px;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 3px 8px #0005;transition:background .18s,border-color .18s,transform .18s}
+.nav-btn:hover,.nav-btn.active{background:linear-gradient(145deg,#795c2b,#49391f);color:#fff2c9;border-color:#f0ce80;box-shadow:0 0 0 1px rgba(240,206,128,.18),0 5px 14px #0007}
+.nav-btn:active,.quick-btn:active,.small-btn:active,.secondary-btn:active{transform:translateY(1px)}
+.sidebar-bottom{display:flex;align-items:center;gap:8px;margin:0 0 0 auto;border:0;border-right:1px solid #37333a;padding:0 12px 0 0;flex:0 0 auto}
+#app{width:58vw;min-height:100vh;margin-left:42vw;background:#0b0d13}
+#main{width:100%;margin:0;padding:28px clamp(16px,2.5vw,38px);max-width:none}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:25px}
 .page-title{font-size:22px;font-weight:bold}
 .user-info{font-size:12px;color:var(--muted);text-align:left}
 .mobile-menu{display:none!important}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:20px}
-.stat{background:rgba(20,22,30,.68);backdrop-filter:blur(8px);border:1px solid #30313a;border-radius:12px;padding:20px}
-.card{background:rgba(18,20,27,.70);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:13px;padding:22px;margin-bottom:18px}
-.quick-btn{padding:16px;border:1px solid #514329;background:rgba(25,27,35,.72);color:var(--gold2);border-radius:10px;text-align:right;font-size:13px}
-@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){
- .sidebar{position:sticky;top:0;min-height:64px;padding:8px 10px;gap:7px}
- .logo{font-size:17px;padding:5px}
- .logo-sub{display:none}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-bottom:20px}
+.stat{background:linear-gradient(145deg,#222630,#171a23);backdrop-filter:none;border:1px solid #55505a;border-radius:12px;padding:18px;box-shadow:0 8px 20px #0005,inset 0 1px 0 #ffffff12}
+.stat-label{font-size:12px;color:#c2c2ca}
+.stat-value{font-size:27px;color:#f0ce80;font-weight:bold;margin-top:12px}
+.card{background:linear-gradient(145deg,#1b1e28,#12151d);backdrop-filter:none;border:1px solid #46434a;border-radius:13px;padding:22px;margin-bottom:18px;box-shadow:0 9px 22px #0005,inset 0 1px 0 #ffffff0b}
+.quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.quick-btn{padding:17px;border:1px solid #a17d3e;background:linear-gradient(145deg,#34313a,#202630);color:#ffe4a8;border-radius:10px;text-align:right;font-size:13px;font-weight:bold;box-shadow:inset 0 1px 0 #ffffff18,0 5px 12px #0006;transition:.18s}
+.quick-btn:hover{background:linear-gradient(145deg,#6e542b,#3a3327);border-color:#f0ce80;color:#fff5d7}
+.secondary-btn{width:auto;padding:11px 16px;border-radius:8px;border:1px solid #b18b4b;background:linear-gradient(145deg,#34313a,#242833);color:#ffe2a0;font-weight:bold;box-shadow:inset 0 1px 0 #ffffff16,0 4px 10px #0005}
+.small-btn{width:auto;padding:10px 15px;border:1px solid #f2d28e;border-radius:8px;background:linear-gradient(145deg,#f0ce80,#b98a35);color:#17130b;font-weight:bold;box-shadow:0 4px 12px #0006}
+.primary{width:100%;padding:14px;border:1px solid #ffe0a0;border-radius:9px;background:linear-gradient(110deg,#b98a35,#f5d78e);color:#17130b;font-weight:bold;font-size:14px;margin-top:12px;box-shadow:0 7px 18px #0006}
+.primary:hover{filter:brightness(1.08)}
+#overlay{display:none}
+@media(max-width:900px){
+ .dragon-panel{width:38vw}
+ #loginPage{width:62vw;margin-left:38vw}
+ #app{width:62vw;margin-left:38vw}
+ .sidebar{padding:10px;gap:6px}
  .nav-btn{font-size:12px;padding:10px 11px}
+ .logo-sub{display:none}
+ .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .dragon-panel{position:relative;left:auto;top:auto;width:100%;height:34vh;min-height:220px;max-height:330px;border-right:0;border-bottom:1px solid rgba(217,173,82,.28)}
+ .dragon-panel img{object-fit:contain}
+ .dragon-brand{top:12px}
+ .dragon-brand strong{font-size:22px}
+ #loginPage{width:100%;min-height:66vh;margin:0;padding:20px;background:#0b0d13}
+ #app{width:100%;min-height:66vh;margin:0}
+ .sidebar{position:sticky;top:0;min-height:66px;padding:8px 10px;gap:6px}
+ .logo{font-size:17px;padding:5px}
+ .nav-btn{font-size:11px;padding:10px 10px}
  .sidebar-bottom{padding-right:8px}
  #sidebarUser{display:none}
  #main{padding:18px 12px}
  .topbar{justify-content:space-between;flex-wrap:wrap}
  .user-info{margin-right:auto}
  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
- .stat{padding:15px}.stat-value{font-size:23px}
- .card{padding:16px}.form-grid{grid-template-columns:1fr}
+ .stat{padding:14px}.stat-value{font-size:22px}
+ .card{padding:15px}.form-grid{grid-template-columns:1fr}
  .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:390px){
- .nav-btn{font-size:11px;padding:9px 9px}
+ .nav-btn{font-size:10px;padding:9px 8px}
  .quick-grid{grid-template-columns:1fr}
 }
 
 </style>
 </head>
 <body>
+
+<aside class="dragon-panel" aria-label="STARVEX dragon artwork">
+ <img src="nexus/assets/file_00000000b1f4820c901f9e6629678079.png" alt="STARVEX dragon emblem">
+ <div class="dragon-brand"><strong>STARVEX</strong><span>NEXUS MANAGEMENT</span></div>
+</aside>
 
 <section id="loginPage">
  <div class="login-box">
