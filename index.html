@@ -1403,7 +1403,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
      <label>حجم (GB) — خالی = نامحدود<input id="configVolume" type="number" min="1" step="1"></label>
      <label>تاریخ انقضا<input id="configExpires" type="datetime-local"></label>
     </div>
-    <label>متن کامل کانفیگ *<textarea id="configText" rows="4" style="width:100%;padding:12px;background:#090b10;color:white;direction:ltr"></textarea></label>
+    <input id="configText" type="hidden" value="">
     <p class="muted">این بخش فعلاً رکورد دیتابیس را مدیریت می‌کند؛ تغییر حجم، انقضا و وضعیت هنوز روی سرور VPN اعمال نمی‌شود.</p>
     <button class="primary" id="saveConfig" type="button">ثبت کانفیگ</button><button class="secondary-btn hidden" id="cancelConfigEdit" type="button">لغو ویرایش</button><div id="configMsg" class="message hidden"></div>
    </div>
@@ -2109,7 +2109,6 @@ async function loadConfigs(){
    const alert=document.createElement("td");alert.textContent=h.alerts.length?h.alerts.join("، "):"—";if(h.alerts.length)alert.className="status-inactive";tr.appendChild(alert);
    const actions=document.createElement("td"),add=(label,fn,cls="secondary-btn")=>{const btn=document.createElement("button");btn.type="button";btn.className=cls;btn.textContent=label;btn.style.margin="2px";btn.onclick=fn;actions.appendChild(btn)};
    add("ویرایش",()=>editConfig(r),"small-btn");
-   add("کپی",async()=>{try{await navigator.clipboard.writeText(r.config_text);showMessage("configMsg","متن کانفیگ کپی شد؛ محرمانه نگهش دارید.")}catch(e){showMessage("configMsg","کپی خودکار در دسترس نیست.")}});
    add(r.is_active?"غیرفعال‌سازی":"فعال‌سازی",async()=>{if(!confirm("وضعیت رکورد دیتابیس تغییر کند؟"))return;const z=await db.from("vpn_configs").update({is_active:!r.is_active}).eq("id",r.id);if(z.error)showMessage("configMsg",z.error.message);else await loadConfigs()});
    add("حذف",async()=>{if(!confirm("رکورد کانفیگ حذف شود؟"))return;const z=await db.from("vpn_configs").delete().eq("id",r.id);if(z.error)showMessage("configMsg",z.error.message);else{showMessage("configMsg","رکورد کانفیگ حذف شد.");await loadConfigs()}},"small-btn danger-btn");
    tr.appendChild(actions);t.appendChild(tr);
