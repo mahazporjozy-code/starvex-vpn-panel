@@ -236,7 +236,8 @@ $("loginForm").addEventListener("submit",async e=>{
   if(!data.session)throw new Error("نشست ورود ایجاد نشد.");
   await checkSession();
  }catch(error){
-  showMessage("loginMsg","ورود ناموفق: "+error.message);
+  console.error("STARVEX login failed",error);
+  showMessage("loginMsg","ورود انجام نشد. ایمیل و رمز عبور را بررسی کنید و دوباره تلاش کنید.");
  }finally{setLoading(button,false,"ورود امن")}
 });
 
@@ -336,17 +337,84 @@ function renderTable(boxId,rows,columns){
 }
 
 /* دریافت جدول‌ها */
+const TABLE_VIEWS={
+ customers:{
+  select:"id,customer_code,full_name,telegram_user_id,status,created_at,reseller_id",
+  columns:[
+   {key:"customer_code",label:"شناسه مشتری"},
+   {key:"full_name",label:"نام"},
+   {key:"telegram_user_id",label:"شناسه تلگرام"},
+   {key:"status",label:"وضعیت"},
+   {key:"created_at",label:"تاریخ ثبت"},
+   {key:"reseller_id",label:"شناسه نماینده"}
+  ]
+ },
+ resellers:{
+  select:"id,display_name,max_customers,is_active,created_at",
+  columns:[
+   {key:"id",label:"شناسه"},
+   {key:"display_name",label:"نام نمایندگی"},
+   {key:"max_customers",label:"ظرفیت"},
+   {key:"is_active",label:"فعال"},
+   {key:"created_at",label:"تاریخ ثبت"}
+  ]
+ },
+ servers:{
+  select:"id,name,region,server_role,status,country_code,protocol,host,port,domain",
+  columns:[
+   {key:"name",label:"نام سرور"},
+   {key:"region",label:"منطقه"},
+   {key:"server_role",label:"نقش"},
+   {key:"status",label:"وضعیت"},
+   {key:"country_code",label:"کشور"},
+   {key:"protocol",label:"پروتکل"},
+   {key:"host",label:"میزبان"},
+   {key:"port",label:"پورت"},
+   {key:"domain",label:"دامنه"}
+  ]
+ },
+ subscriptions:{
+  select:"id,customer_id,plan_id,status,expires_at,created_at,volume_limit_bytes,used_bytes",
+  columns:[
+   {key:"id",label:"شناسه اشتراک"},
+   {key:"customer_id",label:"شناسه مشتری"},
+   {key:"plan_id",label:"شناسه پلن"},
+   {key:"status",label:"وضعیت"},
+   {key:"expires_at",label:"تاریخ انقضا"},
+   {key:"created_at",label:"تاریخ ثبت"},
+   {key:"volume_limit_bytes",label:"حجم کل (بایت)"},
+   {key:"used_bytes",label:"حجم مصرف‌شده (بایت)"}
+  ]
+ }
+};
+
+/* دریافت جدول‌ها با فهرست ستون‌های مجاز؛ هرگز از select(*) استفاده نمی‌شود. */
 async function loadTable(tableName,boxId,countId){
- const box=$(boxId);box.textContent="در حال دریافت اطلاعات...";
+ const box=$(boxId);
+ const view=TABLE_VIEWS[tableName];
+ if(!view){
+  box.textContent="درخواست اطلاعات نامعتبر است.";
+  if(countId)$(countId).textContent="—";
+  return;
+ }
+ box.textContent="در حال دریافت اطلاعات...";
  try{
-  const {data,error,count}=await db.from(tableName).select("*",{count:"exact"}).limit(50);
+  let query=db.from(tableName).select(view.select,{count:"exact"});
+  if(["customers","resellers","subscriptions"].includes(tableName)){
+   query=query.order("created_at",{ascending:false});
+  }
+  const {data,error,count}=await query.limit(50);
   if(error)throw error;
   if(countId)$(countId).textContent=count??data.length;
-  if(!data.length){box.textContent="اطلاعاتی ثبت نشده است.";return}
-  const columns=Object.keys(data[0]).slice(0,7).map(key=>({key,label:key}));
-  renderTable(boxId,data,columns);
+  if(!data.length){
+   box.textContent="اطلاعاتی برای نمایش وجود ندارد.";
+   box.className="empty";
+   return;
+  }
+  renderTable(boxId,data,view.columns);
  }catch(error){
-  box.textContent="خطا در دریافت اطلاعات: "+error.message;
+  console.error("STARVEX table load failed:",tableName,error);
+  box.textContent="دریافت اطلاعات ممکن نشد. سطح دسترسی یا اتصال پایگاه داده را بررسی کنید.";
   if(countId)$(countId).textContent="خطا";
  }
 }
