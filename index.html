@@ -2068,7 +2068,7 @@ $("configSubscription").addEventListener("change",async()=>{
 async function saveConfig(){
  if(role!=="admin")return;
  const customer=Number($("configCustomer").value),server=$("configServer").value,subscription=$("configSubscription").value?Number($("configSubscription").value):null,name=$("configName").value.trim(),protocol=$("configProtocol").value,v=$("configVolume").value.trim(),ex=$("configExpires").value;
- if(!Number.isSafeInteger(customer)||customer<1||!server||!name||!config_text){showMessage("configMsg","مشتری، سرور و نام کانفیگ را تکمیل کنید.");return}
+ if(!Number.isSafeInteger(customer)||customer<1||!server||!name){showMessage("configMsg","مشتری، سرور و نام کانفیگ را تکمیل کنید.");return}
  let volume_gb=null;if(v){volume_gb=Number(v);if(!Number.isFinite(volume_gb)||volume_gb<1){showMessage("configMsg","حجم باید حداقل ۱ گیگابایت یا خالی باشد.");return}}
  if(ex&&Number.isNaN(new Date(ex).getTime())){showMessage("configMsg","تاریخ انقضا معتبر نیست.");return}
  const payload={customer_id:customer,server_id:server,subscription_id:subscription,name,protocol,volume_gb,expires_at:ex?new Date(ex).toISOString():null};
