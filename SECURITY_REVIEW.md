@@ -13,7 +13,7 @@ Review date: 2026-10-31
 
 ## Important findings requiring owner review
 
-1. The `plans` table has an ALL policy whose condition compares the JWT email to the literal `ADMIN_EMAIL`. Replace this with the trusted `app_metadata.role = 'admin'` claim only after confirming that admin role assignment is restricted to trusted server-side code.
+1. FIXED in Supabase on 2026-10-31: the `plans` ALL policy now checks the trusted `app_metadata.role = 'admin'` claim, matching the other admin policies. The policy was re-read after the change to verify the condition.
 2. `plans` also has a public SELECT policy. Confirm that plan names/prices/status are intentionally public; otherwise narrow it.
 3. The `create-customer` and `create-reseller` Edge Functions currently have platform JWT verification disabled. Both perform their own token validation in code, but enabling platform JWT verification and retaining server-side role checks is preferable after testing clients and deployment compatibility.
 4. Edge Function CORS currently allows all origins. Restrict browser-facing functions to the actual STARVEX NEXUS origin(s), while retaining required preflight headers.
@@ -29,7 +29,7 @@ Review date: 2026-10-31
 - Current policies cover customer self-read, reseller-scoped customer reads, and admin-only management for sensitive operational tables.
 - The `plans` policy using the `ADMIN_EMAIL` placeholder is inconsistent with the other role-based policies.
 - `test_starvex` and `subscription_servers` do not show a primary key in the inspected schema. Confirm intended key design before changing either table.
-- No database schema, row data, policies, functions, or Auth settings were modified by this branch.
+- One live Supabase policy was corrected separately: `plans` admin management now uses `app_metadata.role = 'admin'`. No table schema, row data, Edge Functions, or Auth settings were modified.
 
 ## Release safety
 
