@@ -18,6 +18,8 @@ Review date: 2026-10-31
 - Added six indexes for foreign keys flagged by the performance advisor: orders.customer_id, orders.plan_id, resellers.created_by, subscriptions.plan_id, vpn_configs.server_id, vpn_users.server_id.
 - Re-ran the Performance Advisor: the unindexed-foreign-key and auth-RLS-initplan findings no longer appear. Remaining findings are two tables without primary keys, unused-index notices, and multiple permissive policy notices.
 - Deployed `create-customer` version 6 with platform JWT verification enabled. It now reads the reseller's configured `max_customers` value instead of assuming 200; the database trigger remains the concurrency-safe capacity enforcement.
+- Applied migration `20261031110412_revoke_unneeded_anon_and_trigger_privileges`: anon now has only SELECT on `plans` (to preserve the intentional public plans catalog); anonymous access to all other public tables and sequences was revoked. Authenticated users no longer have TRUNCATE/REFERENCES/TRIGGER table privileges. Public/anon execution was revoked from helper/trigger functions; `get_customer_code(bigint)` remains available to authenticated users.
+- Verified all 15 public tables still have RLS enabled after the changes. None currently has FORCE ROW LEVEL SECURITY; table-owner/service-role access remains outside normal client RLS enforcement.
 
 ## Important findings requiring owner review
 
