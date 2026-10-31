@@ -1705,8 +1705,9 @@ async function loadCustomerResellerOptions(){
   const {data,error}=await db.from("resellers")
    .select("id,display_name,is_active").eq("is_active",true).order("id");
   if(error)throw error;
-  select.replaceChildren(new Option("انتخاب نمایندگی مقصد",""));
+  select.replaceChildren(new Option("مشتری مستقیم برای خودم (مدیر اصلی)","__admin__"));
   (data||[]).forEach(r=>select.add(new Option((r.display_name||"نمایندگی")+" · #"+r.id,String(r.id))));
+  select.value="__admin__";
   select.dataset.loaded="1";
  }catch(error){
   showMessage("customerCreateMsg","دریافت فهرست نمایندگی‌ها ناموفق بود: "+error.message);
@@ -1723,8 +1724,9 @@ async function createCustomer(){
  const body={full_name:fullName||null,telegram_user_id:telegramId||null,notes:notes||null};
  if(role==="admin"){
   const resellerId=$("cReseller").value;
-  if(!resellerId){showMessage("customerCreateMsg","ابتدا نمایندگی مقصد را انتخاب کنید.");return}
-  body.reseller_id=Number(resellerId);
+  if(resellerId==="__admin__"){body.owner_type="admin"}
+  else if(resellerId){body.reseller_id=Number(resellerId)}
+  else{showMessage("customerCreateMsg","محل ثبت مشتری را انتخاب کنید.");return}
  }
  setLoading(button,true,"در حال ثبت مشتری...");
  try{
