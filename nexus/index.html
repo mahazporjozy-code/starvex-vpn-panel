@@ -647,9 +647,10 @@ async function loadServerManager(){
  const box=$("serverList");
  box.textContent="در حال دریافت اطلاعات سرورها...";
  try{
-  const {data,error}=await db.from("servers").select("id,name,region,server_role,country_code,status,host,protocol,ip_address,domain,port,provisioning_state,health_status,is_enabled_for_new_users,is_default,priority,operating_system,last_health_check_at,latency_ms").order("priority",{ascending:true});
+  const {data:controlData,error}=await db.functions.invoke("server-control",{body:{action:"overview"}});
   if(error)throw error;
-  const rows=data||[];
+  if(!controlData?.ok)throw Error("دریافت اطلاعات از سرویس مرکزی سرورها ناموفق بود.");
+  const rows=controlData.servers||[];
   $("serverTotal").textContent=rows.length;
   $("serverReady").textContent=rows.filter(x=>x.provisioning_state==="ready").length;
   $("serverHealthy").textContent=rows.filter(x=>x.health_status==="healthy").length;
