@@ -448,6 +448,9 @@ th,td{border-bottom-color:rgba(66,166,199,.16)}
  .reseller-list-card{margin-top:10px}
 }
 
+
+#servers .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:700px){#servers .form-grid{grid-template-columns:1fr}#servers .card{padding:14px}}
 </style>
 <style id="starvex-final-login-artwork">
 /* STARVEX NEXUS — final mobile-first login artwork */
@@ -1363,7 +1366,28 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
    <div class="card customer-table-card"><h2 class="section-title">فهرست مشتریان</h2><div id="customerList" class="empty">در حال دریافت...</div></div>
   </section>
   <section class="tab" id="servers">
-   <div class="card"><h2 class="section-title">مدیریت سرورها</h2><div id="serverList" class="empty">در حال دریافت...</div></div>
+   <div class="section-intro"><div><div class="eyebrow">INFRASTRUCTURE CONTROL</div><h2 class="section-title">مدیریت سرورها</h2><div class="muted">ثبت و ویرایش مشخصات سرورها</div></div><div class="section-chip">فقط مدیر اصلی</div></div>
+   <div class="card">
+    <h2 class="section-title" id="serverFormTitle">افزودن سرور جدید</h2>
+    <div class="form-grid">
+     <input id="sName" maxlength="120" placeholder="نام سرور *">
+     <input id="sRegion" maxlength="80" placeholder="منطقه / شهر *">
+     <input id="sRole" maxlength="60" placeholder="نقش سرور *">
+     <select id="sStatus"><option value="planned">برنامه‌ریزی‌شده</option><option value="active">فعال</option><option value="maintenance">در حال تعمیر</option><option value="inactive">غیرفعال</option></select>
+     <input id="sCountry" maxlength="2" placeholder="کد کشور، مانند DE">
+     <input id="sProtocol" maxlength="40" placeholder="پروتکل، مانند VLESS">
+     <input id="sHost" maxlength="253" placeholder="نام میزبان">
+     <input id="sIp" maxlength="45" placeholder="IP سرور">
+     <input id="sDomain" maxlength="253" placeholder="دامنه">
+     <input id="sPort" type="number" min="1" max="65535" placeholder="پورت">
+    </div>
+    <p class="muted">وضعیت در این مرحله دستی است و سلامت یا اتصال واقعی سرور را تأیید نمی‌کند.</p>
+    <input id="serverEditId" type="hidden">
+    <button class="primary" id="saveServerButton" type="button">ثبت سرور</button>
+    <button class="secondary-btn hidden" id="cancelServerEdit" type="button">لغو ویرایش</button>
+    <div id="serverMsg" class="message hidden" role="status"></div>
+   </div>
+   <div class="card"><div class="dashboard-head"><h2 class="section-title">فهرست سرورها</h2><button class="secondary-btn" id="refreshServers" type="button">بروزرسانی</button></div><div id="serverList" class="empty">در حال دریافت...</div></div>
   </section>
   <section class="tab" id="subscriptions">
    <div class="card"><h2 class="section-title">مدیریت اشتراک‌ها</h2><div id="subscriptionList" class="empty">در حال دریافت...</div></div>
@@ -1466,6 +1490,7 @@ function openTab(tabId){
  closeMobileMenu();
  if(tabId==="resellers"&&role==="admin")loadResellerCapacity();
  if(tabId==="customers")loadCustomerResellerOptions();
+ if(tabId==="servers"&&role==="admin")loadServers();
 }
 document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.go)));
@@ -1752,6 +1777,71 @@ async function createCustomer(){
  }finally{button.disabled=false;button.textContent="ثبت مشتری"}
 }
  
+/* مدیریت سرورها */
+function resetServerForm(){
+ $("serverEditId").value="";
+ ["sName","sRegion","sRole","sCountry","sProtocol","sHost","sIp","sDomain","sPort"].forEach(id=>$(id).value="");
+ $("sStatus").value="planned";
+ $("serverFormTitle").textContent="افزودن سرور جدید";
+ $("saveServerButton").textContent="ثبت سرور";
+ $("cancelServerEdit").classList.add("hidden");
+}
+function editServer(row){
+ $("serverEditId").value=row.id;
+ $("sName").value=row.name||"";
+ $("sRegion").value=row.region||"";
+ $("sRole").value=row.server_role||"";
+ $("sStatus").value=row.status||"planned";
+ $("sCountry").value=row.country_code||"";
+ $("sProtocol").value=row.protocol||"";
+ $("sHost").value=row.host||"";
+ $("sIp").value=row.ip_address||"";
+ $("sDomain").value=row.domain||"";
+ $("sPort").value=row.port??"";
+ $("serverFormTitle").textContent="ویرایش سرور";
+ $("saveServerButton").textContent="ذخیره تغییرات";
+ $("cancelServerEdit").classList.remove("hidden");
+ $("servers").scrollIntoView({behavior:"smooth"});
+}
+async function loadServers(){
+ if(role!=="admin")return;
+ const box=$("serverList");box.textContent="در حال دریافت...";
+ try{
+  const {data,error}=await db.from("servers").select("id,name,region,server_role,status,country_code,protocol,host,ip_address,domain,port,created_at").order("created_at",{ascending:true});
+  if(error)throw error;
+  if(!data||!data.length){box.textContent="هنوز سروری ثبت نشده است.";return}
+  const table=document.createElement("table"),head=document.createElement("tr");
+  ["نام","منطقه","نقش","پروتکل","میزبان / IP","پورت","وضعیت","عملیات"].forEach(v=>{const th=document.createElement("th");th.textContent=v;head.appendChild(th)});
+  table.appendChild(head);
+  data.forEach(row=>{
+   const tr=document.createElement("tr");
+   [row.name,row.region,row.server_role,row.protocol||"—",[row.host,row.ip_address].filter(Boolean).join(" / ")||"—",row.port??"—",({active:"فعال",planned:"برنامه‌ریزی‌شده",maintenance:"در حال تعمیر",inactive:"غیرفعال"}[row.status]||row.status||"—")].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"—");tr.appendChild(td)});
+   const td=document.createElement("td"),btn=document.createElement("button");btn.type="button";btn.className="small-btn";btn.textContent="ویرایش";btn.addEventListener("click",()=>editServer(row));td.appendChild(btn);tr.appendChild(td);table.appendChild(tr);
+  });
+  const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);box.replaceChildren(wrap);box.className="";$("serverCount").textContent=String(data.length);
+ }catch(e){box.textContent="خطا در دریافت سرورها: "+e.message}
+}
+async function saveServer(){
+ if(role!=="admin"){showMessage("serverMsg","فقط مدیر اصلی مجاز است.");return}
+ const name=$("sName").value.trim(),region=$("sRegion").value.trim(),server_role=$("sRole").value.trim(),portText=$("sPort").value.trim(),country=$("sCountry").value.trim().toUpperCase();
+ if(!name||!region||!server_role){showMessage("serverMsg","نام، منطقه و نقش سرور الزامی است.");return}
+ if(portText&&(!Number.isInteger(Number(portText))||Number(portText)<1||Number(portText)>65535)){showMessage("serverMsg","پورت باید بین ۱ تا ۶۵۵۳۵ باشد.");return}
+ if(country&&!/^[A-Z]{2}$/.test(country)){showMessage("serverMsg","کد کشور باید دو حرف انگلیسی باشد.");return}
+ const payload={name,region,server_role,status:$("sStatus").value,country_code:country||null,protocol:$("sProtocol").value.trim()||null,host:$("sHost").value.trim()||null,ip_address:$("sIp").value.trim()||null,domain:$("sDomain").value.trim()||null,port:portText?Number(portText):null};
+ const btn=$("saveServerButton");btn.disabled=true;hideMessage("serverMsg");
+ try{
+  const id=$("serverEditId").value;
+  const result=id?await db.from("servers").update(payload).eq("id",id).select("id").single():await db.from("servers").insert(payload).select("id").single();
+  if(result.error)throw result.error;
+  showMessage("serverMsg",id?"اطلاعات سرور بروزرسانی شد.":"سرور ثبت شد.");
+  resetServerForm();await loadServers();
+ }catch(e){showMessage("serverMsg","ذخیره ناموفق بود: "+e.message)}
+ finally{btn.disabled=false}
+}
+$("saveServerButton").addEventListener("click",saveServer);
+$("cancelServerEdit").addEventListener("click",()=>{resetServerForm();hideMessage("serverMsg")});
+$("refreshServers").addEventListener("click",loadServers);
+
 /* بروزرسانی داشبورد */
 async function loadData(){
  $("systemStatus").textContent="در حال اتصال به پایگاه داده...";
@@ -1759,7 +1849,7 @@ async function loadData(){
  if(role==="admin"){
   await loadTable("resellers","resellerList","resellerCount");
   await loadResellerCapacity();
-  await loadTable("servers","serverList","serverCount");
+  await loadServers();
   await loadTable("subscriptions","subscriptionList","subscriptionCount");
   $("systemStatus").textContent="اتصال به Supabase برقرار است. سطح دسترسی: مدیر.";
  }else{
