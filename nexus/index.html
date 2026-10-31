@@ -357,12 +357,11 @@ z-index:10;
 <div class="card">
 <h2 class="title">ایجاد نمایندگی</h2>
 <div class="formgrid">
-<input id="rName" placeholder="نام نمایندگی">
-<input id="rEmail" type="email" placeholder="ایمیل">
-<input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر">
+<input id="rName" value="Bni" maxlength="100" placeholder="نام نمایندگی">
+<input id="rEmail" type="email" value="danisoha410@gmail.com" maxlength="254" placeholder="ایمیل">
 </div>
-<button class="primary" id="createReseller">ایجاد نمایندگی</button>
-<p class="muted">ظرفیت پیش‌فرض: ۲۰۰ مشتری</p>
+<button class="primary" id="createReseller">ارسال دعوت‌نامه ایمیلی</button>
+<p class="muted">دعوت‌نامه برای نماینده ارسال می‌شود و او رمز عبور خودش را تعیین می‌کند. ظرفیت پیش‌فرض: ۲۰۰ مشتری</p>
 <div id="rMsg" class="msg hidden"></div>
 </div>
 
@@ -1112,11 +1111,10 @@ try{
 
 const out=await callFunction("create-reseller",{
 display_name:$("rName").value.trim(),
-email:$("rEmail").value.trim(),
-password:$("rPassword").value
+email:$("rEmail").value.trim()
 });
 
-msg("rMsg","نمایندگی ایجاد شد: "+(out.reseller?.id||"موفق"));
+msg("rMsg","دعوت‌نامه برای "+(out.invited_email||$("rEmail").value.trim())+" ارسال شد. ظرفیت نمایندگی: "+(out.reseller?.max_customers||200));
 
 await loadCapacity();
 await loadTable("resellers","resellerList","resellerCount");
