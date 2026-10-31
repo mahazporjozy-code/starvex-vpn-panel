@@ -1175,6 +1175,35 @@ body:has(#app:not(.hidden)) #main:before{
 }
 </style>
 
+
+<style id="starvex-large-background-dragon-no-box">
+/* فقط اژدهای بزرگ در پس‌زمینه اصلی پنل؛ حذف کامل کادر مستطیلی */
+body:has(#app:not(.hidden)) #main .dragon-hero{
+ display:none!important;
+}
+body:has(#app:not(.hidden)) #main{
+ position:relative!important;
+ isolation:isolate!important;
+}
+body:has(#app:not(.hidden)) #main:before{
+ position:fixed!important;
+ inset:0!important;
+ z-index:-1!important;
+ pointer-events:none!important;
+ background:
+  linear-gradient(90deg,rgba(3,10,21,.24),rgba(3,12,25,.18)),
+  url("https://raw.githubusercontent.com/mahazporjozy-code/starvex-vpn-panel/main/nexus/assets/8dbc49ea852389ebae0449fd57b669b3.jpg") center 35%/min(145vw,1500px) auto no-repeat!important;
+ opacity:.62!important;
+}
+@media(max-width:700px){
+ body:has(#app:not(.hidden)) #main:before{
+  background-position:center 32%!important;
+  background-size:185% auto!important;
+  opacity:.58!important;
+ }
+}
+</style>
+
 </head>
 <body>
 
