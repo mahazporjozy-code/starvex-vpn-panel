@@ -482,6 +482,41 @@ body:has(#loginPage:not(.hidden)) .dragon-eye-glow{
 }
 </style>
 
+
+<style id="starvex-dragon-fullscreen-bg">
+/* Full-screen dragon eye artwork behind the login card */
+body:has(#loginPage:not(.hidden)) .dragon-panel{
+ position:fixed!important;inset:0!important;width:100%!important;height:100vh!important;height:100dvh!important;
+ min-height:100vh!important;display:block!important;overflow:hidden!important;z-index:0!important;
+ border:0!important;background:#05080d url('nexus/assets/dragon-bg.jpg') center 28%/cover no-repeat!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel img,
+body:has(#loginPage:not(.hidden)) .dragon-eye-glow{display:none!important}
+body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+ content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+ background:linear-gradient(180deg,rgba(2,8,15,.12) 0%,rgba(3,9,18,.22) 42%,rgba(4,10,22,.64) 100%),
+ radial-gradient(ellipse at 50% 42%,transparent 22%,rgba(2,7,15,.30) 100%);
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::after{display:none!important}
+body:has(#loginPage:not(.hidden)) #loginPage{
+ position:relative!important;z-index:3!important;width:100%!important;min-height:100vh!important;
+ min-height:100dvh!important;height:100dvh!important;margin:0!important;padding:18px 14px max(16px,env(safe-area-inset-bottom))!important;
+ display:flex!important;align-items:flex-end!important;justify-content:center!important;background:transparent!important;
+}
+body:has(#loginPage:not(.hidden)) .login-box{
+ width:min(100%,350px)!important;max-width:350px!important;margin:0 auto!important;
+ background:linear-gradient(145deg,rgba(5,17,31,.82),rgba(13,19,38,.88))!important;
+ border:1px solid rgba(160,202,240,.55)!important;border-radius:22px!important;
+ box-shadow:0 18px 54px rgba(0,0,0,.48),0 0 30px rgba(75,142,218,.16),inset 0 1px 0 rgba(255,255,255,.10)!important;
+ backdrop-filter:blur(15px) saturate(1.15)!important;
+}
+@media(max-width:700px){
+ body:has(#loginPage:not(.hidden)) .dragon-panel{background-position:center 22%!important}
+ body:has(#loginPage:not(.hidden)) #loginPage{padding:12px 14px max(14px,env(safe-area-inset-bottom))!important}
+ body:has(#loginPage:not(.hidden)) .login-box{width:min(100%,350px)!important;max-width:350px!important}
+}
+</style>
+
 </head>
 <body>
 
