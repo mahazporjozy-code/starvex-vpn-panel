@@ -676,6 +676,29 @@ body:has(#loginPage:not(.hidden)) .dragon-panel::after{
 }
 </style>
 
+
+<style id="starvex-dragon-fullscreen">
+/* Fill the entire viewport with the dragon artwork without leaving a side gap */
+body:has(#loginPage:not(.hidden)) .dragon-panel{
+ position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;
+ height:100dvh!important;overflow:hidden!important;background:#02060c!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+ inset:0!important;width:100%!important;height:100%!important;
+ background-position:center center!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel img{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ max-width:none!important;max-height:none!important;object-fit:cover!important;
+ object-position:center center!important;transform:none!important;
+}
+body:has(#loginPage:not(.hidden)) #loginPage{
+ position:relative!important;z-index:3!important;min-height:100dvh!important;
+}
+</style>
+
 </head>
 <body>
 
