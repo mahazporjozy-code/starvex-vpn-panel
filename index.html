@@ -1107,10 +1107,22 @@ body:has(#app:not(.hidden)){background:#070b16!important}
 }
 </style>
 
+
+<style id="starvex-global-dragon-background">
+/* Use the supplied blue dragon artwork on both login and the authenticated panel */
+body{
+  background:#06101d url('https://raw.githubusercontent.com/mahazporjozy-code/starvex-vpn-panel/main/nexus/assets/8dbc49ea852389ebae0449fd57b669b3.jpg') center center / cover fixed no-repeat!important;
+}
+#app{background:transparent!important}
+#main{background:linear-gradient(135deg,rgba(5,12,25,.66),rgba(7,13,28,.72))!important}
+#sidebar{background:linear-gradient(180deg,rgba(12,22,39,.91),rgba(7,12,25,.94))!important}
+.dragon-panel{background:transparent!important}
+</style>
 </head>
 <body>
 
 <aside class="dragon-panel" aria-label="STARVEX dragon artwork">
+ <img src="https://raw.githubusercontent.com/mahazporjozy-code/starvex-vpn-panel/main/nexus/assets/8dbc49ea852389ebae0449fd57b669b3.jpg" alt="اژدهای آبی STARVEX">
  <div class="dragon-eye-glow" aria-hidden="true"></div>
   <div class="dragon-brand"><strong>STARVEX</strong><span>NEXUS MANAGEMENT</span></div>
 </aside>
