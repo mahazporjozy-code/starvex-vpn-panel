@@ -297,6 +297,20 @@ z-index:10;
 <h2 class="title">وضعیت سیستم</h2>
 <div id="systemStatus" class="muted">در حال بررسی...</div>
 </div>
+
+<!-- راه‌اندازی حساب‌های مشتری؛ فقط مدیر اصلی -->
+<div class="card admin-only" id="customerSetupCard">
+<h2 class="title">راه‌اندازی حساب‌های مشتری</h2>
+<p class="muted">
+این عملیات سه حساب مشتری تعریف‌شده را در سیستم ثبت و نقش آن‌ها را تنظیم می‌کند.
+فقط مدیر اصلی مجاز به اجرای این عملیات است.
+</p>
+<button class="primary" id="configureCustomersBtn">
+راه‌اندازی سه حساب مشتری
+</button>
+<div id="customerSetupMsg" class="msg hidden"></div>
+</div>
+
 </section>
 
 <section class="tab" id="resellers">
@@ -379,6 +393,8 @@ const $=id=>document.getElementById(id);
 let role=null;
 let sessionUser=null;
 let customersCache=[];
+
+const ADMIN_ID="f767767d-2d7a-42bb-9e45-a63c739a65b9";
 
 function msg(id,t){
 $(id).textContent=t;
@@ -781,6 +797,44 @@ b.disabled=false;
 
 $("refreshCapacity").onclick=loadCapacity;
 
+/* اجرای راه‌اندازی حساب‌ها؛ فقط مدیر اصلی */
+$("configureCustomersBtn").onclick=async()=>{
+
+const button=$("configureCustomersBtn");
+button.disabled=true;
+
+try{
+
+if(role!=="admin"||sessionUser?.id!==ADMIN_ID){
+throw Error("فقط مدیر اصلی اجازه اجرای این عملیات را دارد.");
+}
+
+const approved=confirm(
+"آیا مطمئن هستید؟\n\nسه حساب مشتری تعریف‌شده در سیستم راه‌اندازی می‌شوند و نقش آن‌ها به customer تنظیم خواهد شد."
+);
+
+if(!approved)return;
+
+msg("customerSetupMsg","در حال بررسی و راه‌اندازی حساب‌ها...");
+
+const result=await callFunction("configure-customer-accounts",{});
+
+if(result.success!==true){
+throw Error("پاسخ تابع معتبر نیست؛ وضعیت را در Supabase بررسی کنید.");
+}
+
+msg(
+"customerSetupMsg",
+`عملیات با موفقیت انجام شد. تعداد حساب‌های راه‌اندازی‌شده: ${result.configured_accounts??"نامشخص"}`
+);
+
+}catch(e){
+fail("customerSetupMsg",e);
+}finally{
+button.disabled=false;
+}
+};
+
 async function loadAll(){
 
 try{
@@ -814,6 +868,7 @@ db.auth.onAuthStateChange(event=>{
 
 if(event==="SIGNED_OUT"){
 role=null;
+sessionUser=null;
 $("app").classList.add("hidden");
 $("loginPage").classList.remove("hidden");
 }
