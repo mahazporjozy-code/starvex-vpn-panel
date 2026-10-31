@@ -649,6 +649,33 @@ body:has(#loginPage:not(.hidden)) .dragon-panel::before{
 }
 </style>
 
+
+<style id="starvex-dragon-final-recovery">
+/* Final recovery: use the verified JPEG and preserve its exact portrait ratio */
+body:has(#loginPage:not(.hidden)) .dragon-panel{
+ background:#02060c!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+ content:""!important;position:absolute!important;inset:0!important;z-index:1!important;
+ background-image:url('./nexus/assets/dragon-bg.jpg')!important;
+ background-repeat:no-repeat!important;
+ background-position:center center!important;
+ background-size:contain!important;
+ filter:brightness(1.12) contrast(1.10) saturate(1.12)!important;
+ transform:none!important;
+}
+body:has(#loginPage:not(.hidden)) .dragon-panel::after{
+ content:""!important;position:absolute!important;inset:0!important;z-index:2!important;
+ pointer-events:none!important;
+ background:linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.03) 65%,rgba(0,0,0,.18))!important;
+}
+@media(max-width:700px){
+ body:has(#loginPage:not(.hidden)) .dragon-panel::before{
+  background-size:contain!important;background-position:center center!important;
+ }
+}
+</style>
+
 </head>
 <body>
 
