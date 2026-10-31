@@ -451,6 +451,7 @@ th,td{border-bottom-color:rgba(66,166,199,.16)}
 
 #servers .form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:700px){#servers .form-grid{grid-template-columns:1fr}#servers .card{padding:14px}}
+.danger-btn{background:#7d2933!important;border:1px solid #b84b58!important;color:#fff!important}.danger-btn:disabled{opacity:.55;cursor:not-allowed}
 </style>
 <style id="starvex-final-login-artwork">
 /* STARVEX NEXUS — final mobile-first login artwork */
@@ -1534,6 +1535,7 @@ function renderTable(boxId,rows,columns){
  columns.forEach(col=>{
   const th=document.createElement("th");th.textContent=col.label;head.appendChild(th);
  });
+ if(boxId==="customerList"&&role==="admin"){const th=document.createElement("th");th.textContent="عملیات";head.appendChild(th)}
  table.appendChild(head);
  rows.forEach(row=>{
   const tr=document.createElement("tr");
@@ -1543,6 +1545,12 @@ function renderTable(boxId,rows,columns){
    td.textContent=value===null||value===undefined?"—":String(value);
    tr.appendChild(td);
   });
+  if(boxId==="customerList"&&role==="admin"){
+   const td=document.createElement("td"),btn=document.createElement("button");
+   btn.type="button";btn.className="small-btn danger-btn";btn.textContent="حذف مشتری";
+   btn.addEventListener("click",()=>deleteCustomer(row));
+   td.appendChild(btn);tr.appendChild(td);
+  }
   table.appendChild(tr);
  });
  const wrap=document.createElement("div");
@@ -1796,6 +1804,27 @@ async function createCustomer(){
  }finally{button.disabled=false;button.textContent="ثبت مشتری"}
 }
  
+/* حذف امن مشتری؛ رکوردهای وابسته ابتدا باید جداگانه حذف شوند. */
+async function deleteCustomer(row){
+ if(role!=="admin"){alert("فقط مدیر اصلی مجاز به حذف مشتری است.");return}
+ const label=(row.customer_code||("#"+row.id))+" · "+(row.full_name||"بدون نام");
+ if(!confirm("مشتری «"+label+"» حذف شود؟ این کار برگشت‌پذیر نیست."))return;
+ try{
+  const checks=await Promise.all([
+   db.from("subscriptions").select("id",{count:"exact",head:true}).eq("customer_id",row.id),
+   db.from("vpn_configs").select("id",{count:"exact",head:true}).eq("customer_id",row.id),
+   db.from("vpn_users").select("id",{count:"exact",head:true}).eq("customer_id",row.id)
+  ]);
+  checks.forEach(x=>{if(x.error)throw x.error});
+  const names=["اشتراک","کانفیگ","کاربر VPN"],counts=checks.map(x=>x.count||0);
+  const deps=counts.map((n,i)=>n?names[i]+": "+n:null).filter(Boolean);
+  if(deps.length){alert("این مشتری هنوز موارد وابسته دارد و حذف نشد:\n"+deps.join("\n")+"\nابتدا موارد وابسته را جداگانه حذف کنید.");return}
+  const {error}=await db.from("customers").delete().eq("id",row.id).select("id").single();
+  if(error)throw error;
+  alert("مشتری حذف شد.");await loadTable("customers","customerList","customerCount");
+ }catch(e){alert("حذف مشتری انجام نشد: "+e.message)}
+}
+
 /* مدیریت سرورها */
 function resetServerForm(){
  $("serverEditId").value="";
@@ -1909,10 +1938,23 @@ async function loadSubscriptions(){
    const vals=[row.id,cm.get(row.customer_id)||("#"+row.customer_id),pm.get(row.plan_id)||"—",({pending:"در انتظار",active:"فعال",paused:"متوقف",expired:"منقضی",cancelled:"لغوشده"}[row.status]||row.status),row.volume_limit_bytes===null?"—":(Number(row.volume_limit_bytes)/1073741824).toFixed(2)+" GB",(Number(row.used_bytes||0)/1073741824).toFixed(2)+" GB",formatSubDate(row.expires_at)];
    vals.forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"—");tr.appendChild(td)});
    const td=document.createElement("td"),btn=document.createElement("button");btn.type="button";btn.className="small-btn";btn.textContent="ویرایش";
-   btn.addEventListener("click",()=>editSubscription(row));td.appendChild(btn);tr.appendChild(td);table.appendChild(tr);
+   btn.addEventListener("click",()=>editSubscription(row));td.appendChild(btn);
+   const del=document.createElement("button");del.type="button";del.className="small-btn danger-btn";del.textContent="حذف";
+   del.addEventListener("click",()=>deleteSubscription(row));td.appendChild(del);
+   tr.appendChild(td);table.appendChild(tr);
   });
   const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);box.className="";box.replaceChildren(wrap);
  }catch(e){box.textContent="خطا در دریافت اشتراک‌ها: "+e.message}
+}
+async function deleteSubscription(row){
+ if(role!=="admin"){alert("فقط مدیر اصلی مجاز است.");return}
+ if(!confirm("اشتراک شماره "+row.id+" حذف شود؟ این عملیات برگشت‌پذیر نیست."))return;
+ try{
+  const {error}=await db.from("subscriptions").delete().eq("id",row.id).select("id").single();
+  if(error)throw error;
+  showMessage("subscriptionMsg","اشتراک حذف شد.");
+  await loadSubscriptions();
+ }catch(e){showMessage("subscriptionMsg","حذف اشتراک انجام نشد: "+e.message)}
 }
 function editSubscription(row){
  $("subEditId").value=row.id;$("subCustomer").value=String(row.customer_id||"");
