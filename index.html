@@ -1397,6 +1397,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <div class="form-grid">
      <label>مشتری *<select id="configCustomer"><option value="">انتخاب مشتری</option></select></label>
      <label>سرور *<select id="configServer"><option value="">انتخاب سرور</option></select></label>
+      <label>اشتراک مرتبط (اختیاری)<select id="configSubscription"><option value="">بدون اتصال به اشتراک</option></select></label>
      <label>نام کانفیگ *<input id="configName" maxlength="120"></label>
      <label>پروتکل *<select id="configProtocol"><option>VLESS</option><option>VMess</option><option>Trojan</option><option>Shadowsocks</option><option>WireGuard</option><option>Other</option></select></label>
      <label>حجم (GB) — خالی = نامحدود<input id="configVolume" type="number" min="1" step="1"></label>
@@ -2024,22 +2025,54 @@ async function loadConfigOptions(){
  }catch(e){showMessage("configMsg","دریافت گزینه‌ها ناموفق بود: "+e.message)}
 }
 function resetConfigForm(){
- ["configEditId","configCustomer","configServer","configName","configVolume","configExpires","configText"].forEach(id=>$(id).value="");
+ ["configEditId","configCustomer","configServer","configSubscription","configName","configVolume","configExpires","configText"].forEach(id=>$(id).value="");
  $("configProtocol").value="VLESS";$("configFormTitle").textContent="ایجاد کانفیگ جدید";$("saveConfig").textContent="ثبت کانفیگ";$("cancelConfigEdit").classList.add("hidden");
 }
-function editConfig(r){
+async function editConfig(r){
  $("configEditId").value=r.id;$("configCustomer").value=String(r.customer_id||"");$("configServer").value=r.server_id||"";
+ await loadConfigSubscriptions(r.customer_id,r.subscription_id);
  $("configName").value=r.name||"";$("configProtocol").value=r.protocol||"VLESS";$("configVolume").value=r.volume_gb??"";$("configText").value=r.config_text||"";
  if(r.expires_at){const d=new Date(r.expires_at);$("configExpires").value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}else $("configExpires").value="";
  $("configFormTitle").textContent="ویرایش کانفیگ #"+r.id;$("saveConfig").textContent="ذخیره تغییرات";$("cancelConfigEdit").classList.remove("hidden");$("configs").scrollIntoView({behavior:"smooth"});
 }
+async function loadConfigSubscriptions(customerId,selectedId=null){
+ const sel=$("configSubscription");
+ sel.replaceChildren(new Option("بدون اتصال به اشتراک",""));
+ if(!customerId)return;
+ try{
+  const {data,error}=await db.from("subscriptions")
+   .select("id,status,volume_limit_bytes,used_bytes,expires_at")
+   .eq("customer_id",Number(customerId))
+   .order("created_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  const labels={active:"فعال",pending:"در انتظار",paused:"متوقف",expired:"منقضی",cancelled:"لغوشده"};
+  (data||[]).forEach(s=>sel.add(new Option("#"+s.id+" · "+(labels[s.status]||s.status||"نامشخص"),String(s.id))));
+  if(selectedId)sel.value=String(selectedId);
+ }catch(e){showMessage("configMsg","دریافت اشتراک‌های مشتری ناموفق بود: "+e.message)}
+}
+$("configCustomer").addEventListener("change",async()=>{
+ await loadConfigSubscriptions($("configCustomer").value);
+ $("configSubscription").value="";
+});
+$("configSubscription").addEventListener("change",async()=>{
+ const id=$("configSubscription").value;
+ if(!id)return;
+ try{
+  const {data,error}=await db.from("subscriptions").select("volume_limit_bytes,expires_at").eq("id",Number(id)).single();
+  if(error)throw error;
+  if(data){
+   $("configVolume").value=data.volume_limit_bytes?String(Number(data.volume_limit_bytes)/1073741824):"";
+   if(data.expires_at){const d=new Date(data.expires_at);$("configExpires").value=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)}
+  }
+ }catch(e){showMessage("configMsg","خواندن جزئیات اشتراک ناموفق بود: "+e.message)}
+});
 async function saveConfig(){
  if(role!=="admin")return;
- const customer=Number($("configCustomer").value),server=$("configServer").value,name=$("configName").value.trim(),protocol=$("configProtocol").value,config_text=$("configText").value.trim(),v=$("configVolume").value.trim(),ex=$("configExpires").value;
+ const customer=Number($("configCustomer").value),server=$("configServer").value,subscription=$("configSubscription").value?Number($("configSubscription").value):null,name=$("configName").value.trim(),protocol=$("configProtocol").value,config_text=$("configText").value.trim(),v=$("configVolume").value.trim(),ex=$("configExpires").value;
  if(!Number.isSafeInteger(customer)||customer<1||!server||!name||!config_text){showMessage("configMsg","مشتری، سرور، نام و متن کانفیگ الزامی هستند.");return}
  let volume_gb=null;if(v){volume_gb=Number(v);if(!Number.isFinite(volume_gb)||volume_gb<1){showMessage("configMsg","حجم باید حداقل ۱ گیگابایت یا خالی باشد.");return}}
  if(ex&&Number.isNaN(new Date(ex).getTime())){showMessage("configMsg","تاریخ انقضا معتبر نیست.");return}
- const payload={customer_id:customer,server_id:server,name,protocol,config_text,volume_gb,expires_at:ex?new Date(ex).toISOString():null};
+ const payload={customer_id:customer,server_id:server,subscription_id:subscription,name,protocol,config_text,volume_gb,expires_at:ex?new Date(ex).toISOString():null};
  $("saveConfig").disabled=true;
  try{const id=$("configEditId").value;const r=id?await db.from("vpn_configs").update(payload).eq("id",Number(id)).select("id").single():await db.from("vpn_configs").insert(payload).select("id").single();if(r.error)throw r.error;showMessage("configMsg",id?"کانفیگ ویرایش شد.":"کانفیگ در دیتابیس ثبت شد.");resetConfigForm();await loadConfigs()}
  catch(e){showMessage("configMsg","ذخیره ناموفق بود: "+e.message)}finally{$("saveConfig").disabled=false}
@@ -2047,13 +2080,14 @@ async function saveConfig(){
 async function loadConfigs(){
  if(role!=="admin")return;const box=$("configList");box.textContent="در حال دریافت...";
  try{
-  const {data,error}=await db.from("vpn_configs").select("id,name,protocol,config_text,is_active,volume_gb,used_gb,expires_at,customer_id,server_id").order("created_at",{ascending:false}).limit(200);if(error)throw error;
+  const {data,error}=await db.from("vpn_configs").select("id,name,protocol,config_text,is_active,volume_gb,used_gb,expires_at,customer_id,server_id,subscription_id").order("created_at",{ascending:false}).limit(200);if(error)throw error;
   if(!data.length){box.textContent="هنوز کانفیگی ثبت نشده است.";return}
   const ids=[...new Set(data.map(x=>x.customer_id).filter(Boolean))],sids=[...new Set(data.map(x=>x.server_id).filter(Boolean))];
-  const [a,b]=await Promise.all([db.from("customers").select("id,customer_code,full_name").in("id",ids.length?ids:[-1]),db.from("servers").select("id,name").in("id",sids.length?sids:["00000000-0000-0000-0000-000000000000"])]);if(a.error)throw a.error;if(b.error)throw b.error;
-  const cm=new Map((a.data||[]).map(x=>[x.id,(x.customer_code||("#"+x.id))+" · "+(x.full_name||"بدون نام")])),sm=new Map((b.data||[]).map(x=>[x.id,x.name]));
-  const t=document.createElement("table"),h=document.createElement("tr");["شناسه","نام","مشتری","سرور","پروتکل","حجم/مصرف","انقضا","وضعیت","عملیات"].forEach(x=>{const z=document.createElement("th");z.textContent=x;h.appendChild(z)});t.appendChild(h);
-  data.forEach(r=>{const tr=document.createElement("tr"),vals=[r.id,r.name,cm.get(r.customer_id)||"—",sm.get(r.server_id)||"—",r.protocol,(r.volume_gb==null?"نامحدود":r.volume_gb+" GB")+" / "+Number(r.used_gb||0)+" GB",r.expires_at?new Date(r.expires_at).toLocaleString("fa-IR"):"—",r.is_active?"فعال":"غیرفعال"];
+  const subIds=[...new Set(data.map(x=>x.subscription_id).filter(Boolean))];
+  const [a,b,d]=await Promise.all([db.from("customers").select("id,customer_code,full_name").in("id",ids.length?ids:[-1]),db.from("servers").select("id,name").in("id",sids.length?sids:["00000000-0000-0000-0000-000000000000"]),db.from("subscriptions").select("id,status").in("id",subIds.length?subIds:[-1])]);if(a.error)throw a.error;if(b.error)throw b.error;if(d.error)throw d.error;
+  const cm=new Map((a.data||[]).map(x=>[x.id,(x.customer_code||("#"+x.id))+" · "+(x.full_name||"بدون نام")])),sm=new Map((b.data||[]).map(x=>[x.id,x.name])),subm=new Map((d.data||[]).map(x=>[x.id,x.status]));
+  const t=document.createElement("table"),h=document.createElement("tr");["شناسه","نام","مشتری","اشتراک","سرور","پروتکل","حجم/مصرف","انقضا","وضعیت","عملیات"].forEach(x=>{const z=document.createElement("th");z.textContent=x;h.appendChild(z)});t.appendChild(h);
+  data.forEach(r=>{const tr=document.createElement("tr"),vals=[r.id,r.name,cm.get(r.customer_id)||"—",r.subscription_id?("#"+r.subscription_id+" · "+({active:"فعال",pending:"در انتظار",paused:"متوقف",expired:"منقضی",cancelled:"لغوشده"}[subm.get(r.subscription_id)]||"—")):"بدون اشتراک",sm.get(r.server_id)||"—",r.protocol,(r.volume_gb==null?"نامحدود":r.volume_gb+" GB")+" / "+Number(r.used_gb||0)+" GB",r.expires_at?new Date(r.expires_at).toLocaleString("fa-IR"):"—",r.is_active?"فعال":"غیرفعال"];
    vals.forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"—");tr.appendChild(td)});
    const td=document.createElement("td"),add=(label,fn,cls="secondary-btn")=>{const b=document.createElement("button");b.type="button";b.className=cls;b.textContent=label;b.style.margin="2px";b.onclick=fn;td.appendChild(b)};
    add("ویرایش",()=>editConfig(r),"small-btn");
