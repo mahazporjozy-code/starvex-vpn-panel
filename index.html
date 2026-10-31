@@ -83,6 +83,13 @@ tr:hover td{background:#191b23}
  .quick-grid{grid-template-columns:1fr}
  #overlay.show{display:block}
 }
+
+.dragon-hero{position:relative;min-height:190px;margin:0 0 24px;border:1px solid #514329;border-radius:16px;overflow:hidden;background:#090a0e url("nexus/assets/file_00000000b1f4820c901f9e6629678079.png") center 38%/cover no-repeat;box-shadow:0 12px 38px #0008}
+.dragon-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(7,8,13,.92),rgba(7,8,13,.58) 48%,rgba(7,8,13,.16)),linear-gradient(0deg,rgba(8,8,13,.48),transparent 65%)}
+.dragon-hero-content{position:relative;z-index:1;min-height:190px;padding:30px 28px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:9px}
+.dragon-hero-title{font-size:clamp(22px,4vw,34px);font-weight:800;letter-spacing:2px;color:#f0ce80;text-shadow:0 2px 18px #000}
+.dragon-hero-subtitle{font-size:12px;letter-spacing:2px;color:#f4f1e9;text-shadow:0 2px 12px #000}
+@media(max-width:700px){.dragon-hero,.dragon-hero-content{min-height:150px}.dragon-hero-content{padding:22px 18px}.dragon-hero-subtitle{font-size:10px}}
 </style>
 </head>
 <body>
@@ -129,6 +136,13 @@ tr:hover td{background:#191b23}
    </div>
    <div class="user-info" id="userInfo"></div>
   </div>
+
+  <section class="dragon-hero" aria-label="STARVEX dragon banner">
+   <div class="dragon-hero-content">
+    <div class="dragon-hero-title">STARVEX NEXUS</div>
+    <div class="dragon-hero-subtitle">ONE COMMAND. TOTAL CONTROL.</div>
+   </div>
+  </section>
 
   <section class="tab active" id="overview">
    <div class="dashboard-head">
@@ -236,7 +250,8 @@ $("loginForm").addEventListener("submit",async e=>{
   if(!data.session)throw new Error("نشست ورود ایجاد نشد.");
   await checkSession();
  }catch(error){
-  showMessage("loginMsg","ورود ناموفق: "+error.message);
+  console.error("STARVEX login failed",error);
+  showMessage("loginMsg","ورود انجام نشد. ایمیل و رمز عبور را بررسی کنید و دوباره تلاش کنید.");
  }finally{setLoading(button,false,"ورود امن")}
 });
 
@@ -336,17 +351,84 @@ function renderTable(boxId,rows,columns){
 }
 
 /* دریافت جدول‌ها */
+const TABLE_VIEWS={
+ customers:{
+  select:"id,customer_code,full_name,telegram_user_id,status,created_at,reseller_id",
+  columns:[
+   {key:"customer_code",label:"شناسه مشتری"},
+   {key:"full_name",label:"نام"},
+   {key:"telegram_user_id",label:"شناسه تلگرام"},
+   {key:"status",label:"وضعیت"},
+   {key:"created_at",label:"تاریخ ثبت"},
+   {key:"reseller_id",label:"شناسه نماینده"}
+  ]
+ },
+ resellers:{
+  select:"id,display_name,max_customers,is_active,created_at",
+  columns:[
+   {key:"id",label:"شناسه"},
+   {key:"display_name",label:"نام نمایندگی"},
+   {key:"max_customers",label:"ظرفیت"},
+   {key:"is_active",label:"فعال"},
+   {key:"created_at",label:"تاریخ ثبت"}
+  ]
+ },
+ servers:{
+  select:"id,name,region,server_role,status,country_code,protocol,host,port,domain",
+  columns:[
+   {key:"name",label:"نام سرور"},
+   {key:"region",label:"منطقه"},
+   {key:"server_role",label:"نقش"},
+   {key:"status",label:"وضعیت"},
+   {key:"country_code",label:"کشور"},
+   {key:"protocol",label:"پروتکل"},
+   {key:"host",label:"میزبان"},
+   {key:"port",label:"پورت"},
+   {key:"domain",label:"دامنه"}
+  ]
+ },
+ subscriptions:{
+  select:"id,customer_id,plan_id,status,expires_at,created_at,volume_limit_bytes,used_bytes",
+  columns:[
+   {key:"id",label:"شناسه اشتراک"},
+   {key:"customer_id",label:"شناسه مشتری"},
+   {key:"plan_id",label:"شناسه پلن"},
+   {key:"status",label:"وضعیت"},
+   {key:"expires_at",label:"تاریخ انقضا"},
+   {key:"created_at",label:"تاریخ ثبت"},
+   {key:"volume_limit_bytes",label:"حجم کل (بایت)"},
+   {key:"used_bytes",label:"حجم مصرف‌شده (بایت)"}
+  ]
+ }
+};
+
+/* دریافت جدول‌ها با فهرست ستون‌های مجاز؛ هرگز از select(*) استفاده نمی‌شود. */
 async function loadTable(tableName,boxId,countId){
- const box=$(boxId);box.textContent="در حال دریافت اطلاعات...";
+ const box=$(boxId);
+ const view=TABLE_VIEWS[tableName];
+ if(!view){
+  box.textContent="درخواست اطلاعات نامعتبر است.";
+  if(countId)$(countId).textContent="—";
+  return;
+ }
+ box.textContent="در حال دریافت اطلاعات...";
  try{
-  const {data,error,count}=await db.from(tableName).select("*",{count:"exact"}).limit(50);
+  let query=db.from(tableName).select(view.select,{count:"exact"});
+  if(["customers","resellers","subscriptions"].includes(tableName)){
+   query=query.order("created_at",{ascending:false});
+  }
+  const {data,error,count}=await query.limit(50);
   if(error)throw error;
   if(countId)$(countId).textContent=count??data.length;
-  if(!data.length){box.textContent="اطلاعاتی ثبت نشده است.";return}
-  const columns=Object.keys(data[0]).slice(0,7).map(key=>({key,label:key}));
-  renderTable(boxId,data,columns);
+  if(!data.length){
+   box.textContent="اطلاعاتی برای نمایش وجود ندارد.";
+   box.className="empty";
+   return;
+  }
+  renderTable(boxId,data,view.columns);
  }catch(error){
-  box.textContent="خطا در دریافت اطلاعات: "+error.message;
+  console.error("STARVEX table load failed:",tableName,error);
+  box.textContent="دریافت اطلاعات ممکن نشد. سطح دسترسی یا اتصال پایگاه داده را بررسی کنید.";
   if(countId)$(countId).textContent="خطا";
  }
 }
