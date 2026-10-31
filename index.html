@@ -331,6 +331,122 @@ body:has(#loginPage:not(.hidden)) .login-box{
  }
  body:has(#loginPage:not(.hidden)) .login-box{max-width:420px!important}
 }
+
+/* STARVEX NEXUS — cyan dragon dashboard refresh */
+:root{
+ --bg:#050d19;--panel:#0b1728;--panel2:#10243a;
+ --gold:#22d8f5;--gold2:#8af1ff;--text:#eaf8ff;
+ --muted:#91a9bd;--border:rgba(63,190,226,.22);
+ --green:#55e4b0;--red:#ff7d91;
+}
+body:has(#app:not(.hidden)){background:#050b16}
+#app{background:#050b16}
+#main{
+ position:relative;isolation:isolate;
+ background:linear-gradient(135deg,rgba(4,12,25,.97),rgba(5,17,33,.93) 55%,rgba(4,12,24,.98));
+}
+#main:before{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:
+  linear-gradient(90deg,rgba(3,10,21,.84),rgba(3,12,25,.76)),
+  url("nexus/assets/file_00000000b1f4820c901f9e6629678079.png") center 42%/min(78vw,900px) auto no-repeat;
+ opacity:.30;
+}
+#sidebar{
+ background:linear-gradient(180deg,#0c2035 0%,#081728 55%,#06111f 100%);
+ border-left:1px solid rgba(34,216,245,.35);
+ box-shadow:-12px 0 38px rgba(0,0,0,.48);
+}
+.logo{color:#80efff;text-shadow:0 0 22px rgba(34,216,245,.28)}
+.logo-sub{color:#82b9d0}
+.profile-box{background:linear-gradient(135deg,rgba(13,59,82,.82),rgba(9,25,44,.96));border-color:rgba(34,216,245,.3);box-shadow:0 10px 26px #0004}
+.profile-box strong{color:#baf7ff}
+.profile-avatar{background:linear-gradient(145deg,#9af5ff,#079dbb);color:#03202d}
+.menu-title{color:#5eabc4}
+.nav-btn{
+ border-color:rgba(70,172,205,.22);
+ background:linear-gradient(120deg,rgba(15,43,66,.96),rgba(9,25,43,.98));
+ color:#c9e9f3;
+}
+.nav-btn:hover,.nav-btn.active{
+ background:linear-gradient(110deg,#087f9e,#07506c);
+ color:#effcff;border-color:#51e7ff;
+ box-shadow:0 0 18px rgba(34,216,245,.20),inset 0 1px 0 #ffffff22;
+}
+.sidebar-bottom{border-top-color:rgba(75,179,209,.2)}
+.topbar{border-bottom-color:rgba(54,176,209,.22)}
+.page-title,.section-title{color:#9aeeff}
+.user-info{border-color:rgba(65,183,215,.24);background:rgba(8,28,47,.8);color:#a8d7e7}
+.dragon-hero{
+ border-color:rgba(45,211,241,.48);
+ background:
+  linear-gradient(110deg,rgba(4,15,29,.82),rgba(5,34,54,.72)),
+  url("nexus/assets/file_00000000b1f4820c901f9e6629678079.png") center/cover,
+  #071a2b;
+ box-shadow:0 16px 38px #0007,inset 0 0 35px rgba(34,216,245,.12);
+}
+.dragon-hero:before{background:linear-gradient(135deg,rgba(34,216,245,.08),transparent 55%)}
+.dragon-hero:after{background:#00b9df;opacity:.17}
+.dragon-hero-title{color:#9af3ff;text-shadow:0 0 24px rgba(34,216,245,.22)}
+.dragon-hero-subtitle{color:#a9dce9}
+.dragon-hero-art{filter:drop-shadow(0 0 24px rgba(34,216,245,.65))}
+.stat,.card{
+ border-color:rgba(60,166,203,.25);
+ background:linear-gradient(145deg,rgba(13,35,57,.94),rgba(8,22,39,.96));
+ box-shadow:0 12px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035);
+}
+.stat:nth-child(2),.stat:nth-child(3),.stat:nth-child(4){
+ border-color:rgba(60,166,203,.25);
+ background:linear-gradient(145deg,rgba(13,35,57,.94),rgba(8,22,39,.96));
+}
+.stat-label{color:#a7c7d8}
+.stat-value,.stat:nth-child(2) .stat-value,.stat:nth-child(3) .stat-value,.stat:nth-child(4) .stat-value{color:#8defff}
+.quick-btn,.quick-btn:nth-child(2),.quick-btn:nth-child(3),.secondary-btn{
+ border-color:rgba(56,211,239,.42);
+ background:linear-gradient(135deg,#075d79,#10334e);
+ color:#e2fbff;
+ box-shadow:inset 0 1px 0 #ffffff1c,0 7px 16px #0004;
+}
+.quick-btn:hover,.secondary-btn:hover{background:linear-gradient(135deg,#087f9e,#145071);border-color:#8af1ff}
+.primary,.small-btn{
+ border:1px solid #8af1ff;
+ background:linear-gradient(110deg,#087d9d,#32d6ed);
+ color:#03202b;
+ box-shadow:0 7px 18px rgba(0,0,0,.35);
+}
+.primary:hover,.small-btn:hover{filter:brightness(1.08)}
+input,.small-input{
+ background:rgba(3,13,25,.88);border-color:rgba(77,172,205,.3);color:#edfbff;
+}
+input:focus,.small-input:focus{border-color:#42dff8;box-shadow:0 0 0 3px rgba(34,216,245,.1)}
+.form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.reseller-top-grid{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(0,1.5fr);gap:16px;align-items:start}
+.reseller-top-grid>.card{min-width:0;height:100%}
+.reseller-list-card{margin-top:16px}
+.section-intro{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 16px;padding:17px 20px;border:1px solid rgba(55,190,220,.25);border-radius:13px;background:linear-gradient(110deg,rgba(8,39,61,.88),rgba(8,21,39,.94))}
+.section-intro .section-title{margin:6px 0}
+.eyebrow{font-size:9px;letter-spacing:2.5px;color:#48cfe8}
+.section-chip{padding:9px 14px;border:1px solid rgba(75,218,242,.35);border-radius:30px;color:#a5f2ff;background:rgba(15,94,119,.2);font-size:11px;white-space:nowrap}
+.table-wrap{border:1px solid rgba(66,166,199,.2);border-radius:10px;background:rgba(3,13,25,.36)}
+table{min-width:640px}
+th{color:#a9f1ff;background:linear-gradient(90deg,#0c3149,#10405a);border-bottom:1px solid rgba(61,207,235,.25)}
+td{color:#d2e9f2}
+tr:hover td{background:rgba(26,117,145,.12)}
+th,td{border-bottom-color:rgba(66,166,199,.16)}
+.empty{color:#9bb7c7}
+.message{background:rgba(8,52,70,.7);border-color:rgba(58,202,230,.3);color:#d8f8ff}
+.status-active{color:#62e8b2}.status-inactive{color:#ff8d9c}
+@media(max-width:900px){
+ .reseller-top-grid{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+ #main:before{position:absolute;background-size:125% auto;background-position:center 34%;opacity:.23}
+ .reseller-top-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+ .section-intro{padding:13px 14px}
+ .form-grid{grid-template-columns:1fr}
+ .reseller-list-card{margin-top:10px}
+}
+
 </style>
 <style id="starvex-final-login-artwork">
 /* STARVEX NEXUS — final mobile-first login artwork */
@@ -898,6 +1014,7 @@ body:has(#loginPage:not(.hidden)) .login-box .message{padding:6px 8px!important;
   </section>
 
   <section class="tab" id="resellers">
+   <div class="reseller-top-grid">
    <div class="card">
     <h2 class="section-title">ایجاد نمایندگی جدید</h2>
     <div class="form-grid">
@@ -915,14 +1032,16 @@ body:has(#loginPage:not(.hidden)) .login-box .message{padding:6px 8px!important;
     <div id="capacityMsg" class="message hidden"></div>
     <div id="capacityList" class="empty">در حال دریافت اطلاعات...</div>
    </div>
-   <div class="card">
+   </div>
+   <div class="card reseller-list-card">
     <h2 class="section-title">فهرست نمایندگی‌ها</h2>
     <div id="resellerList" class="empty">در حال دریافت...</div>
    </div>
   </section>
 
   <section class="tab" id="customers">
-   <div class="card"><h2 class="section-title">مدیریت مشتریان</h2><div id="customerList" class="empty">در حال دریافت...</div></div>
+   <div class="section-intro"><div><span class="eyebrow">CUSTOMER MANAGEMENT</span><h2 class="section-title">مدیریت مشتریان</h2><p class="muted">فهرست مشتریان در این بخش مستقل از نمایندگی‌ها نمایش داده می‌شود.</p></div><span class="section-chip">مشتریان</span></div>
+   <div class="card customer-table-card"><h2 class="section-title">فهرست مشتریان</h2><div id="customerList" class="empty">در حال دریافت...</div></div>
   </section>
   <section class="tab" id="servers">
    <div class="card"><h2 class="section-title">مدیریت سرورها</h2><div id="serverList" class="empty">در حال دریافت...</div></div>
