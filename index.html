@@ -1513,9 +1513,9 @@ $("togglePassword")?.addEventListener("click",()=>{
 });
 
 function showMessage(id,text){
- const el=$(id);el.textContent=text;el.classList.remove("hidden");
+ const el=$(id);if(!el){console.error("STARVEX missing message element:",id,text);return}el.textContent=text;el.classList.remove("hidden");
 }
-function hideMessage(id){$(id).classList.add("hidden")}
+function hideMessage(id){const el=$(id);if(el)el.classList.add("hidden")}
 function setLoading(button,loading,text){
  button.disabled=loading;button.textContent=loading?"در حال انجام...":text;
 }
@@ -1785,7 +1785,7 @@ async function loadResellerCapacity(){
  const box=$("capacityList");
  if(role==="reseller"){
   $("capacityReportCard").classList.add("hidden");
-  $("resellerCreateHint").textContent="برای ایجاد نماینده زیرمجموعه، حداقل ۵۰۰ گیگابایت لازم است.";
+  if($("resellerCreateHint"))$("resellerCreateHint").textContent="برای ایجاد نماینده زیرمجموعه، حداقل ۵۰۰ گیگابایت لازم است.";
   $("rQuota").min="500"; $("rQuota").placeholder="حداقل ۵۰۰ گیگابایت";
   try{
    const {data:mine,error}=await db.from("resellers").select("id,display_name,traffic_quota_bytes,can_create_subresellers").eq("user_id",currentUser.id).single();
@@ -2306,7 +2306,7 @@ $("cancelConfigEdit").addEventListener("click",()=>{resetConfigForm();hideMessag
 $("refreshConfigs").addEventListener("click",async()=>{await loadConfigOptions();await loadConfigs()});
 
 async function loadData(){
- $("systemStatus").textContent="در حال اتصال به پایگاه داده...";
+ const status=$("systemStatus");if(status)status.textContent="در حال اتصال به پایگاه داده...";
  await loadTable("customers","customerList","customerCount");
  if(role==="admin"){
   await loadCustomerResellerOptions();
@@ -2314,14 +2314,14 @@ async function loadData(){
   await loadTable("resellers","resellerList","resellerCount");
   await loadResellerCapacity();
   await loadServers();
-  $("systemStatus").textContent="اتصال به Supabase برقرار است. سطح دسترسی: مدیر.";
+  if($("systemStatus"))$("systemStatus").textContent="اتصال به Supabase برقرار است. سطح دسترسی: مدیر.";
  }else{
-  $("resellerCount").textContent="—";
+  if($("resellerCount"))$("resellerCount").textContent="—";
   await loadResellerCapacity();
   if($("serverCount"))$("serverCount").textContent="—";
-  $("systemStatus").textContent="حساب نماینده فعال است. اطلاعات بر اساس سطح دسترسی نمایش داده می‌شود.";
+  if($("systemStatus"))$("systemStatus").textContent="حساب نماینده فعال است. اطلاعات بر اساس سطح دسترسی نمایش داده می‌شود.";
  }
- $("lastRefresh").textContent="آخرین بروزرسانی: "+new Date().toLocaleString("fa-IR");
+ if($("lastRefresh"))$("lastRefresh").textContent="آخرین بروزرسانی: "+new Date().toLocaleString("fa-IR");
 }
 
 $("refreshDashboard").addEventListener("click",async()=>{
