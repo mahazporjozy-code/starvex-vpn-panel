@@ -29,8 +29,7 @@ async function getAdminUser(request, env) {
   const user = await response.json();
   if (!user?.id) return { error: "unauthorized", status: 401 };
 
-  // Restrict this endpoint to the verified primary administrator account.
-  // This avoids depending on client-readable profile rows for privileged access.
+  // Temporary primary-admin allowlist until role-based authorization is migrated.
   const adminEmail = "mahazporjozy@gmail.com";
   if ((user.email || "").toLowerCase() !== adminEmail || !user.email_confirmed_at) {
     return { error: "forbidden", status: 403 };
@@ -42,12 +41,54 @@ export async function onRequestGet({ request, env }) {
   const authResult = await getAdminUser(request, env);
   if (authResult.error) return json({ error: authResult.error }, authResult.status);
 
+  if (!env.SERVER_STATE) {
+    return json({
+      ok: true,
+      authorized: true,
+      connected: false,
+      state: "awaiting_agent_setup",
+      metrics: { cpu: null, memory: null, disk: null },
+      message: "Cloudflare server-state storage is not configured."
+    });
+  }
+
+  // The first registered server is shown by this status card. Inventory remains
+  // available through /api/servers; each agent writes only its own server key.
+  let listed;
+  try {
+    listed = await env.SERVER_STATE.list({ prefix: "server:", limit: 1 });
+  } catch {
+    return json({ error: "server_state_unavailable" }, 503);
+  }
+  if (!listed.keys?.length) {
+    return json({
+      ok: true,
+      authorized: true,
+      connected: false,
+      state: "awaiting_vps",
+      metrics: { cpu: null, memory: null, disk: null },
+      message: "VPS agent has not sent a heartbeat."
+    });
+  }
+
+  let state;
+  try {
+    state = await env.SERVER_STATE.get(listed.keys[0].name, "json");
+  } catch {
+    return json({ error: "server_state_unavailable" }, 503);
+  }
+  const received = Date.parse(state?.received_at || "");
+  const ageSeconds = Number.isFinite(received) ? Math.max(0, (Date.now() - received) / 1000) : Infinity;
+  const connected = ageSeconds <= 90;
+
   return json({
     ok: true,
     authorized: true,
-    connected: false,
-    state: "awaiting_vps",
-    metrics: { cpu: null, memory: null, disk: null },
-    message: "VPS has not been provisioned."
+    connected,
+    state: connected ? "connected" : "agent_offline",
+    server_id: state?.server_id || null,
+    last_seen_at: state?.received_at || null,
+    metrics: connected ? state.metrics : { cpu: null, memory: null, disk: null },
+    message: connected ? "VPS agent heartbeat is current." : "VPS agent heartbeat is stale."
   });
 }
