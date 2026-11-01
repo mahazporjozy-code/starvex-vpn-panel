@@ -1401,7 +1401,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
    </div>
    <div class="card customer-table-card"><h2 class="section-title">فهرست مشتریان</h2><div id="customerList" class="empty">در حال دریافت...</div></div>
   </section>
-  <section class="tab" id="servers">
+  <section class="tab admin-only" id="servers">
    <div class="section-intro"><div><div class="eyebrow">INFRASTRUCTURE CONTROL</div><h2 class="section-title">مدیریت سرورها</h2><div class="muted">ثبت و ویرایش مشخصات سرورها</div></div><div class="section-chip">فقط مدیر اصلی</div></div>
    <div class="card">
     <h2 class="section-title" id="serverFormTitle">افزودن سرور جدید</h2>
@@ -1443,7 +1443,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
    </div>
    <div class="card"><div class="dashboard-head"><h2 class="section-title">فهرست کانفیگ‌ها</h2><button class="secondary-btn" id="refreshConfigs">بروزرسانی</button></div><div id="configList" class="empty">در حال دریافت...</div></div>
   </section>
-  <section class="tab" id="serverManagement">
+  <section class="tab admin-only" id="serverManagement">
    <div class="dashboard-head">
     <div><h2 class="section-title">مدیریت سرور STARVEX</h2><p class="muted">کنترل زیرساخت VPS از داخل پنل مادر</p></div>
     <button class="secondary-btn" id="refreshServerStatus" type="button">⟳ بررسی وضعیت اتصال</button>
@@ -1614,6 +1614,7 @@ function openTab(tabId){
  const allowed=["overview","resellers","customers","servers","configs","serverManagement"];
  if(!allowed.includes(tabId))return;
  if(role!=="admin"&&!["configs","resellers","customers"].includes(tabId))return;
+  if(role!=="admin"&&["servers","serverManagement"].includes(tabId))return;
  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
  $(tabId).classList.add("active");
  document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.classList.toggle("active",btn.dataset.tab===tabId));
