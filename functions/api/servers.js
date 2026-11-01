@@ -28,19 +28,8 @@ export async function onRequestGet({ request, env }) {
   const user = await userResponse.json();
   if (!user?.id) return json({ error: "unauthorized" }, 401);
 
-  let profileResponse;
-  try {
-    profileResponse = await fetch(
-      base + "/rest/v1/profiles?id=eq." + encodeURIComponent(user.id) + "&select=role,is_active&limit=1",
-      { headers: { apikey: key, Authorization: "Bearer " + token, Accept: "application/json" } }
-    );
-  } catch {
-    return json({ error: "profile_service_unavailable" }, 502);
-  }
-  if (!profileResponse.ok) return json({ error: "role_lookup_failed" }, 503);
-  const profiles = await profileResponse.json();
-  const profile = Array.isArray(profiles) ? profiles[0] : null;
-  if (profile?.role !== "admin" || profile?.is_active !== true) {
+  // Only the verified primary administrator may list infrastructure.
+  if ((user.email || "").toLowerCase() !== "mahazporjozy@gmail.com" || !user.email_confirmed_at) {
     return json({ error: "forbidden" }, 403);
   }
 
