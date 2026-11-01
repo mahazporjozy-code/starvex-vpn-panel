@@ -1369,7 +1369,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <div class="form-grid">
      <input id="rName" placeholder="نام نمایندگی">
      <input id="rEmail" type="email" placeholder="ایمیل نمایندگی">
-     <input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر">
+     <input id="rPassword" type="password" placeholder="رمز اولیه: حداقل ۶ کاراکتر، شامل حروف بزرگ و کوچک">
      <label id="rQuotaLabel">سهمیه ترافیک (GB)<input id="rQuota" type="number" min="1" step="1" placeholder="مثلاً ۵۰۰"></label>
     </div>
     <button class="primary" id="createResellerButton">ایجاد نمایندگی</button>
@@ -1891,8 +1891,9 @@ async function createReseller(){
  const quotaGb=role==="admin"?0:Number($("rQuota").value);
  const button=$("createResellerButton");
  hideMessage("resellerMsg");
- if(!name||!email||password.length<12||!Number.isFinite(quotaGb)||(role==="reseller"&&(quotaGb<500||quotaGb>1000000))){
-  showMessage("resellerMsg",role==="reseller"?"نام، ایمیل، رمز حداقل ۱۲ کاراکتری و سهمیه حداقل ۵۰۰ گیگابایت لازم است.":"نام، ایمیل و رمز حداقل ۱۲ کاراکتری لازم است.");return;
+ const validInitialPassword=password.length>=6&&/[A-Z]/.test(password)&&/[a-z]/.test(password);
+ if(!name||!email||!validInitialPassword||!Number.isFinite(quotaGb)||(role==="reseller"&&(quotaGb<500||quotaGb>1000000))){
+  showMessage("resellerMsg",role==="reseller"?"نام، ایمیل، رمز حداقل ۶ کاراکتری شامل حروف بزرگ و کوچک و سهمیه حداقل ۵۰۰ گیگابایت لازم است.":"نام، ایمیل و رمز حداقل ۶ کاراکتری شامل حروف بزرگ و کوچک لازم است.");return;
  }
  setLoading(button,true,"ایجاد نمایندگی");
  try{
