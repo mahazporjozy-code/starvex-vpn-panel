@@ -29,20 +29,10 @@ async function getAdminUser(request, env) {
   const user = await response.json();
   if (!user?.id) return { error: "unauthorized", status: 401 };
 
-  // Authorization is read from profiles under the caller's own JWT/RLS context.
-  let profileResponse;
-  try {
-    profileResponse = await fetch(
-      base + "/rest/v1/profiles?id=eq." + encodeURIComponent(user.id) + "&select=role,is_active&limit=1",
-      { headers: { apikey: key, Authorization: "Bearer " + token, Accept: "application/json" } }
-    );
-  } catch {
-    return { error: "profile_service_unavailable", status: 502 };
-  }
-  if (!profileResponse.ok) return { error: "role_lookup_failed", status: 503 };
-  const profiles = await profileResponse.json();
-  const profile = Array.isArray(profiles) ? profiles[0] : null;
-  if (profile?.role !== "admin" || profile?.is_active !== true) {
+  // Restrict this endpoint to the verified primary administrator account.
+  // This avoids depending on client-readable profile rows for privileged access.
+  const adminEmail = "mahazporjozy@gmail.com";
+  if ((user.email || "").toLowerCase() !== adminEmail || !user.email_confirmed_at) {
     return { error: "forbidden", status: 403 };
   }
   return { user };
