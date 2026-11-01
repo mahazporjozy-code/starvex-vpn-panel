@@ -2163,6 +2163,8 @@ async function loadData(){
  $("systemStatus").textContent="در حال اتصال به پایگاه داده...";
  await loadTable("customers","customerList","customerCount");
  if(role==="admin"){
+  await loadCustomerResellerOptions();
+  updateCustomerOwnerChoice();
   await loadTable("resellers","resellerList","resellerCount");
   await loadResellerCapacity();
   await loadServers();
