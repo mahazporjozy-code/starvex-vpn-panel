@@ -1360,7 +1360,12 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
      <input id="cName" maxlength="150" placeholder="نام مشتری (اختیاری)">
      <input id="cTelegramId" inputmode="numeric" placeholder="شناسه عددی تلگرام (اختیاری)">
      <input id="cNotes" placeholder="توضیحات (اختیاری)">
-     <select id="cReseller" class="small-input admin-only hidden" aria-label="محل ثبت مشتری"><option value="__admin__">مشتری مستقیم برای خودم (مدیر اصلی)</option></select>
+     <fieldset class="owner-choice admin-only hidden" id="customerOwnerChoice">
+      <legend>مالکیت مشتری</legend>
+      <label class="owner-option"><input type="radio" name="customerOwner" id="cOwnerAdmin" value="admin" checked><span><strong>مشتری مستقیم من</strong><small>مشتری متعلق به مدیر اصلی STARVEX است.</small></span></label>
+      <label class="owner-option"><input type="radio" name="customerOwner" id="cOwnerReseller" value="reseller"><span><strong>واگذاری به نمایندگی</strong><small>مشتری به نمایندگی انتخاب‌شده اختصاص داده می‌شود.</small></span></label>
+      <div id="cResellerWrap" class="hidden"><label for="cReseller" class="muted">انتخاب نمایندگی</label><select id="cReseller" class="small-input" aria-label="انتخاب نمایندگی"><option value="">ابتدا نمایندگی را انتخاب کنید</option></select></div>
+     </fieldset>
     </div>
     <button class="primary" id="createCustomerButton" type="button">ثبت مشتری</button>
     <div id="customerCreateMsg" class="message hidden" role="status"></div>
@@ -1773,22 +1778,28 @@ async function createReseller(){
 $("createCustomerButton").addEventListener("click",createCustomer);
 async function loadCustomerResellerOptions(){
  const select=$("cReseller");
- if(role!=="admin"){select.classList.add("hidden");return}
- select.classList.remove("hidden");
+ if(role!=="admin")return;
  if(select.dataset.loaded==="1")return;
  select.disabled=true;
  try{
   const {data,error}=await db.from("resellers")
    .select("id,display_name,is_active").eq("is_active",true).order("id");
   if(error)throw error;
-  select.replaceChildren(new Option("مشتری مستقیم برای خودم (مدیر اصلی)","__admin__"));
+  select.replaceChildren(new Option("ابتدا نمایندگی را انتخاب کنید",""));
   (data||[]).forEach(r=>select.add(new Option((r.display_name||"نمایندگی")+" · #"+r.id,String(r.id))));
-  select.value="__admin__";
   select.dataset.loaded="1";
  }catch(error){
   showMessage("customerCreateMsg","دریافت فهرست نمایندگی‌ها ناموفق بود: "+error.message);
  }finally{select.disabled=false}
 }
+function updateCustomerOwnerChoice(){
+ const assign=$("cOwnerReseller")?.checked===true;
+ $("cResellerWrap")?.classList.toggle("hidden",!assign);
+ if(!assign&&$("cReseller"))$("cReseller").value="";
+}
+document.querySelectorAll('input[name="customerOwner"]').forEach(input=>{
+ input.addEventListener("change",updateCustomerOwnerChoice);
+});
 async function createCustomer(){
  const button=$("createCustomerButton");
  hideMessage("customerCreateMsg");
@@ -1799,10 +1810,14 @@ async function createCustomer(){
  if(telegramId&&!/^\d+$/.test(telegramId)){showMessage("customerCreateMsg","شناسه تلگرام باید فقط شامل عدد باشد.");return}
  const body={full_name:fullName||null,telegram_user_id:telegramId||null,notes:notes||null};
  if(role==="admin"){
-  const resellerId=$("cReseller").value;
-  if(resellerId==="__admin__"){body.owner_type="admin"}
-  else if(resellerId){body.reseller_id=Number(resellerId)}
-  else{showMessage("customerCreateMsg","محل ثبت مشتری را انتخاب کنید.");return}
+  const owner=$("cOwnerReseller").checked?"reseller":"admin";
+  if(owner==="admin"){
+   body.owner_type="admin";
+  }else{
+   const resellerId=$("cReseller").value;
+   if(!resellerId){showMessage("customerCreateMsg","برای واگذاری، ابتدا یک نمایندگی انتخاب کنید.");return}
+   body.reseller_id=Number(resellerId);
+  }
  }
  setLoading(button,true,"در حال ثبت مشتری...");
  try{
@@ -2173,3 +2188,13 @@ checkSession();
 </script>
 </body>
 </html>
+
+/* Customer ownership choice */
+.owner-choice{grid-column:1/-1;min-width:0;margin:4px 0 8px;padding:14px;border:1px solid #655078;border-radius:11px;background:linear-gradient(145deg,#211a2d,#15141f)}
+.owner-choice legend{padding:0 8px;color:#f0ce80;font-size:12px;font-weight:bold}
+.owner-option{display:flex;align-items:flex-start;gap:10px;padding:12px;margin:7px 0;border:1px solid #453750;border-radius:9px;background:#171522;cursor:pointer}
+.owner-option:has(input:checked){border-color:#d9ad52;background:linear-gradient(110deg,#35291c,#241d2c);box-shadow:0 0 0 1px #d9ad5233}
+.owner-option input{width:auto;flex:0 0 auto;margin:3px 0 0;accent-color:#d9ad52}
+.owner-option strong{display:block;color:#f4e4c4;font-size:12px}
+.owner-option small{display:block;margin-top:5px;color:#aaa2b6;font-size:10px;line-height:1.8}
+#cResellerWrap{margin-top:10px}
