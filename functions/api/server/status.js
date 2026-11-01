@@ -29,12 +29,16 @@ async function getAdminUser(request, env) {
   const user = await response.json();
   if (!user?.id) return { error: "unauthorized", status: 401 };
 
-  // Temporary primary-admin allowlist until role-based authorization is migrated.
-  const adminEmail = "mahazporjozy@gmail.com";
-  if ((user.email || "").toLowerCase() !== adminEmail || !user.email_confirmed_at) {
+  if ((user.email || "").toLowerCase() !== "mahazporjozy@gmail.com" || !user.email_confirmed_at) {
     return { error: "forbidden", status: 403 };
   }
   return { user };
+}
+
+function cleanMetric(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100
+    ? Math.round(value * 10) / 10
+    : null;
 }
 
 export async function onRequestGet({ request, env }) {
@@ -43,52 +47,68 @@ export async function onRequestGet({ request, env }) {
 
   if (!env.SERVER_STATE) {
     return json({
-      ok: true,
-      authorized: true,
-      connected: false,
-      state: "awaiting_agent_setup",
+      ok: true, authorized: true, connected: false, state: "awaiting_agent_setup",
+      servers: [], connected_count: 0, total_agents: 0,
       metrics: { cpu: null, memory: null, disk: null },
       message: "Cloudflare server-state storage is not configured."
     });
   }
 
-  // The first registered server is shown by this status card. Inventory remains
-  // available through /api/servers; each agent writes only its own server key.
   let listed;
   try {
-    listed = await env.SERVER_STATE.list({ prefix: "server:", limit: 1 });
+    listed = await env.SERVER_STATE.list({ prefix: "server:", limit: 1000 });
   } catch {
     return json({ error: "server_state_unavailable" }, 503);
-  }
-  if (!listed.keys?.length) {
-    return json({
-      ok: true,
-      authorized: true,
-      connected: false,
-      state: "awaiting_vps",
-      metrics: { cpu: null, memory: null, disk: null },
-      message: "VPS agent has not sent a heartbeat."
-    });
   }
 
-  let state;
+  const keys = (listed.keys || []).filter(item =>
+    typeof item.name === "string" && /^server:[a-zA-Z0-9_-]{1,80}$/.test(item.name)
+  );
+  let records;
   try {
-    state = await env.SERVER_STATE.get(listed.keys[0].name, "json");
+    records = await Promise.all(keys.map(async item => {
+      const raw = await env.SERVER_STATE.get(item.name, "json");
+      const serverId = item.name.slice("server:".length);
+      const receivedAt = typeof raw?.received_at === "string" ? raw.received_at : null;
+      const received = receivedAt ? Date.parse(receivedAt) : NaN;
+      const ageSeconds = Number.isFinite(received)
+        ? Math.max(0, (Date.now() - received) / 1000)
+        : Infinity;
+      const connected = ageSeconds <= 90;
+      return {
+        server_id: serverId,
+        connected,
+        state: connected ? "connected" : "agent_offline",
+        last_seen_at: receivedAt,
+        age_seconds: Number.isFinite(ageSeconds) ? Math.round(ageSeconds) : null,
+        agent_version: typeof raw?.agent_version === "string" ? raw.agent_version.slice(0, 30) : "unknown",
+        metrics: connected ? {
+          cpu: cleanMetric(raw?.metrics?.cpu),
+          memory: cleanMetric(raw?.metrics?.memory),
+          disk: cleanMetric(raw?.metrics?.disk)
+        } : { cpu: null, memory: null, disk: null }
+      };
+    }));
   } catch {
     return json({ error: "server_state_unavailable" }, 503);
   }
-  const received = Date.parse(state?.received_at || "");
-  const ageSeconds = Number.isFinite(received) ? Math.max(0, (Date.now() - received) / 1000) : Infinity;
-  const connected = ageSeconds <= 90;
+
+  records.sort((a, b) => a.server_id.localeCompare(b.server_id));
+  const connected = records.filter(item => item.connected);
+  const first = connected[0] || null;
 
   return json({
     ok: true,
     authorized: true,
-    connected,
-    state: connected ? "connected" : "agent_offline",
-    server_id: state?.server_id || null,
-    last_seen_at: state?.received_at || null,
-    metrics: connected ? state.metrics : { cpu: null, memory: null, disk: null },
-    message: connected ? "VPS agent heartbeat is current." : "VPS agent heartbeat is stale."
+    connected: connected.length > 0,
+    state: connected.length ? "connected" : (records.length ? "agent_offline" : "awaiting_vps"),
+    connected_count: connected.length,
+    total_agents: records.length,
+    checked_at: new Date().toISOString(),
+    servers: records,
+    metrics: first ? first.metrics : { cpu: null, memory: null, disk: null },
+    message: connected.length
+      ? "One or more VPS agents are reporting current heartbeats."
+      : (records.length ? "No current VPS agent heartbeat." : "No VPS agent has sent a heartbeat.")
   });
 }
