@@ -1787,6 +1787,9 @@ async function loadResellerCapacity(){
   const {data,error}=await db.rpc("get_reseller_capacity");
   if(error)throw error;
   if(!data.length){box.textContent="هنوز نمایندگی‌ای ثبت نشده است.";return}
+  const {data:quotaRows,error:quotaError}=await db.from("resellers").select("id,traffic_quota_bytes");
+  if(quotaError)throw quotaError;
+  const quotaById=new Map((quotaRows||[]).map(x=>[String(x.id),Number(x.traffic_quota_bytes||0)]));
   const table=document.createElement("table");
   const head=document.createElement("tr");
   ["شناسه","نام نمایندگی","ظرفیت مشتری","مشتریان فعلی","ظرفیت باقی‌مانده","وضعیت","ظرفیت جدید","ذخیره ظرفیت","سهمیه ترافیک GB","شارژ GB"].forEach(label=>{
@@ -1815,7 +1818,7 @@ async function loadResellerCapacity(){
    button.className="small-btn";button.textContent="ذخیره";
    button.addEventListener("click",()=>saveCapacity(item.reseller_id,input.value,button));
    actionCell.appendChild(button);
-   const quotaCell=addCell("—");
+   const quotaCell=addCell((quotaById.get(String(item.reseller_id))/1073741824||0).toFixed(2));
    const quotaInputCell=addCell("");
    const quotaInput=document.createElement("input");quotaInput.type="number";quotaInput.min="1";quotaInput.step="1";quotaInput.placeholder="مقدار GB";quotaInput.className="small-input";
    quotaInputCell.appendChild(quotaInput);
