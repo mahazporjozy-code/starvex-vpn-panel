@@ -30,9 +30,11 @@ Run the script under a dedicated unprivileged account. Do not run it as root. Re
 ## API behavior
 
 - `POST /api/server/agent/heartbeat`: bearer-token authenticated, accepts only server ID and three percentages (0–100), maximum request body 4 KiB.
-- `GET /api/server/status`: requires the verified primary-admin Supabase session; reads the latest KV heartbeat.
+- `GET /api/server/status`: requires the verified primary-admin Supabase session; returns the latest heartbeat state for every registered agent in KV.
+- Each server is keyed independently as `server:<SERVER_ID>`; the dashboard matches these IDs against the rows in the `servers` table.
 - A heartbeat is considered connected for 90 seconds. KV records expire after 5 minutes.
-- The status card currently reports the first heartbeat record. The multi-server inventory endpoint remains separate.
+- Each server reports its own CPU, memory, disk, last-seen time and agent version. A missing heartbeat is shown as awaiting VPS; an old heartbeat is shown as offline.
+- The dashboard can register and edit server inventory records. Deactivation is a soft operation that preserves historical relationships and prevents selecting the server for new assignments.
 
 ## Security notes
 
