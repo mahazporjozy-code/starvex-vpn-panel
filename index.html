@@ -1403,6 +1403,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
      <input id="sRegion" maxlength="80" placeholder="منطقه / شهر *">
      <input id="sRole" maxlength="60" placeholder="نقش سرور *">
      <select id="sStatus"><option value="planned">برنامه‌ریزی‌شده</option><option value="active">فعال</option><option value="maintenance">در حال تعمیر</option><option value="inactive">غیرفعال</option></select>
+     <label class="inline-check"><input id="sAcceptNew" type="checkbox" checked> پذیرش مشتری و اشتراک جدید</label>
      <input id="sCountry" maxlength="2" placeholder="کد کشور، مانند DE">
      <input id="sProtocol" maxlength="40" placeholder="پروتکل، مانند VLESS">
      <input id="sHost" maxlength="253" placeholder="نام میزبان">
@@ -1974,7 +1975,7 @@ async function deleteCustomer(row){
 function resetServerForm(){
  $("serverEditId").value="";
  ["sName","sRegion","sRole","sCountry","sProtocol","sHost","sIp","sDomain","sPort"].forEach(id=>$(id).value="");
- $("sStatus").value="planned";
+ $("sStatus").value="planned";$("sAcceptNew").checked=true;
  $("serverFormTitle").textContent="افزودن سرور جدید";
  $("saveServerButton").textContent="ثبت سرور";
  $("cancelServerEdit").classList.add("hidden");
@@ -1985,6 +1986,7 @@ function editServer(row){
  $("sRegion").value=row.region||"";
  $("sRole").value=row.server_role||"";
  $("sStatus").value=row.status||"planned";
+ $("sAcceptNew").checked=row.is_enabled_for_new_users!==false;
  $("sCountry").value=row.country_code||"";
  $("sProtocol").value=row.protocol||"";
  $("sHost").value=row.host||"";
@@ -2061,7 +2063,7 @@ async function loadServers(){
    box.textContent="هنوز سروری ثبت نشده است.";$("serverCount").textContent="0";return;
   }
   const table=document.createElement("table"),head=document.createElement("tr");
-  ["نام","منطقه","نقش","پروتکل","میزبان / IP","پورت","وضعیت ثبت","Agent","CPU","RAM","دیسک","عملیات"].forEach(v=>{
+  ["نام","منطقه","نقش","پروتکل","میزبان / IP","پورت","وضعیت ثبت","پذیرش جدید","Agent","CPU","RAM","دیسک","عملیات"].forEach(v=>{
    const th=document.createElement("th");th.textContent=v;head.appendChild(th);
   });
   table.appendChild(head);
@@ -2072,6 +2074,7 @@ async function loadServers(){
     row.name,row.region,row.server_role,row.protocol||"—",
     [row.host,row.ip_address].filter(Boolean).join(" / ")||"—",row.port??"—",
     ({active:"فعال",planned:"برنامه‌ریزی‌شده",maintenance:"در حال تعمیر",inactive:"غیرفعال"}[row.status]||row.status||"—"),
+    row.is_enabled_for_new_users===false?"متوقف":"مجاز",
     connected?"متصل":agent?"آفلاین":"در انتظار",
     connected&&agent.metrics?.cpu!=null?agent.metrics.cpu+"٪":"—",
     connected&&agent.metrics?.memory!=null?agent.metrics.memory+"٪":"—",
@@ -2080,25 +2083,26 @@ async function loadServers(){
    const tr=document.createElement("tr");
    values.forEach((v,i)=>{
     const td=document.createElement("td");td.textContent=String(v??"—");
-    if(i===7)td.className=connected?"status-active":"status-inactive";
+    if(i===8)td.className=connected?"status-active":"status-inactive";
     tr.appendChild(td);
    });
    const td=document.createElement("td");
    const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="ویرایش";
    edit.addEventListener("click",()=>editServer(row));td.appendChild(edit);
-   const disable=document.createElement("button");disable.type="button";disable.className="small-btn danger-btn";
-   disable.textContent=row.status==="inactive"?"غیرفعال":"غیرفعال‌سازی";
-   disable.disabled=row.status==="inactive";
-   disable.addEventListener("click",async()=>{
-    if(!confirm("این سرور غیرفعال شود؟ سوابق آن حفظ می‌شود و برای مشتری جدید انتخاب نخواهد شد."))return;
-    disable.disabled=true;
+   const toggle=document.createElement("button");toggle.type="button";toggle.className="small-btn "+(row.status==="inactive"?"":"danger-btn");
+   toggle.textContent=row.status==="inactive"?"فعال‌سازی سرور":"غیرفعال‌سازی";
+   toggle.addEventListener("click",async()=>{
+    const activating=row.status==="inactive";
+    if(!confirm(activating?"این سرور دوباره فعال شود و پذیرش مشتری جدید را آغاز کند؟":"این سرور غیرفعال شود؟ سوابق حفظ می‌شود و برای مشتری جدید انتخاب نخواهد شد."))return;
+    toggle.disabled=true;
     try{
-     const result=await db.from("servers").update({status:"inactive",is_enabled_for_new_users:false}).eq("id",row.id).select("id").single();
+     const result=await db.from("servers").update({status:activating?"active":"inactive",is_enabled_for_new_users:activating}).eq("id",row.id).select("id").single();
      if(result.error)throw result.error;
+     showMessage("serverMsg",activating?"سرور فعال شد.":"سرور غیرفعال شد.");
      await loadServers();
-    }catch(e){showMessage("serverMsg","غیرفعال‌سازی سرور ناموفق بود: "+e.message);disable.disabled=false}
+    }catch(e){showMessage("serverMsg","تغییر وضعیت سرور ناموفق بود: "+e.message);toggle.disabled=false}
    });
-   td.appendChild(disable);tr.appendChild(td);table.appendChild(tr);
+   td.appendChild(toggle);tr.appendChild(td);table.appendChild(tr);
   });
   const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);
   box.className="";box.replaceChildren(wrap);$("serverCount").textContent=String(serverInventoryCache.length);
@@ -2110,7 +2114,7 @@ async function saveServer(){
  if(!name||!region||!server_role){showMessage("serverMsg","نام، منطقه و نقش سرور الزامی است.");return}
  if(portText&&(!Number.isInteger(Number(portText))||Number(portText)<1||Number(portText)>65535)){showMessage("serverMsg","پورت باید بین ۱ تا ۶۵۵۳۵ باشد.");return}
  if(country&&!/^[A-Z]{2}$/.test(country)){showMessage("serverMsg","کد کشور باید دو حرف انگلیسی باشد.");return}
- const payload={name,region,server_role,status:$("sStatus").value,country_code:country||null,protocol:$("sProtocol").value.trim()||null,host:$("sHost").value.trim()||null,ip_address:$("sIp").value.trim()||null,domain:$("sDomain").value.trim()||null,port:portText?Number(portText):null};
+ const payload={name,region,server_role,status:$("sStatus").value,is_enabled_for_new_users:$("sAcceptNew").checked&&$("sStatus").value!=="inactive",country_code:country||null,protocol:$("sProtocol").value.trim()||null,host:$("sHost").value.trim()||null,ip_address:$("sIp").value.trim()||null,domain:$("sDomain").value.trim()||null,port:portText?Number(portText):null};
  const btn=$("saveServerButton");btn.disabled=true;hideMessage("serverMsg");
  try{
   const id=$("serverEditId").value;
