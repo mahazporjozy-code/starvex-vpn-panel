@@ -1462,6 +1462,10 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <div><h2 class="section-title">مدیریت سرور STARVEX</h2><p class="muted">کنترل زیرساخت VPS از داخل پنل مادر</p></div>
     <button class="secondary-btn" id="refreshServerStatus" type="button">⟳ بررسی وضعیت اتصال</button>
    </div>
+   <div class="card">
+    <div class="dashboard-head"><h2 class="section-title">وضعیت مستقل سرورها</h2><span class="muted">گزارش Agent هر سرور</span></div>
+    <div id="serverHealthList" class="empty">برای دریافت وضعیت سرورها، بررسی اتصال را بزنید.</div>
+   </div>
    <div class="grid">
     <div class="stat"><div class="stat-label">وضعیت اتصال</div><div class="stat-value" id="serverConnectionState" style="font-size:19px">در حال بررسی...</div></div>
     <div class="stat"><div class="stat-label">CPU</div><div class="stat-value" id="serverCpu">—</div></div>
@@ -1584,25 +1588,25 @@ async function refreshServerStatus(){
  state.textContent="در حال بررسی...";
  apiState.textContent="Requesting authenticated status...";
  try{
-  const {data,error}=await db.auth.getSession();
-  if(error||!data.session)throw new Error("نشست معتبر نیست؛ دوباره وارد شوید.");
-  const response=await fetch("/api/server/status",{
-   method:"GET",
-   headers:{Authorization:"Bearer "+data.session.access_token,Accept:"application/json"},
-   cache:"no-store"
-  });
-  const result=await response.json().catch(()=>({}));
-  if(response.status===503)throw new Error("متغیرهای محیطی بک‌اند در Cloudflare تنظیم نشده‌اند.");
-  if(response.status===401||response.status===403)throw new Error("احراز هویت مدیر تأیید نشد.");
-  if(!response.ok)throw new Error("سرویس احراز هویت موقتاً در دسترس نیست.");
-  state.textContent=result.connected?"متصل":"VPS هنوز آماده نیست";
-  apiState.textContent="Backend authenticated · VPS agent not provisioned";
-  $("serverTerminalMessage").textContent="› Terminal offline · awaiting VPS agent";
-  message.textContent="هویت مدیر تأیید شد؛ هنوز VPS و عامل مدیریتی متصل نشده‌اند.";
+  const result=await fetchServerAgentStates();
+  const connected=(result.servers||[]).filter(item=>item.connected);
+  const count=serverInventoryCache.length;
+  state.textContent=connected.length
+   ?(connected.length+" سرور متصل")
+   :(count?"هیچ Agent متصلی نیست":"هنوز سروری ثبت نشده");
+  apiState.textContent="Backend authenticated · "+connected.length+" active agent(s) · "+(result.total_agents||0)+" registered agent(s)";
+  $("serverTerminalMessage").textContent="› Terminal offline · read-only monitoring only";
+  $("serverCpu").textContent=result.metrics?.cpu==null?"—":result.metrics.cpu+"٪";
+  $("serverMemory").textContent=result.metrics?.memory==null?"—":result.metrics.memory+"٪";
+  $("serverDisk").textContent=result.metrics?.disk==null?"—":result.metrics.disk+"٪";
+  message.textContent=result.message||"وضعیت Agentها دریافت شد؛ اجرای دستور شِل در این پنل فعال نیست.";
+  renderServerHealth();
+  if(serverInventoryCache.length)await loadServers();
  }catch(error){
-  state.textContent="آفلاین";
+  state.textContent="خطا در دریافت وضعیت";
   apiState.textContent="Backend status unavailable";
-  $("serverTerminalMessage").textContent="› No server commands can be executed";
+  $("serverTerminalMessage").textContent="› Monitoring unavailable · no remote commands";
+  $("serverCpu").textContent="—";$("serverMemory").textContent="—";$("serverDisk").textContent="—";
   message.textContent=error.message||"بررسی وضعیت انجام نشد.";
  }finally{
   button.disabled=false;button.textContent="⟳ بررسی وضعیت اتصال";
@@ -1990,22 +1994,112 @@ function editServer(row){
  $("cancelServerEdit").classList.remove("hidden");
  $("servers").scrollIntoView({behavior:"smooth"});
 }
+let serverInventoryCache=[];
+let serverStateCache=new Map();
+
+async function fetchServerAgentStates(){
+ const {data:{session},error}=await db.auth.getSession();
+ if(error||!session?.access_token)throw new Error("نشست مدیر معتبر نیست.");
+ const response=await fetch("/api/server/status",{
+  method:"GET",headers:{Authorization:"Bearer "+session.access_token,Accept:"application/json"},cache:"no-store"
+ });
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok||!result.ok)throw new Error(result.error||"دریافت وضعیت Agentها ناموفق بود.");
+ serverStateCache=new Map((result.servers||[]).map(item=>[String(item.server_id),item]));
+ return result;
+}
+
+function renderServerHealth(){
+ const box=$("serverHealthList");
+ if(!box)return;
+ if(!serverInventoryCache.length){
+  box.className="empty";box.textContent="هنوز سروری در فهرست ثبت نشده است.";return;
+ }
+ const table=document.createElement("table"),head=document.createElement("tr");
+ ["سرور","وضعیت Agent","CPU","RAM","دیسک","آخرین گزارش","نسخه Agent"].forEach(label=>{
+  const th=document.createElement("th");th.textContent=label;head.appendChild(th);
+ });
+ table.appendChild(head);
+ serverInventoryCache.forEach(server=>{
+  const agent=serverStateCache.get(String(server.id));
+  const connected=agent?.connected===true;
+  const tr=document.createElement("tr");
+  const values=[
+   (server.name||"بدون نام")+" · "+(server.region||"—"),
+   connected?"متصل":agent?"Agent آفلاین":"در انتظار VPS",
+   connected&&agent.metrics?.cpu!=null?agent.metrics.cpu+"٪":"—",
+   connected&&agent.metrics?.memory!=null?agent.metrics.memory+"٪":"—",
+   connected&&agent.metrics?.disk!=null?agent.metrics.disk+"٪":"—",
+   agent?.last_seen_at?new Date(agent.last_seen_at).toLocaleString("fa-IR"):"—",
+   agent?.agent_version||"—"
+  ];
+  values.forEach((value,index)=>{
+   const td=document.createElement("td");td.textContent=String(value);
+   if(index===1)td.className=connected?"status-active":"status-inactive";
+   tr.appendChild(td);
+  });
+  table.appendChild(tr);
+ });
+ const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);
+ box.className="";box.replaceChildren(wrap);
+}
+
 async function loadServers(){
  if(role!=="admin")return;
  const box=$("serverList");box.textContent="در حال دریافت...";
  try{
-  const {data,error}=await db.from("servers").select("id,name,region,server_role,status,country_code,protocol,host,ip_address,domain,port,created_at").order("created_at",{ascending:true});
+  const {data,error}=await db.from("servers")
+   .select("id,name,region,server_role,status,country_code,protocol,host,ip_address,domain,port,created_at,is_enabled_for_new_users")
+   .order("created_at",{ascending:true});
   if(error)throw error;
-  if(!data||!data.length){box.textContent="هنوز سروری ثبت نشده است.";return}
+  serverInventoryCache=data||[];
+  try{await fetchServerAgentStates()}catch(agentError){console.warn("Agent status unavailable:",agentError)}
+  renderServerHealth();
+  if(!serverInventoryCache.length){
+   box.textContent="هنوز سروری ثبت نشده است.";$("serverCount").textContent="0";return;
+  }
   const table=document.createElement("table"),head=document.createElement("tr");
-  ["نام","منطقه","نقش","پروتکل","میزبان / IP","پورت","وضعیت","عملیات"].forEach(v=>{const th=document.createElement("th");th.textContent=v;head.appendChild(th)});
-  table.appendChild(head);
-  data.forEach(row=>{
-   const tr=document.createElement("tr");
-   [row.name,row.region,row.server_role,row.protocol||"—",[row.host,row.ip_address].filter(Boolean).join(" / ")||"—",row.port??"—",({active:"فعال",planned:"برنامه‌ریزی‌شده",maintenance:"در حال تعمیر",inactive:"غیرفعال"}[row.status]||row.status||"—")].forEach(v=>{const td=document.createElement("td");td.textContent=String(v??"—");tr.appendChild(td)});
-   const td=document.createElement("td"),btn=document.createElement("button");btn.type="button";btn.className="small-btn";btn.textContent="ویرایش";btn.addEventListener("click",()=>editServer(row));td.appendChild(btn);tr.appendChild(td);table.appendChild(tr);
+  ["نام","منطقه","نقش","پروتکل","میزبان / IP","پورت","وضعیت ثبت","Agent","CPU","RAM","دیسک","عملیات"].forEach(v=>{
+   const th=document.createElement("th");th.textContent=v;head.appendChild(th);
   });
-  const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);box.replaceChildren(wrap);box.className="";$("serverCount").textContent=String(data.length);
+  table.appendChild(head);
+  serverInventoryCache.forEach(row=>{
+   const agent=serverStateCache.get(String(row.id));
+   const connected=agent?.connected===true;
+   const values=[
+    row.name,row.region,row.server_role,row.protocol||"—",
+    [row.host,row.ip_address].filter(Boolean).join(" / ")||"—",row.port??"—",
+    ({active:"فعال",planned:"برنامه‌ریزی‌شده",maintenance:"در حال تعمیر",inactive:"غیرفعال"}[row.status]||row.status||"—"),
+    connected?"متصل":agent?"آفلاین":"در انتظار",
+    connected&&agent.metrics?.cpu!=null?agent.metrics.cpu+"٪":"—",
+    connected&&agent.metrics?.memory!=null?agent.metrics.memory+"٪":"—",
+    connected&&agent.metrics?.disk!=null?agent.metrics.disk+"٪":"—"
+   ];
+   const tr=document.createElement("tr");
+   values.forEach((v,i)=>{
+    const td=document.createElement("td");td.textContent=String(v??"—");
+    if(i===7)td.className=connected?"status-active":"status-inactive";
+    tr.appendChild(td);
+   });
+   const td=document.createElement("td");
+   const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="ویرایش";
+   edit.addEventListener("click",()=>editServer(row));td.appendChild(edit);
+   const disable=document.createElement("button");disable.type="button";disable.className="small-btn danger-btn";
+   disable.textContent=row.status==="inactive"?"غیرفعال":"غیرفعال‌سازی";
+   disable.disabled=row.status==="inactive";
+   disable.addEventListener("click",async()=>{
+    if(!confirm("این سرور غیرفعال شود؟ سوابق آن حفظ می‌شود و برای مشتری جدید انتخاب نخواهد شد."))return;
+    disable.disabled=true;
+    try{
+     const result=await db.from("servers").update({status:"inactive",is_enabled_for_new_users:false}).eq("id",row.id).select("id").single();
+     if(result.error)throw result.error;
+     await loadServers();
+    }catch(e){showMessage("serverMsg","غیرفعال‌سازی سرور ناموفق بود: "+e.message);disable.disabled=false}
+   });
+   td.appendChild(disable);tr.appendChild(td);table.appendChild(tr);
+  });
+  const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);
+  box.className="";box.replaceChildren(wrap);$("serverCount").textContent=String(serverInventoryCache.length);
  }catch(e){box.textContent="خطا در دریافت سرورها: "+e.message}
 }
 async function saveServer(){
