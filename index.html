@@ -2318,7 +2318,7 @@ async function loadData(){
  }else{
   $("resellerCount").textContent="—";
   await loadResellerCapacity();
-  $("serverCount").textContent="—";
+  $("serverCount")?.textContent="—";
   $("systemStatus").textContent="حساب نماینده فعال است. اطلاعات بر اساس سطح دسترسی نمایش داده می‌شود.";
  }
  $("lastRefresh").textContent="آخرین بروزرسانی: "+new Date().toLocaleString("fa-IR");
