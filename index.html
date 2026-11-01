@@ -1418,6 +1418,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <div id="serverMsg" class="message hidden" role="status"></div>
    </div>
    <div class="card"><div class="dashboard-head"><h2 class="section-title">فهرست سرورها</h2><button class="secondary-btn" id="refreshServers" type="button">بروزرسانی</button></div><div id="serverList" class="empty">در حال دریافت...</div></div>
+   <div class="card"><div class="dashboard-head"><h2 class="section-title">مشتریان و اشتراک‌های هر سرور</h2><button class="secondary-btn" id="refreshServerAssignments" type="button">بروزرسانی تخصیص‌ها</button></div><div id="serverAssignments" class="empty">در حال دریافت اطلاعات تخصیص...</div></div>
   </section>
   <section class="tab" id="configs">
    <div class="card">
@@ -1443,6 +1444,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <div class="form-grid">
      <label>مشتری *<select id="subCustomer"><option value="">در حال دریافت مشتریان...</option></select></label>
      <label>طرح اشتراک<select id="subPlan"><option value="">بدون طرح مشخص</option></select></label>
+     <label>سرورهای میزبان *<select id="subServers" multiple size="4" aria-describedby="subServersHelp"></select><small id="subServersHelp" class="muted">برای انتخاب چند سرور، در گوشی هر مورد را لمس کنید. حداقل یک سرور لازم است.</small></label>
      <label>وضعیت اشتراک<select id="subStatus"><option value="pending">در انتظار</option><option value="active">فعال</option><option value="paused">متوقف</option><option value="expired">منقضی</option><option value="cancelled">لغوشده</option></select></label>
      <label>حجم کل (GB) *<input id="subVolume" type="number" min="1" step="1" placeholder="مثلاً 50"></label>
      <label>تاریخ و ساعت انقضا<input id="subExpires" type="datetime-local"></label>
@@ -2106,7 +2108,45 @@ async function loadServers(){
   });
   const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);
   box.className="";box.replaceChildren(wrap);$("serverCount").textContent=String(serverInventoryCache.length);
+  await loadServerAssignments();
  }catch(e){box.textContent="خطا در دریافت سرورها: "+e.message}
+}
+async function loadServerAssignments(){
+ const box=$("serverAssignments");if(!box)return;
+ box.textContent="در حال دریافت اطلاعات تخصیص...";
+ try{
+  const [{data:links,error:le},{data:configs,error:ce},{data:customers,error:ue}]=await Promise.all([
+   db.from("subscription_servers").select("subscription_id,server_id"),
+   db.from("vpn_configs").select("id,name,customer_id,server_id,subscription_id"),
+   db.from("customers").select("id,customer_code,full_name")
+  ]);
+  if(le)throw le;if(ce)throw ce;if(ue)throw ue;
+  const subIds=[...new Set((links||[]).map(x=>x.subscription_id))];
+  const {data:subs,error:se}=await db.from("subscriptions").select("id,customer_id,status").in("id",subIds.length?subIds:[-1]);
+  if(se)throw se;
+  const cm=new Map((customers||[]).map(x=>[x.id,(x.customer_code||("#"+x.id))+" · "+(x.full_name||"بدون نام")]));
+  const sm=new Map((subs||[]).map(x=>[x.id,x]));
+  const table=document.createElement("table"),head=document.createElement("tr");
+  ["سرور","مشتریان مرتبط","اشتراک‌ها","کانفیگ‌ها","جزئیات تخصیص"].forEach(v=>{const th=document.createElement("th");th.textContent=v;head.appendChild(th)});table.appendChild(head);
+  serverInventoryCache.forEach(server=>{
+   const serverLinks=(links||[]).filter(x=>String(x.server_id)===String(server.id));
+   const serverConfigs=(configs||[]).filter(x=>String(x.server_id)===String(server.id));
+   const subRows=serverLinks.map(x=>sm.get(x.subscription_id)).filter(Boolean);
+   const customerSet=new Set([...subRows.map(x=>x.customer_id),...serverConfigs.map(x=>x.customer_id)].filter(Boolean));
+   const subSet=new Set([...subRows.map(x=>x.id),...serverConfigs.map(x=>x.subscription_id)].filter(Boolean));
+   const details=[...subSet].map(id=>{
+    const sub=sm.get(id);
+    const direct=serverConfigs.filter(x=>x.subscription_id===id);
+    const customerId=sub?.customer_id||direct[0]?.customer_id;
+    return "اشتراک #"+id+" · "+(cm.get(customerId)||"مشتری نامشخص");
+   });
+   serverConfigs.filter(x=>!x.subscription_id).forEach(x=>details.push("کانفیگ "+(x.name||("#"+x.id))+" · "+(cm.get(x.customer_id)||"مشتری نامشخص")));
+   const tr=document.createElement("tr");
+   [server.name+" · "+server.region,String(customerSet.size),String(subSet.size),String(serverConfigs.length),details.join(" | ")||"هنوز تخصیصی ثبت نشده"].forEach(v=>{const td=document.createElement("td");td.textContent=v;tr.appendChild(td)});
+   table.appendChild(tr);
+  });
+  const wrap=document.createElement("div");wrap.className="table-wrap";wrap.appendChild(table);box.className="";box.replaceChildren(wrap);
+ }catch(e){box.className="empty";box.textContent="دریافت تخصیص‌ها ناموفق بود: "+e.message}
 }
 async function saveServer(){
  if(role!=="admin"){showMessage("serverMsg","فقط مدیر اصلی مجاز است.");return}
@@ -2128,10 +2168,11 @@ async function saveServer(){
 $("saveServerButton").addEventListener("click",saveServer);
 $("cancelServerEdit").addEventListener("click",()=>{resetServerForm();hideMessage("serverMsg")});
 $("refreshServers").addEventListener("click",loadServers);
+$("refreshServerAssignments").addEventListener("click",loadServerAssignments);
 
 /* مدیریت اشتراک‌ها - فقط مدیر اصلی */
 function resetSubscriptionForm(){
- $("subEditId").value="";$("subCustomer").value="";$("subPlan").value="";
+ $("subEditId").value="";$("subCustomer").value="";$("subPlan").value="";$("subServers").selectedIndex=-1;
  $("subStatus").value="pending";$("subVolume").value="50";$("subExpires").value="";
  $("saveSubscription").textContent="ثبت اشتراک";
  $("cancelSubscriptionEdit").classList.add("hidden");
@@ -2149,6 +2190,10 @@ async function loadSubscriptionOptions(){
   (cr.data||[]).forEach(c=>customer.add(new Option((c.customer_code||("#"+c.id))+" · "+(c.full_name||"بدون نام"),String(c.id))));
   plan.replaceChildren(new Option("بدون طرح مشخص",""));
   (pr.data||[]).forEach(p=>plan.add(new Option(p.name+" · "+p.duration_days+" روز",String(p.id))));
+  const {data:servers,error:se}=await db.from("servers").select("id,name,region,status,is_enabled_for_new_users").order("name");
+  if(se)throw se;
+  const serverSelect=$("subServers");serverSelect.replaceChildren();
+  (servers||[]).forEach(s=>{const opt=new Option(s.name+" · "+s.region+(s.status==="inactive"?" · غیرفعال":s.is_enabled_for_new_users===false?" · پذیرش متوقف":"") ,String(s.id));opt.disabled=s.status==="inactive";serverSelect.add(opt)});
  }catch(e){showMessage("subscriptionMsg","دریافت گزینه‌ها ناموفق بود: "+e.message)}
 }
 function formatSubDate(v){if(!v)return "—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleString("fa-IR")}
@@ -2195,8 +2240,14 @@ async function deleteSubscription(row){
   await loadSubscriptions();
  }catch(e){showMessage("subscriptionMsg","حذف اشتراک انجام نشد: "+e.message)}
 }
-function editSubscription(row){
+async function editSubscription(row){
  $("subEditId").value=row.id;$("subCustomer").value=String(row.customer_id||"");
+ try{
+  const {data,error}=await db.from("subscription_servers").select("server_id").eq("subscription_id",row.id);
+  if(error)throw error;
+  const assigned=new Set((data||[]).map(x=>String(x.server_id)));
+  [...$("subServers").options].forEach(o=>o.selected=assigned.has(o.value));
+ }catch(e){showMessage("subscriptionMsg","دریافت سرورهای اشتراک ناموفق بود: "+e.message);return}
  $("subPlan").value=row.plan_id?String(row.plan_id):"";
  $("subStatus").value=row.status||"pending";
  $("subVolume").value=Math.max(1,Math.floor(Number(row.volume_limit_bytes||0)/1073741824))||1;
@@ -2214,6 +2265,8 @@ async function saveSubscription(){
  if(!Number.isSafeInteger(volume)||volume<1){showMessage("subscriptionMsg","حجم باید حداقل ۱ گیگابایت و عدد صحیح باشد.");return}
  if(expires&&Number.isNaN(new Date(expires).getTime())){showMessage("subscriptionMsg","تاریخ انقضا معتبر نیست.");return}
  const payload={customer_id:customerId,plan_id:planId,status,volume_limit_bytes:volume*1073741824,expires_at:expires?new Date(expires).toISOString():null};
+ const selectedServers=[...$("subServers").selectedOptions].map(o=>o.value);
+ if(!selectedServers.length){showMessage("subscriptionMsg","حداقل یک سرور میزبان انتخاب کنید.");return}
  const btn=$("saveSubscription");btn.disabled=true;
  try{
   const id=$("subEditId").value;
@@ -2221,8 +2274,14 @@ async function saveSubscription(){
    ?await db.from("subscriptions").update(payload).eq("id",Number(id)).select("id").single()
    :await db.from("subscriptions").insert(payload).select("id").single();
   if(result.error)throw result.error;
-  showMessage("subscriptionMsg",id?"اشتراک با موفقیت بروزرسانی شد.":"اشتراک با موفقیت ثبت شد.");
-  resetSubscriptionForm();await loadSubscriptions();
+  const subscriptionId=id?Number(id):result.data.id;
+  const {error:deleteLinksError}=await db.from("subscription_servers").delete().eq("subscription_id",subscriptionId);
+  if(deleteLinksError)throw deleteLinksError;
+  const links=selectedServers.map(server_id=>({subscription_id:subscriptionId,server_id}));
+  const {error:linkError}=await db.from("subscription_servers").insert(links);
+  if(linkError)throw linkError;
+  showMessage("subscriptionMsg",id?"اشتراک و سرورهای میزبان بروزرسانی شدند.":"اشتراک و سرورهای میزبان ثبت شدند.");
+  resetSubscriptionForm();await loadSubscriptions();await loadServers();
  }catch(e){showMessage("subscriptionMsg","ذخیره اشتراک ناموفق بود: "+e.message)}
  finally{btn.disabled=false}
 }
