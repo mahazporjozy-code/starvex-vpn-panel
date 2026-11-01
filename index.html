@@ -475,6 +475,15 @@ th,td{border-bottom-color:rgba(66,166,199,.16)}
 .owner-option small{display:block;margin-top:5px;color:#aaa2b6;font-size:10px;line-height:1.8}
 #cResellerWrap{margin-top:10px}
 
+
+/* Reseller panel: completely hide server management UI */
+body.reseller-mode [data-tab="servers"],
+body.reseller-mode [data-tab="serverManagement"],
+body.reseller-mode [data-go="servers"],
+body.reseller-mode #servers,
+body.reseller-mode #serverManagement,
+body.reseller-mode #serverCount,
+body.reseller-mode #serverCount {display:none!important;}
 </style>
 <style id="starvex-final-login-artwork">
 /* STARVEX NEXUS — final mobile-first login artwork */
