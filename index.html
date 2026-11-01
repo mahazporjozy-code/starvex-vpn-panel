@@ -1287,6 +1287,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
   <button class="nav-btn admin-only" data-tab="servers">▤ سرورها</button>
   <button class="nav-btn admin-only" data-tab="subscriptions">◷ اشتراک‌ها</button>
   <button class="nav-btn admin-only" data-tab="configs">🔐 کانفیگ‌ها</button>
+  <button class="nav-btn admin-only" data-tab="serverManagement">🖥️ مدیریت سرور</button>
   <div class="sidebar-bottom">
    <div class="sidebar-footer-label">STARVEX NEXUS · v1.0</div>
    <button class="nav-btn" id="logoutButton">↪ خروج از حساب</button>
@@ -1455,7 +1456,40 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <div id="subscriptionList" class="empty">در حال دریافت...</div>
    </div>
   </section>
- </main>
+ 
+  <section class="tab" id="serverManagement">
+   <div class="dashboard-head">
+    <div><h2 class="section-title">مدیریت سرور STARVEX</h2><p class="muted">کنترل زیرساخت VPS از داخل پنل مادر</p></div>
+    <span class="status-inactive">● در انتظار تهیه VPS</span>
+   </div>
+   <div class="grid">
+    <div class="stat"><div class="stat-label">وضعیت اتصال</div><div class="stat-value" style="font-size:19px">متصل نیست</div></div>
+    <div class="stat"><div class="stat-label">CPU</div><div class="stat-value">—</div></div>
+    <div class="stat"><div class="stat-label">RAM</div><div class="stat-value">—</div></div>
+    <div class="stat"><div class="stat-label">فضای دیسک</div><div class="stat-value">—</div></div>
+   </div>
+   <div class="card">
+    <h2 class="section-title">ترمینال تحت وب</h2>
+    <p class="muted">محیط ترمینال پس از تهیه VPS و راه‌اندازی اتصال امن فعال می‌شود. در این مرحله هیچ دستوری اجرا یا به سروری ارسال نمی‌شود.</p>
+    <div style="padding:18px;border:1px solid #4b4058;border-radius:10px;background:#080a10;color:#8fdda9;font-family:monospace;direction:ltr;text-align:left;min-height:145px">
+     <div>STARVEX NEXUS · SECURE SERVER CONSOLE</div>
+     <div style="margin-top:12px;color:#b8afc5">Connection: not configured</div>
+     <div style="margin-top:8px;color:#b8afc5">Waiting for VPS provisioning...</div>
+     <div style="margin-top:16px;color:#d9ad52">› Terminal is currently offline</div>
+    </div>
+    <button class="primary" type="button" disabled style="opacity:.55;cursor:not-allowed">ترمینال پس از اتصال VPS فعال می‌شود</button>
+   </div>
+   <div class="card">
+    <h2 class="section-title">ابزارهای مدیریت زیرساخت</h2>
+    <div class="quick-grid">
+     <button class="quick-btn" type="button" disabled>📊 پایش منابع سرور · در انتظار اتصال</button>
+     <button class="quick-btn" type="button" disabled>⚙️ وضعیت سرویس‌ها · در انتظار اتصال</button>
+     <button class="quick-btn" type="button" disabled>🌐 اتصال Cloudflare · در انتظار تنظیم</button>
+    </div>
+    <p class="muted" style="margin-top:14px">دسترسی این بخش فقط برای مدیر اصلی در نظر گرفته شده است. اطلاعات ورود و کلیدهای سرور در فایل‌های عمومی سایت ذخیره نخواهند شد.</p>
+   </div>
+  </section>
+</main>
 </div>
 
 <script>
@@ -1545,7 +1579,7 @@ $("logoutButton").addEventListener("click",async()=>{
 
 /* جابجایی بین بخش‌ها */
 function openTab(tabId){
- const allowed=["overview","resellers","customers","servers","subscriptions","configs"];
+ const allowed=["overview","resellers","customers","servers","subscriptions","configs","serverManagement"];
  if(!allowed.includes(tabId))return;
  if(role!=="admin"&&tabId!=="overview"&&tabId!=="customers")return;
  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
@@ -1557,7 +1591,8 @@ function openTab(tabId){
   customers:"مدیریت مشتریان",
   servers:"مدیریت سرورها",
   subscriptions:"مدیریت اشتراک‌ها",
-  configs:"مدیریت کانفیگ‌ها"
+  configs:"مدیریت کانفیگ‌ها",
+  serverManagement:"مدیریت سرور"
  };
  $("pageTitle").textContent=titles[tabId];
  closeMobileMenu();
