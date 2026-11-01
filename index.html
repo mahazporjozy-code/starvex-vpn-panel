@@ -1460,24 +1460,25 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
   <section class="tab" id="serverManagement">
    <div class="dashboard-head">
     <div><h2 class="section-title">مدیریت سرور STARVEX</h2><p class="muted">کنترل زیرساخت VPS از داخل پنل مادر</p></div>
-    <span class="status-inactive">● در انتظار تهیه VPS</span>
+    <button class="secondary-btn" id="refreshServerStatus" type="button">⟳ بررسی وضعیت اتصال</button>
    </div>
    <div class="grid">
-    <div class="stat"><div class="stat-label">وضعیت اتصال</div><div class="stat-value" style="font-size:19px">متصل نیست</div></div>
-    <div class="stat"><div class="stat-label">CPU</div><div class="stat-value">—</div></div>
-    <div class="stat"><div class="stat-label">RAM</div><div class="stat-value">—</div></div>
-    <div class="stat"><div class="stat-label">فضای دیسک</div><div class="stat-value">—</div></div>
+    <div class="stat"><div class="stat-label">وضعیت اتصال</div><div class="stat-value" id="serverConnectionState" style="font-size:19px">در حال بررسی...</div></div>
+    <div class="stat"><div class="stat-label">CPU</div><div class="stat-value" id="serverCpu">—</div></div>
+    <div class="stat"><div class="stat-label">RAM</div><div class="stat-value" id="serverMemory">—</div></div>
+    <div class="stat"><div class="stat-label">فضای دیسک</div><div class="stat-value" id="serverDisk">—</div></div>
    </div>
    <div class="card">
     <h2 class="section-title">ترمینال تحت وب</h2>
-    <p class="muted">محیط ترمینال پس از تهیه VPS و راه‌اندازی اتصال امن فعال می‌شود. در این مرحله هیچ دستوری اجرا یا به سروری ارسال نمی‌شود.</p>
+    <p class="muted">اتصال ترمینال پس از تهیه VPS و راه‌اندازی عامل مدیریتی امن فعال می‌شود. این نسخه فقط وضعیت را بررسی می‌کند و امکان اجرای دستور شِل ندارد.</p>
     <div style="padding:18px;border:1px solid #4b4058;border-radius:10px;background:#080a10;color:#8fdda9;font-family:monospace;direction:ltr;text-align:left;min-height:145px">
      <div>STARVEX NEXUS · SECURE SERVER CONSOLE</div>
-     <div style="margin-top:12px;color:#b8afc5">Connection: not configured</div>
-     <div style="margin-top:8px;color:#b8afc5">Waiting for VPS provisioning...</div>
-     <div style="margin-top:16px;color:#d9ad52">› Terminal is currently offline</div>
+     <div id="serverApiState" style="margin-top:12px;color:#b8afc5">Checking authenticated backend...</div>
+     <div style="margin-top:8px;color:#b8afc5">VPS agent: not provisioned</div>
+     <div id="serverTerminalMessage" style="margin-top:16px;color:#d9ad52">› Terminal offline · awaiting VPS</div>
     </div>
-    <button class="primary" type="button" disabled style="opacity:.55;cursor:not-allowed">ترمینال پس از اتصال VPS فعال می‌شود</button>
+    <button class="primary" type="button" disabled style="opacity:.55;cursor:not-allowed">ترمینال پس از راه‌اندازی عامل امن فعال می‌شود</button>
+    <p class="muted" id="serverStatusMessage" aria-live="polite">وضعیت اتصال هنوز بررسی نشده است.</p>
    </div>
    <div class="card">
     <h2 class="section-title">ابزارهای مدیریت زیرساخت</h2>
@@ -1486,7 +1487,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
      <button class="quick-btn" type="button" disabled>⚙️ وضعیت سرویس‌ها · در انتظار اتصال</button>
      <button class="quick-btn" type="button" disabled>🌐 اتصال Cloudflare · در انتظار تنظیم</button>
     </div>
-    <p class="muted" style="margin-top:14px">دسترسی این بخش فقط برای مدیر اصلی در نظر گرفته شده است. اطلاعات ورود و کلیدهای سرور در فایل‌های عمومی سایت ذخیره نخواهند شد.</p>
+    <p class="muted" style="margin-top:14px">دسترسی این بخش فقط برای مدیر اصلی است. کلید خصوصی SSH و توکن عامل سرور در مرورگر یا فایل‌های عمومی ذخیره نمی‌شوند.</p>
    </div>
   </section>
 </main>
@@ -1572,6 +1573,43 @@ async function checkSession(){
  }
 }
 
+/* بررسی وضعیت امن بک‌اند سرور */
+async function refreshServerStatus(){
+ const button=$("refreshServerStatus");
+ const state=$("serverConnectionState");
+ const apiState=$("serverApiState");
+ const message=$("serverStatusMessage");
+ if(!button||role!=="admin")return;
+ button.disabled=true;button.textContent="در حال بررسی...";
+ state.textContent="در حال بررسی...";
+ apiState.textContent="Requesting authenticated status...";
+ try{
+  const {data,error}=await db.auth.getSession();
+  if(error||!data.session)throw new Error("نشست معتبر نیست؛ دوباره وارد شوید.");
+  const response=await fetch("/api/server/status",{
+   method:"GET",
+   headers:{Authorization:"Bearer "+data.session.access_token,Accept:"application/json"},
+   cache:"no-store"
+  });
+  const result=await response.json().catch(()=>({}));
+  if(response.status===503)throw new Error("متغیرهای محیطی بک‌اند در Cloudflare تنظیم نشده‌اند.");
+  if(response.status===401||response.status===403)throw new Error("احراز هویت مدیر تأیید نشد.");
+  if(!response.ok)throw new Error("سرویس احراز هویت موقتاً در دسترس نیست.");
+  state.textContent=result.connected?"متصل":"VPS هنوز آماده نیست";
+  apiState.textContent="Backend authenticated · VPS agent not provisioned";
+  $("serverTerminalMessage").textContent="› Terminal offline · awaiting VPS agent";
+  message.textContent="هویت مدیر تأیید شد؛ هنوز VPS و عامل مدیریتی متصل نشده‌اند.";
+ }catch(error){
+  state.textContent="آفلاین";
+  apiState.textContent="Backend status unavailable";
+  $("serverTerminalMessage").textContent="› No server commands can be executed";
+  message.textContent=error.message||"بررسی وضعیت انجام نشد.";
+ }finally{
+  button.disabled=false;button.textContent="⟳ بررسی وضعیت اتصال";
+ }
+}
+$("refreshServerStatus")?.addEventListener("click",refreshServerStatus);
+
 /* خروج */
 $("logoutButton").addEventListener("click",async()=>{
  await db.auth.signOut();location.reload();
@@ -1601,6 +1639,7 @@ function openTab(tabId){
  if(tabId==="servers"&&role==="admin")loadServers();
  if(tabId==="subscriptions"&&role==="admin"){loadSubscriptionOptions();loadSubscriptions();}
  if(tabId==="configs"&&role==="admin"){loadConfigOptions();loadConfigs();}
+ if(tabId==="serverManagement"&&role==="admin")refreshServerStatus();
 }
 document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.go)));
