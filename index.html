@@ -1282,7 +1282,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
   <div class="menu-title">مرکز کنترل</div>
   <button class="nav-btn active" data-tab="overview">▦ داشبورد اصلی</button>
   <div class="menu-title">مدیریت مجموعه</div>
-  <button class="nav-btn admin-only" data-tab="resellers">♙ Modireyat zarfiyat</button>
+  <button class="nav-btn" data-tab="resellers">♙ مدیریت نمایندگان و سهمیه</button>
   <button class="nav-btn" data-tab="customers">♧ مشتریان</button>
   <button class="nav-btn admin-only" data-tab="servers">▤ سرورها</button>
   <button class="nav-btn" data-tab="configs">🔐 ساخت کانفیگ</button>
@@ -1349,17 +1349,19 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
    <div class="reseller-top-grid">
    <div class="card">
     <h2 class="section-title">ایجاد نمایندگی جدید</h2>
+    <div id="myQuotaBox" class="message hidden"></div>
     <div class="form-grid">
      <input id="rName" placeholder="نام نمایندگی">
      <input id="rEmail" type="email" placeholder="ایمیل نمایندگی">
      <input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر">
+     <label>سهمیه ترافیک (GB)<input id="rQuota" type="number" min="1" step="1" placeholder="مثلاً ۵۰۰"></label>
     </div>
     <button class="primary" id="createResellerButton">ایجاد نمایندگی</button>
-    <p class="muted">ظرفیت پیش‌فرض هر نمایندگی: ۲۰۰ مشتری</p>
+    <p class="muted" id="resellerCreateHint">ظرفیت پیش‌فرض هر نمایندگی: ۲۰۰ مشتری</p>
     <div id="resellerMsg" class="message hidden"></div>
    </div>
-   <div class="card">
-    <h2 class="section-title">Modireyat zarfiyat</h2>
+   <div class="card" id="capacityReportCard">
+    <h2 class="section-title">گزارش سهمیه و ظرفیت</h2>
     <button class="secondary-btn" id="refreshCapacity">بروزرسانی گزارش</button>
     <div id="capacityMsg" class="message hidden"></div>
     <div id="capacityList" class="empty">در حال دریافت اطلاعات...</div>
@@ -1602,7 +1604,7 @@ $("logoutButton").addEventListener("click",async()=>{
 function openTab(tabId){
  const allowed=["overview","resellers","customers","servers","configs","serverManagement"];
  if(!allowed.includes(tabId))return;
- if(role!=="admin"&&tabId!=="overview"&&tabId!=="customers")return;
+ if(role!=="admin"&&tabId!=="overview"&&tabId!=="customers"&&tabId!=="resellers")return;
  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
  $(tabId).classList.add("active");
  document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.classList.toggle("active",btn.dataset.tab===tabId));
@@ -1616,7 +1618,7 @@ function openTab(tabId){
  };
  $("pageTitle").textContent=titles[tabId];
  closeMobileMenu();
- if(tabId==="resellers"&&role==="admin")loadResellerCapacity();
+ if(tabId==="resellers")loadResellerCapacity();
  if(tabId==="customers")loadCustomerResellerOptions();
  if(tabId==="servers"&&role==="admin")loadServers();
   if(tabId==="configs"&&role==="admin"){loadConfigOptions();loadConfigs();}
@@ -1757,8 +1759,29 @@ async function loadTable(tableName,boxId,countId){
 
 /* گزارش ظرفیت */
 async function loadResellerCapacity(){
- if(role!=="admin")return;
  const box=$("capacityList");
+ if(role==="reseller"){
+  $("capacityReportCard").classList.add("hidden");
+  $("resellerCreateHint").textContent="برای ایجاد نماینده زیرمجموعه، حداقل ۵۰۰ گیگابایت لازم است.";
+  $("rQuota").min="500"; $("rQuota").placeholder="حداقل ۵۰۰ گیگابایت";
+  try{
+   const {data:mine,error}=await db.from("resellers").select("id,display_name,traffic_quota_bytes,can_create_subresellers").eq("user_id",currentUser.id).single();
+   if(error)throw error;
+   const gb=(Number(mine.traffic_quota_bytes||0)/1073741824);
+   $("myQuotaBox").classList.remove("hidden");
+   $("myQuotaBox").textContent="سهمیه قابل واگذاری شما: "+gb.toFixed(2)+" GB"+(mine.can_create_subresellers?" · امکان ایجاد نماینده فعال است":" · برای ایجاد نماینده به حداقل ۵۰۰ GB موجودی نیاز دارید.");
+   const {data:children,error:childError}=await db.from("resellers").select("id,display_name,traffic_quota_bytes,is_active").eq("parent_reseller_id",mine.id).order("id");
+   if(childError)throw childError;
+   const list=$("resellerList");
+   if(!children?.length){list.textContent="هنوز نماینده زیرمجموعه‌ای ایجاد نکرده‌اید.";return}
+   const rows=children.map(x=>({شناسه:x.id,نام:x.display_name,سهمیه_GB:(Number(x.traffic_quota_bytes)/1073741824).toFixed(2),وضعیت:x.is_active?"فعال":"غیرفعال"}));
+   renderTable("resellerList",rows,[{key:"شناسه",label:"شناسه"},{key:"نام",label:"نام نماینده"},{key:"سهمیه_GB",label:"سهمیه (GB)"},{key:"وضعیت",label:"وضعیت"}]);
+  }catch(e){$("myQuotaBox").textContent="دریافت سهمیه ناموفق بود: "+e.message}
+  return;
+ }
+ if(role!=="admin")return;
+ $("capacityReportCard").classList.remove("hidden");
+ $("myQuotaBox").classList.add("hidden"); $("rQuota").min="1"; $("rQuota").placeholder="مثلاً ۱۰۰۰";
  box.textContent="در حال دریافت گزارش ظرفیت...";
  try{
   const {data,error}=await db.rpc("get_reseller_capacity");
@@ -1766,7 +1789,7 @@ async function loadResellerCapacity(){
   if(!data.length){box.textContent="هنوز نمایندگی‌ای ثبت نشده است.";return}
   const table=document.createElement("table");
   const head=document.createElement("tr");
-  ["شناسه","نام نمایندگی","ظرفیت کل","مشتریان فعلی","ظرفیت باقی‌مانده","وضعیت","ظرفیت جدید","عملیات"].forEach(label=>{
+  ["شناسه","نام نمایندگی","ظرفیت مشتری","مشتریان فعلی","ظرفیت باقی‌مانده","وضعیت","ظرفیت جدید","ذخیره ظرفیت","سهمیه ترافیک GB","شارژ GB"].forEach(label=>{
    const th=document.createElement("th");th.textContent=label;head.appendChild(th);
   });
   table.appendChild(head);
@@ -1791,7 +1814,19 @@ async function loadResellerCapacity(){
    const button=document.createElement("button");
    button.className="small-btn";button.textContent="ذخیره";
    button.addEventListener("click",()=>saveCapacity(item.reseller_id,input.value,button));
-   actionCell.appendChild(button);table.appendChild(tr);
+   actionCell.appendChild(button);
+   const quotaCell=addCell("—");
+   const quotaInputCell=addCell("");
+   const quotaInput=document.createElement("input");quotaInput.type="number";quotaInput.min="1";quotaInput.step="1";quotaInput.placeholder="مقدار GB";quotaInput.className="small-input";
+   quotaInputCell.appendChild(quotaInput);
+   const chargeButton=document.createElement("button");chargeButton.className="small-btn";chargeButton.textContent="شارژ";
+   chargeButton.addEventListener("click",async()=>{
+    const amount=Number(quotaInput.value);if(!Number.isFinite(amount)||amount<=0){showMessage("capacityMsg","مقدار شارژ باید بیشتر از صفر باشد.");return}
+    chargeButton.disabled=true;
+    try{const {data,error}=await db.rpc("admin_charge_reseller_quota",{p_reseller_id:item.reseller_id,p_amount_gb:amount});if(error)throw error;showMessage("capacityMsg","سهمیه با موفقیت شارژ شد. موجودی جدید: "+(Number(data)/1073741824).toFixed(2)+" GB");await loadResellerCapacity()}
+    catch(e){showMessage("capacityMsg","شارژ انجام نشد: "+e.message)}finally{chargeButton.disabled=false}
+   });
+   quotaInputCell.appendChild(chargeButton);table.appendChild(tr);
   });
   const wrap=document.createElement("div");
   wrap.className="table-wrap";wrap.appendChild(table);
@@ -1823,14 +1858,15 @@ $("refreshCapacity").addEventListener("click",loadResellerCapacity);
 /* ایجاد نمایندگی */
 $("createResellerButton").addEventListener("click",createReseller);
 async function createReseller(){
- if(role!=="admin")return;
+ if(role!=="admin"&&role!=="reseller")return;
  const name=$("rName").value.trim();
  const email=$("rEmail").value.trim();
  const password=$("rPassword").value;
+ const quotaGb=Number($("rQuota").value);
  const button=$("createResellerButton");
  hideMessage("resellerMsg");
- if(!name||!email||password.length<12){
-  showMessage("resellerMsg","نام، ایمیل و رمز عبور حداقل ۱۲ کاراکتری لازم است.");return;
+ if(!name||!email||password.length<12||!Number.isFinite(quotaGb)||quotaGb<=0||(role==="reseller"&&quotaGb<500)){
+  showMessage("resellerMsg",role==="reseller"?"نام، ایمیل، رمز حداقل ۱۲ کاراکتری و سهمیه حداقل ۵۰۰ گیگابایت لازم است.":"نام، ایمیل، رمز حداقل ۱۲ کاراکتری و سهمیه معتبر لازم است.");return;
  }
  setLoading(button,true,"ایجاد نمایندگی");
  try{
@@ -1844,14 +1880,14 @@ async function createReseller(){
     "Authorization":"Bearer "+session.access_token,
     "apikey":SUPABASE_KEY
    },
-   body:JSON.stringify({display_name:name,email,password})
+   body:JSON.stringify({display_name:name,email,password,quota_gb:quotaGb})
   });
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"ایجاد نمایندگی ناموفق بود.");
   showMessage("resellerMsg","نمایندگی با موفقیت ایجاد شد. شناسه: "+(result.reseller?.id||"ثبت شد"));
-  $("rName").value="";$("rEmail").value="";$("rPassword").value="";
+  $("rName").value="";$("rEmail").value="";$("rPassword").value="";$("rQuota").value="";
   await loadResellerCapacity();
-  await loadTable("resellers","resellerList","resellerCount");
+  if(role==="admin")await loadTable("resellers","resellerList","resellerCount");
  }catch(error){
   showMessage("resellerMsg","خطا: "+error.message);
  }finally{
@@ -2231,6 +2267,7 @@ async function loadData(){
   $("systemStatus").textContent="اتصال به Supabase برقرار است. سطح دسترسی: مدیر.";
  }else{
   $("resellerCount").textContent="—";
+  await loadResellerCapacity();
   $("serverCount").textContent="—";
   $("systemStatus").textContent="حساب نماینده فعال است. اطلاعات بر اساس سطح دسترسی نمایش داده می‌شود.";
  }
