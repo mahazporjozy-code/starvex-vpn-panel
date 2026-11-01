@@ -74,6 +74,26 @@ border:1px solid #39364e;
 background:#090b10;
 color:white;
 }
+
+.password-wrap{position:relative;width:100%}
+.password-wrap input{padding-left:48px}
+.password-toggle{
+position:absolute;
+left:8px;
+top:50%;
+transform:translateY(-50%);
+width:34px;
+height:34px;
+padding:0;
+border:0;
+border-radius:6px;
+background:transparent;
+color:#d8caff;
+font-size:18px;
+cursor:pointer;
+}
+.password-toggle:focus-visible{outline:2px solid var(--purple);outline-offset:2px}
+
 button.primary{
 padding:12px 16px;
 border:0;
@@ -258,7 +278,10 @@ z-index:10;
 
 <form id="loginForm">
 <input id="email" type="email" placeholder="ایمیل" required autocomplete="username">
+<div class="password-wrap">
 <input id="password" type="password" placeholder="رمز عبور" required autocomplete="current-password">
+<button class="password-toggle" id="togglePassword" type="button" aria-label="نمایش رمز عبور" title="نمایش رمز عبور">👁</button>
+</div>
 <button class="primary wide" id="loginBtn">ورود امن</button>
 </form>
 
@@ -368,7 +391,7 @@ z-index:10;
 </div>
 
 <div class="card">
-<h2 class="title">Modireyat zarfiyat</h2>
+<h2 class="title">مدیریت ظرفیت نمایندگان</h2>
 <button class="secondary" id="refreshCapacity">بروزرسانی گزارش</button>
 <div id="capacityList" class="muted"></div>
 </div>
@@ -485,6 +508,17 @@ const SUPABASE_KEY="sb_publishable_mooK4G0-1pnpckPue4T1PA_NVsydkl6";
 
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=id=>document.getElementById(id);
+
+$("togglePassword")?.addEventListener("click",()=>{
+ const input=$("password");
+ const button=$("togglePassword");
+ const showing=input.type==="password";
+ input.type=showing?"text":"password";
+ button.textContent=showing?"🙈":"👁";
+ button.setAttribute("aria-label",showing?"مخفی کردن رمز عبور":"نمایش رمز عبور");
+ button.title=showing?"مخفی کردن رمز عبور":"نمایش رمز عبور";
+});
+
 
 let role=null;
 let sessionUser=null;
