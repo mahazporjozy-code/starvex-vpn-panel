@@ -42,7 +42,13 @@ export async function onRequestPost({ request, env }) {
 
   const serverId = typeof body.server_id === "string" ? body.server_id : "";
   if (!/^[a-zA-Z0-9_-]{1,80}$/.test(serverId)) return json({ error: "invalid_server_id" }, 400);
-  if (!tokenMap || typeof tokenMap !== "object" || !safeEqual(token, tokenMap[serverId])) {
+  if (!tokenMap || typeof tokenMap !== "object" ||
+      !Object.prototype.hasOwnProperty.call(tokenMap, serverId)) {
+    return json({ error: "unauthorized" }, 401);
+  }
+  const expectedToken = tokenMap[serverId];
+  if (typeof expectedToken !== "string" || expectedToken.length < 32 ||
+      expectedToken.length > 256 || !safeEqual(token, expectedToken)) {
     return json({ error: "unauthorized" }, 401);
   }
 
