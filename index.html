@@ -1559,6 +1559,10 @@ async function checkSession(){
    return;
   }
   role=userRole;currentUser=user;
+  if(role!=="admin"){
+   document.querySelectorAll('[data-tab="servers"],[data-tab="serverManagement"],[data-go="servers"],#servers,#serverManagement').forEach(el=>el.remove());
+   $("serverCount")?.closest(".stat")?.remove();
+  }
   $("loginPage").classList.add("hidden");
   $("app").classList.remove("hidden");
   $("userInfo").textContent=user.email;
