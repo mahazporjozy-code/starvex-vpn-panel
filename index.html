@@ -1399,7 +1399,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
      <label>سرور *<select id="configServer"><option value="">انتخاب سرور</option></select></label>
       <label>اشتراک مرتبط (اختیاری)<select id="configSubscription"><option value="">بدون اتصال به اشتراک</option></select></label>
      <label>نام کانفیگ *<input id="configName" maxlength="120"></label>
-     <label>پروتکل *<select id="configProtocol"><option>VLESS</option><option>VMess</option><option>Trojan</option><option>Shadowsocks</option><option>WireGuard</option><option>Other</option></select></label>
+     <label class="admin-only">پروتکل *<select id="configProtocol"><option>VLESS</option><option>VMess</option><option>Trojan</option><option>Shadowsocks</option><option>WireGuard</option><option>Other</option></select></label>
      <label>حجم (GB) — خالی = نامحدود<input id="configVolume" type="number" min="1" step="1"></label>
      <label>تاریخ انقضا<input id="configExpires" type="datetime-local"></label>
     </div>
