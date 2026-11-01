@@ -1354,7 +1354,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
      <input id="rName" placeholder="نام نمایندگی">
      <input id="rEmail" type="email" placeholder="ایمیل نمایندگی">
      <input id="rPassword" type="password" placeholder="رمز اولیه حداقل ۱۲ کاراکتر">
-     <label>سهمیه ترافیک (GB)<input id="rQuota" type="number" min="1" step="1" placeholder="مثلاً ۵۰۰"></label>
+     <label id="rQuotaLabel">سهمیه ترافیک (GB)<input id="rQuota" type="number" min="1" step="1" placeholder="مثلاً ۵۰۰"></label>
     </div>
     <button class="primary" id="createResellerButton">ایجاد نمایندگی</button>
     <p class="muted" id="resellerCreateHint">ظرفیت پیش‌فرض هر نمایندگی: ۲۰۰ مشتری</p>
@@ -1781,7 +1781,7 @@ async function loadResellerCapacity(){
  }
  if(role!=="admin")return;
  $("capacityReportCard").classList.remove("hidden");
- $("myQuotaBox").classList.add("hidden"); $("rQuota").min="1"; $("rQuota").placeholder="مثلاً ۱۰۰۰";
+ $("myQuotaBox").classList.add("hidden"); $("rQuotaLabel").classList.add("hidden"); $("rQuota").value="0"; $("rQuota").min="0"; $("resellerCreateHint").textContent="ایجاد نماینده آزمایشی بدون سهمیه فعال است؛ بعداً می‌توانید از بخش مدیریت سهمیه، برای او ترافیک شارژ کنید.";
  box.textContent="در حال دریافت گزارش ظرفیت...";
  try{
   const {data,error}=await db.rpc("get_reseller_capacity");
@@ -1865,11 +1865,11 @@ async function createReseller(){
  const name=$("rName").value.trim();
  const email=$("rEmail").value.trim();
  const password=$("rPassword").value;
- const quotaGb=Number($("rQuota").value);
+ const quotaGb=role==="admin"?0:Number($("rQuota").value);
  const button=$("createResellerButton");
  hideMessage("resellerMsg");
- if(!name||!email||password.length<12||!Number.isFinite(quotaGb)||quotaGb<=0||(role==="reseller"&&quotaGb<500)){
-  showMessage("resellerMsg",role==="reseller"?"نام، ایمیل، رمز حداقل ۱۲ کاراکتری و سهمیه حداقل ۵۰۰ گیگابایت لازم است.":"نام، ایمیل، رمز حداقل ۱۲ کاراکتری و سهمیه معتبر لازم است.");return;
+ if(!name||!email||password.length<12||!Number.isFinite(quotaGb)||(role==="reseller"&&(quotaGb<500||quotaGb>1000000))){
+  showMessage("resellerMsg",role==="reseller"?"نام، ایمیل، رمز حداقل ۱۲ کاراکتری و سهمیه حداقل ۵۰۰ گیگابایت لازم است.":"نام، ایمیل و رمز حداقل ۱۲ کاراکتری لازم است.");return;
  }
  setLoading(button,true,"ایجاد نمایندگی");
  try{
