@@ -191,8 +191,12 @@ td{color:#ddd7e6}
 
 
 /* Reseller workspace: only configs, own customers and own sub-resellers. */
-body.reseller-mode .dragon-hero,body.reseller-mode #overview{display:none!important}
+body.reseller-mode .dragon-hero,body.reseller-mode #overview,body.reseller-mode #customers,body.reseller-mode #capacityReportCard,body.reseller-mode .reseller-list-card{display:none!important}
 body.reseller-mode .topbar .muted{display:none}
+body.reseller-mode [data-tab="resellers"]{font-size:0}
+body.reseller-mode [data-tab="resellers"]::after{content:"♙ ساخت نماینده";font-size:13px}
+body.reseller-mode .reseller-top-grid{display:block}
+body.reseller-mode #resellers .reseller-top-grid>.card:first-child{display:block}
 /* Keep the dragon clearly visible above the real login form. */
 body:has(#loginPage:not(.hidden)) .dragon-panel{
   background:linear-gradient(180deg,#142b43 0%,#172f49 58%,#1b3048 100%);
@@ -1286,7 +1290,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
   <button class="nav-btn active admin-only" data-tab="overview">▦ داشبورد اصلی</button>
   <div class="menu-title">مدیریت مجموعه</div>
   <button class="nav-btn" data-tab="resellers">♙ مدیریت نمایندگان و سهمیه</button>
-  <button class="nav-btn" data-tab="customers">♧ مشتریان</button>
+  <button class="nav-btn admin-only" data-tab="customers">♧ مشتریان</button>
   <button class="nav-btn admin-only" data-tab="servers">▤ سرورها</button>
   <button class="nav-btn" data-tab="configs">🔐 ساخت کانفیگ</button>
   <button class="nav-btn admin-only" data-tab="serverManagement">🖥️ مدیریت سرور</button>
@@ -1609,7 +1613,7 @@ $("logoutButton").addEventListener("click",async()=>{
 function openTab(tabId){
  const allowed=["overview","resellers","customers","servers","configs","serverManagement"];
  if(!allowed.includes(tabId))return;
- if(role!=="admin"&&!["configs","customers","resellers"].includes(tabId))return;
+ if(role!=="admin"&&!["configs","resellers"].includes(tabId))return;
  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
  $(tabId).classList.add("active");
  document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.classList.toggle("active",btn.dataset.tab===tabId));
