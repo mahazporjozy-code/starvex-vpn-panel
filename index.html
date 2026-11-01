@@ -1478,7 +1478,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <div style="padding:18px;border:1px solid #4b4058;border-radius:10px;background:#080a10;color:#8fdda9;font-family:monospace;direction:ltr;text-align:left;min-height:145px">
      <div>STARVEX NEXUS · SECURE SERVER CONSOLE</div>
      <div id="serverApiState" style="margin-top:12px;color:#b8afc5">Checking authenticated backend...</div>
-     <div style="margin-top:8px;color:#b8afc5">VPS agent: not provisioned</div>
+     <div id="serverAgentCount" style="margin-top:8px;color:#b8afc5">VPS agents: checking...</div>
      <div id="serverTerminalMessage" style="margin-top:16px;color:#d9ad52">› Terminal offline · awaiting VPS</div>
     </div>
     <button class="primary" type="button" disabled style="opacity:.55;cursor:not-allowed">ترمینال پس از راه‌اندازی عامل امن فعال می‌شود</button>
@@ -1595,6 +1595,7 @@ async function refreshServerStatus(){
    ?(connected.length+" سرور متصل")
    :(count?"هیچ Agent متصلی نیست":"هنوز سروری ثبت نشده");
   apiState.textContent="Backend authenticated · "+connected.length+" active agent(s) · "+(result.total_agents||0)+" registered agent(s)";
+  $("serverAgentCount").textContent="VPS agents: "+(result.total_agents||0)+" registered · "+connected.length+" connected";
   $("serverTerminalMessage").textContent="› Terminal offline · read-only monitoring only";
   $("serverCpu").textContent=result.metrics?.cpu==null?"—":result.metrics.cpu+"٪";
   $("serverMemory").textContent=result.metrics?.memory==null?"—":result.metrics.memory+"٪";
@@ -1605,6 +1606,7 @@ async function refreshServerStatus(){
  }catch(error){
   state.textContent="خطا در دریافت وضعیت";
   apiState.textContent="Backend status unavailable";
+  $("serverAgentCount").textContent="VPS agents: status unavailable";
   $("serverTerminalMessage").textContent="› Monitoring unavailable · no remote commands";
   $("serverCpu").textContent="—";$("serverMemory").textContent="—";$("serverDisk").textContent="—";
   message.textContent=error.message||"بررسی وضعیت انجام نشد.";
