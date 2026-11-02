@@ -472,6 +472,8 @@ z-index:10;
 <div class="stat"><small>فعال برای کاربران جدید</small><div class="num" id="serverEnabled">—</div></div>
 </div>
 <button class="secondary" id="refreshServers">↻ بروزرسانی وضعیت سرورها</button>
+<button class="primary" id="discoverFerdowsiBtn" type="button" style="margin:10px 0">شناسایی VPS ابر فردوسی (فقط خواندنی)</button>
+<div id="ferdowsiReadOnlyResult" class="server-note hidden" style="white-space:pre-wrap;direction:ltr;text-align:left;overflow-wrap:anywhere"></div>
 <div id="serverList" class="server-grid" style="margin-top:14px"></div>
 <div id="serverMsg" class="msg hidden"></div>
 </div>
@@ -927,6 +929,35 @@ async function loadServerManager(){
 }
 
 $("refreshServers").onclick=loadServerManager;
+
+$("discoverFerdowsiBtn")?.addEventListener("click", async () => {
+ const button = $("discoverFerdowsiBtn");
+ const box = $("ferdowsiReadOnlyResult");
+ if (role !== "admin") { msg("serverMsg", "فقط مدیر اصلی مجاز است."); return; }
+ button.disabled = true;
+ button.textContent = "در حال شناسایی امن...";
+ box.classList.remove("hidden");
+ box.textContent = "در حال دریافت فهرست مناطق و ماشین‌های مجازی از ابر فردوسی...";
+ try {
+  const { data, error } = await db.functions.invoke("ferdowsi-readonly", { body: { action: "read-overview" } });
+  if (error) throw error;
+  if (!data?.ok) throw Error(data?.error || "دریافت اطلاعات ابر فردوسی ناموفق بود.");
+  const summary = {
+   حالت: "فقط خواندنی؛ هیچ تغییری روی VPS انجام نشده",
+   مناطق: data.regions,
+   مسیر_فهرست_ماشین‌ها: data.vm_route_discovered || "در مستندات خودکار شناسایی نشد",
+   ماشین‌های_مجازی: data.vm_lists || [],
+   توضیح: data.note || ""
+  };
+  box.textContent = JSON.stringify(summary, null, 2);
+ } catch (e) {
+  box.textContent = "خطا در اتصال: " + (e.message || e);
+ } finally {
+  button.disabled = false;
+  button.textContent = "تلاش دوباره برای شناسایی VPS ابر فردوسی";
+ }
+});
+
 $("addServerBtn").onclick=async()=>{
  const b=$("addServerBtn");b.disabled=true;
  try{
