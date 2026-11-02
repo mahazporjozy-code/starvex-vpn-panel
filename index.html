@@ -2139,13 +2139,33 @@ async function loadFerdowsiInventory(){
    table.appendChild(tr);
   });
   const tableWrap=document.createElement("div");tableWrap.className="table-wrap";tableWrap.appendChild(table);
+  const machinesAll=[];
+  lists.forEach(item=>{
+   const machines=findApiArray(item.data,["virtual_machines","vms","machines","droplets","data","items","results"])||[];
+   machines.forEach(vm=>machinesAll.push({...vm,region:vm.region||item.region}));
+  });
+  const vmTitle=document.createElement("h3");vmTitle.className="section-title";vmTitle.style.marginTop="18px";vmTitle.textContent="مشخصات ماشین‌های مجازی";
+  const vmWrap=document.createElement("div");vmWrap.className="table-wrap";
+  const vmTable=document.createElement("table"),vmHead=document.createElement("tr");
+  ["نام ماشین","شناسه","وضعیت","IP عمومی","سیستم‌عامل","نوع ماشین","CPU","RAM","دیسک","منطقه"].forEach(label=>{const th=document.createElement("th");th.textContent=label;vmHead.appendChild(th)});
+  vmTable.appendChild(vmHead);
+  machinesAll.forEach(vm=>{
+   const tr=document.createElement("tr");
+   const values=[vm.name||"—",vm.id||"—",vm.status||vm.task_state||"—",vm.floating_ip? (vm.ip||"—") : (vm.ip||"—"),[vm.image?.os_distro,vm.image?.os_type].filter(Boolean).join(" / ")||"—",vm.machine_type||"—",vm.flavor?.vcpus??"—",vm.flavor?.ram!=null?(Number(vm.flavor.ram)>=1024?(Number(vm.flavor.ram)/1024)+" GB":vm.flavor.ram+" MB"):"—",vm.flavor?.disk!=null?vm.flavor.disk+" GB":"—",vm.region||"—"];
+   values.forEach(value=>{const td=document.createElement("td");td.textContent=String(value);tr.appendChild(td)});
+   vmTable.appendChild(tr);
+  });
+  if(!machinesAll.length){const empty=document.createElement("p");empty.className="muted";empty.textContent="در حال حاضر ماشین مجازی‌ای برای نمایش وجود ندارد.";vmWrap.appendChild(empty)}else vmWrap.appendChild(vmTable);
   const technicalWrap=document.createElement("div");technicalWrap.style.cssText="margin-top:14px;display:flex;flex-direction:column;gap:10px";
-  const technicalButton=document.createElement("button");technicalButton.type="button";technicalButton.className="secondary-btn";technicalButton.textContent="نمایش مشخصات فنی API";
+  const technicalButton=document.createElement("button");technicalButton.type="button";technicalButton.className="secondary-btn";technicalButton.textContent="نمایش پاسخ فنی API (اطلاعات محرمانه حذف‌شده)";
   const pre=document.createElement("pre");pre.hidden=true;pre.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;font-size:11px;max-height:360px;overflow:auto;color:#d8d0e3;background:#090a11;padding:12px;border-radius:8px";
-  pre.textContent=JSON.stringify(data,null,2);
-  technicalButton.addEventListener("click",()=>{pre.hidden=!pre.hidden;technicalButton.textContent=pre.hidden?"نمایش مشخصات فنی API":"بستن مشخصات فنی API"});
+  const safeApiData=JSON.parse(JSON.stringify(data));
+  const redactSecrets=(value)=>{if(Array.isArray(value)){value.forEach(redactSecrets);return}if(value&&typeof value==="object"){Object.keys(value).forEach(key=>{if(/password|passwd|secret|token|api.?key|private.?key/i.test(key)){value[key]="[REDACTED]"}else redactSecrets(value[key])})}};
+  redactSecrets(safeApiData);
+  pre.textContent=JSON.stringify(safeApiData,null,2);
+  technicalButton.addEventListener("click",()=>{pre.hidden=!pre.hidden;technicalButton.textContent=pre.hidden?"نمایش پاسخ فنی API (اطلاعات محرمانه حذف‌شده)":"بستن پاسخ فنی API"});
   technicalWrap.append(technicalButton,pre);
-  box.className="";box.replaceChildren(regionWrap,tableWrap,technicalWrap);
+  box.className="";box.replaceChildren(regionWrap,tableWrap,vmTitle,vmWrap,technicalWrap);
  }catch(e){
   message.textContent="دریافت اطلاعات ابر فردوسی ناموفق بود: "+(e.message||"خطای نامشخص");
   box.textContent="پس از بررسی نشست مدیر، وضعیت کلید API و گزارش تابع را بررسی می‌کنیم.";
