@@ -1433,6 +1433,14 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <button class="secondary-btn hidden" id="cancelServerEdit" type="button">لغو ویرایش</button>
     <div id="serverMsg" class="message hidden" role="status"></div>
    </div>
+   <div class="card" id="ferdowsiCard">
+    <div class="dashboard-head">
+     <div><h2 class="section-title">اتصال ابر فردوسی</h2><p class="muted">دریافت فقط‌خواندنی مناطق و ماشین‌های مجازی از API ابر فردوسی</p></div>
+     <button class="secondary-btn" id="refreshFerdowsi" type="button">دریافت اطلاعات</button>
+    </div>
+    <div id="ferdowsiMsg" class="message" role="status">برای دریافت اطلاعات، دکمه «دریافت اطلاعات» را بزنید.</div>
+    <div id="ferdowsiInventory" class="empty">هنوز اطلاعاتی دریافت نشده است.</div>
+   </div>
    <div class="card"><div class="dashboard-head"><h2 class="section-title">فهرست سرورها</h2><button class="secondary-btn" id="refreshServers" type="button">بروزرسانی</button></div><div id="serverList" class="empty">در حال دریافت...</div></div>
    <div class="card"><div class="dashboard-head"><h2 class="section-title">مشتریان و اشتراک‌های هر سرور</h2><button class="secondary-btn" id="refreshServerAssignments" type="button">بروزرسانی تخصیص‌ها</button></div><div id="serverAssignments" class="empty">در حال دریافت اطلاعات تخصیص...</div></div>
   </section>
@@ -2085,6 +2093,67 @@ function renderServerHealth(){
  box.className="";box.replaceChildren(wrap);
 }
 
+function findApiArray(value, keys, depth=0){
+ if(depth>5||value==null)return null;
+ if(Array.isArray(value))return value;
+ if(typeof value!=="object")return null;
+ for(const key of keys){if(Array.isArray(value[key]))return value[key]}
+ for(const child of Object.values(value)){const found=findApiArray(child,keys,depth+1);if(found)return found}
+ return null;
+}
+function apiItemLabel(item){
+ if(typeof item==="string"||typeof item==="number")return String(item);
+ return String(item?.region??item?.code??item?.slug??item?.name??item?.hostname??item?.id??"مورد بدون نام");
+}
+async function loadFerdowsiInventory(){
+ if(role!=="admin")return;
+ const button=$("refreshFerdowsi"),message=$("ferdowsiMsg"),box=$("ferdowsiInventory");
+ if(!button||!message||!box)return;
+ button.disabled=true;button.textContent="در حال دریافت...";
+ message.textContent="در حال ارتباط امن با تابع فقط‌خواندنی ابر فردوسی...";
+ box.textContent="در حال دریافت مناطق و ماشین‌های مجازی...";
+ try{
+  const {data,error}=await db.functions.invoke("ferdowsi-readonly",{body:{action:"read-overview",machine_type:"ALL"}});
+  if(error)throw error;
+  if(!data?.ok)throw new Error(data?.error||"پاسخ معتبر از سرویس دریافت نشد.");
+  const regions=findApiArray(data.regions,["regions","data","items","results"])||[];
+  const lists=Array.isArray(data.vm_lists)?data.vm_lists:[];
+  const total=lists.reduce((sum,item)=>sum+(findApiArray(item.data,["virtual_machines","vms","machines","droplets","data","items","results"])||[]).length,0);
+  message.textContent="اتصال موفق؛ "+regions.length+" منطقه و "+total+" ماشین مجازی در پاسخ API شناسایی شد. حالت فقط‌خواندنی فعال است.";
+  const regionWrap=document.createElement("div");regionWrap.className="card";regionWrap.style.marginTop="12px";
+  const regionTitle=document.createElement("h3");regionTitle.className="section-title";regionTitle.textContent="مناطق قابل‌دسترسی";regionWrap.appendChild(regionTitle);
+  if(regions.length){
+   const regionList=document.createElement("div");regionList.className="quick-grid";
+   regions.forEach(item=>{const tag=document.createElement("div");tag.className="quick-btn";tag.textContent=apiItemLabel(item);regionList.appendChild(tag)});
+   regionWrap.appendChild(regionList);
+  }else{
+   const note=document.createElement("p");note.className="muted";note.textContent="ساختار پاسخ مناطق آرایه‌ای نبود؛ جزئیات خام در بخش پاسخ API قابل مشاهده است.";regionWrap.appendChild(note);
+  }
+  const table=document.createElement("table"),head=document.createElement("tr");
+  ["منطقه","وضعیت پاسخ","تعداد ماشین","جزئیات ماشین‌ها"].forEach(label=>{const th=document.createElement("th");th.textContent=label;head.appendChild(th)});
+  table.appendChild(head);
+  lists.forEach(item=>{
+   const machines=findApiArray(item.data,["virtual_machines","vms","machines","droplets","data","items","results"])||[];
+   const tr=document.createElement("tr");
+   [item.region||"—",item.ok?"موفق":"ناموفق",String(machines.length),machines.length?machines.map(apiItemLabel).join("، "):item.error||"ماشینی در پاسخ شناسایی نشد"].forEach(value=>{const td=document.createElement("td");td.textContent=String(value);tr.appendChild(td)});
+   table.appendChild(tr);
+  });
+  const tableWrap=document.createElement("div");tableWrap.className="table-wrap";tableWrap.appendChild(table);
+  const details=document.createElement("details");details.style.marginTop="14px";
+  const summary=document.createElement("summary");summary.textContent="مشاهده پاسخ فنی API";summary.style.cursor="pointer";summary.style.color="#f0ce80";
+  const pre=document.createElement("pre");pre.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;font-size:10px;max-height:360px;overflow:auto;color:#d8d0e3;background:#090a11;padding:12px;border-radius:8px";
+  pre.textContent=JSON.stringify({regions:data.regions,vm_lists:data.vm_lists,read_only:data.read_only},null,2);
+  details.append(summary,pre);
+  box.className="";box.replaceChildren(regionWrap,tableWrap,details);
+ }catch(e){
+  message.textContent="دریافت اطلاعات ابر فردوسی ناموفق بود: "+(e.message||"خطای نامشخص");
+  box.textContent="پس از بررسی نشست مدیر، وضعیت کلید API و گزارش تابع را بررسی می‌کنیم.";
+  console.error("STARVEX Ferdowsi read-only request failed",e);
+ }finally{
+  button.disabled=false;button.textContent="دریافت اطلاعات";
+ }
+}
+
 async function loadServers(){
  if(role!=="admin")return;
  const box=$("serverList");box.textContent="در حال دریافت...";
@@ -2094,6 +2163,7 @@ async function loadServers(){
    .order("created_at",{ascending:true});
   if(error)throw error;
   serverInventoryCache=data||[];
+  await loadFerdowsiInventory();
   try{await fetchServerAgentStates()}catch(agentError){console.warn("Agent status unavailable:",agentError)}
   renderServerHealth();
   if(!serverInventoryCache.length){
@@ -2204,6 +2274,7 @@ $("saveServerButton").addEventListener("click",saveServer);
 $("cancelServerEdit").addEventListener("click",()=>{resetServerForm();hideMessage("serverMsg")});
 $("refreshServers").addEventListener("click",loadServers);
 $("refreshServerAssignments").addEventListener("click",loadServerAssignments);
+$("refreshFerdowsi").addEventListener("click",loadFerdowsiInventory);
 
 /* بروزرسانی داشبورد */
 async function loadConfigOptions(){
