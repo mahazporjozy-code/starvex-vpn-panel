@@ -2139,12 +2139,13 @@ async function loadFerdowsiInventory(){
    table.appendChild(tr);
   });
   const tableWrap=document.createElement("div");tableWrap.className="table-wrap";tableWrap.appendChild(table);
-  const details=document.createElement("details");details.style.marginTop="14px";
-  const summary=document.createElement("summary");summary.textContent="مشاهده پاسخ فنی API";summary.style.cursor="pointer";summary.style.color="#f0ce80";
-  const pre=document.createElement("pre");pre.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;font-size:10px;max-height:360px;overflow:auto;color:#d8d0e3;background:#090a11;padding:12px;border-radius:8px";
-  pre.textContent=JSON.stringify({regions:data.regions,vm_lists:data.vm_lists,read_only:data.read_only},null,2);
-  details.append(summary,pre);
-  box.className="";box.replaceChildren(regionWrap,tableWrap,details);
+  const technicalWrap=document.createElement("div");technicalWrap.style.cssText="margin-top:14px;display:flex;flex-direction:column;gap:10px";
+  const technicalButton=document.createElement("button");technicalButton.type="button";technicalButton.className="secondary-btn";technicalButton.textContent="نمایش مشخصات فنی API";
+  const pre=document.createElement("pre");pre.hidden=true;pre.style.cssText="white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;font-size:11px;max-height:360px;overflow:auto;color:#d8d0e3;background:#090a11;padding:12px;border-radius:8px";
+  pre.textContent=JSON.stringify(data,null,2);
+  technicalButton.addEventListener("click",()=>{pre.hidden=!pre.hidden;technicalButton.textContent=pre.hidden?"نمایش مشخصات فنی API":"بستن مشخصات فنی API"});
+  technicalWrap.append(technicalButton,pre);
+  box.className="";box.replaceChildren(regionWrap,tableWrap,technicalWrap);
  }catch(e){
   message.textContent="دریافت اطلاعات ابر فردوسی ناموفق بود: "+(e.message||"خطای نامشخص");
   box.textContent="پس از بررسی نشست مدیر، وضعیت کلید API و گزارش تابع را بررسی می‌کنیم.";
