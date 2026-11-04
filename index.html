@@ -1511,6 +1511,58 @@ let role=null;
 let currentUser=null;
 const $=id=>document.getElementById(id);
 
+/* بازیابی رمز عبور Supabase */
+const recoveryForm=document.createElement("form");
+recoveryForm.id="recoveryForm";
+recoveryForm.className="hidden";
+recoveryForm.innerHTML=`
+ <h2>تعیین رمز عبور جدید</h2>
+ <p class="muted">برای حساب STARVEX NEXUS یک رمز تازه وارد کنید.</p>
+ <input id="recoveryNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="رمز جدید (حداقل ۸ کاراکتر)" required>
+ <input id="recoveryConfirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="تکرار رمز جدید" required>
+ <button class="primary" id="recoverySaveButton" type="submit">ثبت رمز جدید</button>
+ <div id="recoveryMsg" class="message hidden" role="status"></div>
+`;
+$("loginForm").insertAdjacentElement("afterend",recoveryForm);
+
+recoveryForm.addEventListener("submit",async event=>{
+ event.preventDefault();
+ const password=$("recoveryNewPassword").value;
+ const confirmation=$("recoveryConfirmPassword").value;
+ const button=$("recoverySaveButton");
+ hideMessage("recoveryMsg");
+ if(password.length<8){showMessage("recoveryMsg","رمز باید حداقل ۸ کاراکتر باشد.");return}
+ if(password!==confirmation){showMessage("recoveryMsg","تکرار رمز با رمز جدید یکسان نیست.");return}
+ setLoading(button,true,"ثبت رمز جدید");
+ try{
+  const {error}=await db.auth.updateUser({password});
+  if(error)throw error;
+  $("recoveryNewPassword").value="";
+  $("recoveryConfirmPassword").value="";
+  await db.auth.signOut({scope:"local"});
+  recoveryForm.classList.add("hidden");
+  $("loginForm").classList.remove("hidden");
+  showMessage("loginMsg","رمز عبور با موفقیت تغییر کرد. اکنون با رمز جدید وارد شوید.");
+ }catch(error){
+  showMessage("recoveryMsg","تغییر رمز انجام نشد: "+(error.message||"خطای نامشخص"));
+ }finally{
+  button.disabled=false;button.textContent="ثبت رمز جدید";
+ }
+});
+
+db.auth.onAuthStateChange(event=>{
+ if(event==="PASSWORD_RECOVERY"){
+  $("loginForm").classList.add("hidden");
+  recoveryForm.classList.remove("hidden");
+  hideMessage("loginMsg");
+  setTimeout(()=>$("recoveryNewPassword")?.focus(),0);
+ }
+ if(event==="SIGNED_OUT"){
+  recoveryForm.classList.add("hidden");
+  $("loginForm").classList.remove("hidden");
+ }
+});
+
 $("togglePassword")?.addEventListener("click",()=>{
  const input=$("password");
  const button=$("togglePassword");
