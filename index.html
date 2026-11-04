@@ -1503,6 +1503,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <h2 class="section-title">تغییر رمز عبور حساب</h2>
     <p class="muted">رمز جدید فقط برای حساب فعلی شما ثبت می‌شود. حداقل ۸ کاراکتر انتخاب کنید و آن را در اختیار کسی قرار ندهید.</p>
     <form id="accountPasswordForm">
+     <input id="accountCurrentPassword" type="password" autocomplete="current-password" placeholder="رمز فعلی" required>
      <input id="accountNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="رمز جدید (حداقل ۸ کاراکتر)" required>
      <input id="accountConfirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="تکرار رمز جدید" required>
      <button class="primary" id="accountPasswordButton" type="submit">ثبت رمز جدید</button>
@@ -1727,16 +1728,19 @@ document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click"
 /* تغییر رمز از نشست فعال حساب */
 $("accountPasswordForm").addEventListener("submit",async event=>{
  event.preventDefault();
+ const currentPassword=$("accountCurrentPassword").value;
  const password=$("accountNewPassword").value;
  const confirmation=$("accountConfirmPassword").value;
  const button=$("accountPasswordButton");
  hideMessage("accountPasswordMsg");
+ if(!currentPassword){showMessage("accountPasswordMsg","رمز فعلی را وارد کنید.");return}
  if(password.length<8){showMessage("accountPasswordMsg","رمز باید حداقل ۸ کاراکتر باشد.");return}
  if(password!==confirmation){showMessage("accountPasswordMsg","تکرار رمز با رمز جدید یکسان نیست.");return}
  setLoading(button,true,"ثبت رمز جدید");
  try{
-  const {error}=await db.auth.updateUser({password});
+  const {error}=await db.auth.updateUser({current_password:currentPassword,password});
   if(error)throw error;
+  $("accountCurrentPassword").value="";
   $("accountNewPassword").value="";
   $("accountConfirmPassword").value="";
   showMessage("accountPasswordMsg","رمز عبور با موفقیت تغییر کرد. نشست فعلی باز می‌ماند؛ دفعه بعد با رمز جدید وارد شوید.");
