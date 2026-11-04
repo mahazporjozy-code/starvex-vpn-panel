@@ -1303,6 +1303,7 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
   <button class="nav-btn admin-only" data-tab="servers">▤ سرورها</button>
   <button class="nav-btn" data-tab="configs">🔐 ساخت کانفیگ</button>
   <button class="nav-btn admin-only" data-tab="serverManagement">🖥️ مدیریت سرور</button>
+  <button class="nav-btn" data-tab="accountSecurity">🔒 امنیت حساب</button>
   <div class="sidebar-bottom">
    <div class="sidebar-footer-label">STARVEX NEXUS · v1.0</div>
    <button class="nav-btn" id="logoutButton">↪ خروج از حساب</button>
@@ -1497,6 +1498,18 @@ body:has(#loginPage:not(.hidden)) .login-box{position:relative!important;z-index
     <p class="muted" style="margin-top:14px">دسترسی این بخش فقط برای مدیر اصلی است. کلید خصوصی SSH و توکن عامل سرور در مرورگر یا فایل‌های عمومی ذخیره نمی‌شوند.</p>
    </div>
   </section>
+  <section class="tab" id="accountSecurity">
+   <div class="card">
+    <h2 class="section-title">تغییر رمز عبور حساب</h2>
+    <p class="muted">رمز جدید فقط برای حساب فعلی شما ثبت می‌شود. حداقل ۸ کاراکتر انتخاب کنید و آن را در اختیار کسی قرار ندهید.</p>
+    <form id="accountPasswordForm">
+     <input id="accountNewPassword" type="password" autocomplete="new-password" minlength="8" placeholder="رمز جدید (حداقل ۸ کاراکتر)" required>
+     <input id="accountConfirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="تکرار رمز جدید" required>
+     <button class="primary" id="accountPasswordButton" type="submit">ثبت رمز جدید</button>
+    </form>
+    <div id="accountPasswordMsg" class="message hidden" role="status"></div>
+   </div>
+  </section>
 </main>
 </div>
 
@@ -1684,9 +1697,9 @@ $("logoutButton").addEventListener("click",async()=>{
 
 /* جابجایی بین بخش‌ها */
 function openTab(tabId){
- const allowed=["overview","resellers","customers","servers","configs","serverManagement"];
+ const allowed=["overview","resellers","customers","servers","configs","serverManagement","accountSecurity"];
  if(!allowed.includes(tabId))return;
- if(role!=="admin"&&!["configs","resellers","customers"].includes(tabId))return;
+ if(role!=="admin"&&!["configs","resellers","customers","accountSecurity"].includes(tabId))return;
   if(role!=="admin"&&["servers","serverManagement"].includes(tabId))return;
  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
  $(tabId).classList.add("active");
@@ -1697,7 +1710,8 @@ function openTab(tabId){
   customers:"مدیریت مشتریان",
   servers:"مدیریت سرورها",
     configs:"ساخت کانفیگ",
-  serverManagement:"مدیریت سرور"
+  serverManagement:"مدیریت سرور",
+  accountSecurity:"امنیت حساب"
  };
  $("pageTitle").textContent=titles[tabId];
  closeMobileMenu();
@@ -1709,6 +1723,30 @@ function openTab(tabId){
 }
 document.querySelectorAll(".nav-btn[data-tab]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.tab)));
 document.querySelectorAll("[data-go]").forEach(btn=>btn.addEventListener("click",()=>openTab(btn.dataset.go)));
+
+/* تغییر رمز از نشست فعال حساب */
+$("accountPasswordForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+ const password=$("accountNewPassword").value;
+ const confirmation=$("accountConfirmPassword").value;
+ const button=$("accountPasswordButton");
+ hideMessage("accountPasswordMsg");
+ if(password.length<8){showMessage("accountPasswordMsg","رمز باید حداقل ۸ کاراکتر باشد.");return}
+ if(password!==confirmation){showMessage("accountPasswordMsg","تکرار رمز با رمز جدید یکسان نیست.");return}
+ setLoading(button,true,"ثبت رمز جدید");
+ try{
+  const {error}=await db.auth.updateUser({password});
+  if(error)throw error;
+  $("accountNewPassword").value="";
+  $("accountConfirmPassword").value="";
+  showMessage("accountPasswordMsg","رمز عبور با موفقیت تغییر کرد. نشست فعلی باز می‌ماند؛ دفعه بعد با رمز جدید وارد شوید.");
+ }catch(error){
+  const message=error.message||"خطای نامشخص";
+  showMessage("accountPasswordMsg","تغییر رمز انجام نشد: "+message);
+ }finally{
+  button.disabled=false;button.textContent="ثبت رمز جدید";
+ }
+});
 
 /* منوی موبایل */
 function closeMobileMenu(){
